@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Peserta - Pembuat Ujian</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+    <!-- Common CSS -->
+    <link rel="stylesheet" href="css/common.css" />
+  </head>
+  <body>
+    <!-- Auto-save indicator -->
+    <div class="auto-save-indicator" id="autoSaveIndicator" style="display: none">
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        <span id="autoSaveText">Auto-saved</span>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
+          <div class="position-sticky pt-3">
+            <div class="text-center mb-4">
+              <h4 class="text-white">
+                <i class="bi bi-mortarboard me-2"></i>
+                Pembuat Ujian
+              </h4>
+            </div>
+
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                  <i class="bi bi-speedometer2 me-2"></i>
+                  Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="exam.html">
+                  <i class="bi bi-file-text me-2"></i>
+                  Ujian
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="questions.html">
+                  <i class="bi bi-question-circle me-2"></i>
+                  Bank Soal
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="participants.html">
+                  <i class="bi bi-people me-2"></i>
+                  Peserta
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="proctoring.html">
+                  <i class="bi bi-camera-video me-2"></i>
+                  Pengawas
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="reports.html">
+                  <i class="bi bi-graph-up me-2"></i>
+                  Laporan
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="settings.html">
+                  <i class="bi bi-gear me-2"></i>
+                  Pengaturan
+                </a>
+              </li>
+              <li class="nav-item mt-4">
+                <a class="nav-link" href="candidate.html">
+                  <i class="bi bi-person-check me-2"></i>
+                  Tampilan Peserta
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+          <!-- Top Navbar -->
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <button class="btn btn-outline-secondary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
+              <i class="bi bi-list"></i>
+            </button>
+            <h1 class="h2">Manajemen Peserta</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-download me-1"></i>
+                  Ekspor
+                </button>
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-person-circle me-1"></i>
+                  Admin
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profil</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Pengaturan</a>
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Participants Content -->
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+            <h2>Manajemen Peserta</h2>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importParticipantsModal"><i class="bi bi-upload me-2"></i>Impor CSV</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addParticipantModal"><i class="bi bi-person-plus me-2"></i>Tambah Peserta</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search and Filter -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Cari peserta..." id="participantSearch" />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="statusFilterParticipants">
+                <option value="">Semua Status</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Tidak Aktif</option>
+                <option value="suspended">Ditangguhkan</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="examFilterParticipants">
+                <option value="">Semua Ujian</option>
+                <option value="MATH-101">Ujian Akhir Matematika</option>
+                <option value="PHYS-201">Kuis Fisika</option>
+                <option value="CHEM-301">Ujian Kimia</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Participants Table -->
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover" id="participantsTable">
+                  <thead>
+                    <tr>
+                      <th width="5%">
+                        <input type="checkbox" class="form-check-input" id="selectAllParticipants" />
+                      </th>
+                      <th width="25%">Nama</th>
+                      <th width="25%">Email</th>
+                      <th width="20%">Ujian yang Ditetapkan</th>
+                      <th width="15%">Status</th>
+                      <th width="10%">Progress</th>
+                      <th width="15%">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="participantsTableBody">
+                    <!-- Participants will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                  <button class="btn btn-outline-primary btn-sm me-2" id="assignExamBtn" disabled><i class="bi bi-person-check me-1"></i>Tetapkan Ujian</button>
+                  <button class="btn btn-outline-danger btn-sm" id="removeSelected" disabled><i class="bi bi-trash me-1"></i>Hapus Terpilih</button>
+                </div>
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#" tabindex="-1">Sebelumnya</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">Selanjutnya</a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Import Participants Modal -->
+    <div class="modal fade" id="importParticipantsModal" tabindex="-1" aria-labelledby="importParticipantsModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="importParticipantsModalLabel">Impor Peserta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="csvFile" class="form-label">File CSV</label>
+              <input type="file" class="form-control" id="csvFile" accept=".csv" />
+              <div class="form-text">Upload file CSV dengan kolom: Nama, Email, Kode Ujian</div>
+            </div>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>Format CSV contoh:</strong><br />
+              Nama,Email,Kode Ujian<br />
+              John Doe,john@email.com,MATH-101<br />
+              Jane Smith,jane@email.com,MATH-101
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="importParticipantsBtn">Impor</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Participant Modal -->
+    <div class="modal fade" id="addParticipantModal" tabindex="-1" aria-labelledby="addParticipantModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addParticipantModalLabel">Tambah Peserta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="participantName" class="form-label">Nama Lengkap *</label>
+              <input type="text" class="form-control" id="participantName" required />
+            </div>
+            <div class="mb-3">
+              <label for="participantEmail" class="form-label">Alamat Email *</label>
+              <input type="email" class="form-control" id="participantEmail" required />
+            </div>
+            <div class="mb-3">
+              <label for="assignedExam" class="form-label">Tetapkan ke Ujian</label>
+              <select class="form-select" id="assignedExam">
+                <option value="">Pilih Ujian (Opsional)</option>
+                <option value="MATH-101">Ujian Akhir Matematika</option>
+                <option value="PHYS-201">Kuis Fisika</option>
+                <option value="CHEM-301">Ujian Kimia</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="addParticipantBtn">Tambah Peserta</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Common JS -->
+    <script src="js/common.js"></script>
+    <!-- Participants specific JS -->
+    <script src="js/participants.js"></script>
+  </body>
+</html>
+
