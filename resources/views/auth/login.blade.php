@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Login - Ujian Online</title>
+   <meta name="csrf-token" content="{{ csrf_token() }}">
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         min-height: 100vh;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+      }
+
+      .login-container {
+         background: white;
+         border-radius: 20px;
+         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+         padding: 40px;
+         width: 100%;
+         max-width: 400px;
+         position: relative;
+         overflow: hidden;
+      }
+
+      .login-container::before {
+         content: '';
+         position: absolute;
+         top: 0;
+         left: 0;
+         right: 0;
+         height: 5px;
+         background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .logo {
+         text-align: center;
+         margin-bottom: 30px;
+      }
+
+      .logo h1 {
+         color: #333;
+         font-size: 28px;
+         font-weight: 700;
+         margin-bottom: 5px;
+      }
+
+      .logo p {
+         color: #666;
+         font-size: 14px;
+      }
+
+      .login-tabs {
+         display: flex;
+         margin-bottom: 30px;
+         border-radius: 10px;
+         overflow: hidden;
+         background: #f8f9fa;
+      }
+
+      .tab-button {
+         flex: 1;
+         padding: 12px;
+         border: none;
+         background: transparent;
+         cursor: pointer;
+         font-weight: 600;
+         transition: all 0.3s ease;
+         color: #666;
+      }
+
+      .tab-button.active {
+         background: #667eea;
+         color: white;
+      }
+
+      .tab-content {
+         display: none;
+      }
+
+      .tab-content.active {
+         display: block;
+      }
+
+      .form-group {
+         margin-bottom: 20px;
+      }
+
+      .form-group label {
+         display: block;
+         margin-bottom: 8px;
+         color: #333;
+         font-weight: 600;
+         font-size: 14px;
+      }
+
+      .form-group input {
+         width: 100%;
+         padding: 12px 16px;
+         border: 2px solid #e1e5e9;
+         border-radius: 10px;
+         font-size: 16px;
+         transition: all 0.3s ease;
+         background: #f8f9fa;
+      }
+
+      .form-group input:focus {
+         outline: none;
+         border-color: #667eea;
+         background: white;
+         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .login-btn {
+         width: 100%;
+         padding: 14px;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         border: none;
+         border-radius: 10px;
+         font-size: 16px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         margin-top: 10px;
+      }
+
+      .login-btn:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .login-btn:disabled {
+         opacity: 0.6;
+         cursor: not-allowed;
+         transform: none;
+      }
+
+      .alert {
+         padding: 12px 16px;
+         border-radius: 8px;
+         margin-bottom: 20px;
+         font-size: 14px;
+      }
+
+      .alert-success {
+         background: #d4edda;
+         color: #155724;
+         border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+         background: #f8d7da;
+         color: #721c24;
+         border: 1px solid #f5c6cb;
+      }
+
+      .loading {
+         display: none;
+         text-align: center;
+         margin-top: 10px;
+      }
+
+      .spinner {
+         border: 2px solid #f3f3f3;
+         border-top: 2px solid #667eea;
+         border-radius: 50%;
+         width: 20px;
+         height: 20px;
+         animation: spin 1s linear infinite;
+         margin: 0 auto;
+      }
+
+      @keyframes spin {
+         0% {
+            transform: rotate(0deg);
+         }
+
+         100% {
+            transform: rotate(360deg);
+         }
+      }
+
+      /* Animations */
+      .login-container {
+         animation: slideInUp 0.8s ease-out;
+      }
+
+      @keyframes slideInUp {
+         from {
+            opacity: 0;
+            transform: translateY(50px);
+         }
+
+         to {
+            opacity: 1;
+            transform: translateY(0);
+         }
+      }
+
+      .logo h1 {
+         animation: fadeInDown 1s ease-out 0.2s both;
+      }
+
+      .logo p {
+         animation: fadeInDown 1s ease-out 0.4s both;
+      }
+
+      .form-group {
+         animation: fadeInUp 1s ease-out 0.6s both;
+      }
+
+      .form-group:nth-child(2) {
+         animation-delay: 0.8s;
+      }
+
+      .login-btn {
+         animation: fadeInUp 1s ease-out 1s both;
+      }
+
+      @keyframes fadeInDown {
+         from {
+            opacity: 0;
+            transform: translateY(-30px);
+         }
+
+         to {
+            opacity: 1;
+            transform: translateY(0);
+         }
+      }
+
+      @keyframes fadeInUp {
+         from {
+            opacity: 0;
+            transform: translateY(30px);
+         }
+
+         to {
+            opacity: 1;
+            transform: translateY(0);
+         }
+      }
+
+      /* Floating animation for background */
+      body::before {
+         content: '';
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         z-index: -2;
+         animation: float 6s ease-in-out infinite;
+      }
+
+      /* Animated Particles */
+      .particles {
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         z-index: -1;
+         overflow: hidden;
+      }
+
+      .particle {
+         position: absolute;
+         background: rgba(255, 255, 255, 0.1);
+         border-radius: 50%;
+         animation: floatParticle 8s infinite linear;
+      }
+
+      .particle:nth-child(1) {
+         width: 80px;
+         height: 80px;
+         left: 10%;
+         animation-delay: 0s;
+         animation-duration: 8s;
+      }
+
+      .particle:nth-child(2) {
+         width: 60px;
+         height: 60px;
+         left: 20%;
+         animation-delay: 2s;
+         animation-duration: 10s;
+      }
+
+      .particle:nth-child(3) {
+         width: 100px;
+         height: 100px;
+         left: 70%;
+         animation-delay: 4s;
+         animation-duration: 12s;
+      }
+
+      .particle:nth-child(4) {
+         width: 40px;
+         height: 40px;
+         left: 80%;
+         animation-delay: 1s;
+         animation-duration: 9s;
+      }
+
+      .particle:nth-child(5) {
+         width: 120px;
+         height: 120px;
+         left: 50%;
+         animation-delay: 3s;
+         animation-duration: 11s;
+      }
+
+      .particle:nth-child(6) {
+         width: 70px;
+         height: 70px;
+         left: 30%;
+         animation-delay: 5s;
+         animation-duration: 7s;
+      }
+
+      @keyframes floatParticle {
+         0% {
+            transform: translateY(100vh) rotate(0deg);
+            opacity: 0;
+         }
+
+         10% {
+            opacity: 1;
+         }
+
+         90% {
+            opacity: 1;
+         }
+
+         100% {
+            transform: translateY(-100px) rotate(360deg);
+            opacity: 0;
+         }
+      }
+
+      @keyframes float {
+
+         0%,
+         100% {
+            transform: translateY(0px);
+         }
+
+         50% {
+            transform: translateY(-20px);
+         }
+      }
+
+      /* Input focus animation */
+      .form-group input:focus {
+         animation: pulse 0.3s ease-in-out;
+      }
+
+      @keyframes pulse {
+         0% {
+            transform: scale(1);
+         }
+
+         50% {
+            transform: scale(1.02);
+         }
+
+         100% {
+            transform: scale(1);
+         }
+      }
+
+      /* Button hover animation */
+      .login-btn:hover {
+         animation: bounce 0.6s ease-in-out;
+      }
+
+      @keyframes bounce {
+
+         0%,
+         20%,
+         50%,
+         80%,
+         100% {
+            transform: translateY(0);
+         }
+
+         40% {
+            transform: translateY(-10px);
+         }
+
+         60% {
+            transform: translateY(-5px);
+         }
+      }
+
+      /* Loading animation enhancement */
+      .spinner {
+         animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
+      }
+
+      /* Success animation */
+      .alert-success {
+         animation: slideInRight 0.5s ease-out;
+      }
+
+      @keyframes slideInRight {
+         from {
+            opacity: 0;
+            transform: translateX(50px);
+         }
+
+         to {
+            opacity: 1;
+            transform: translateX(0);
+         }
+      }
+
+      /* Error animation */
+      .alert-error {
+         animation: shake 0.5s ease-in-out;
+      }
+
+      @keyframes shake {
+
+         0%,
+         100% {
+            transform: translateX(0);
+         }
+
+         25% {
+            transform: translateX(-5px);
+         }
+
+         75% {
+            transform: translateX(5px);
+         }
+      }
+
+      /* Professional Footer */
+      .login-footer {
+         margin-top: 30px;
+         text-align: center;
+         animation: fadeInUp 1s ease-out 1.2s both;
+      }
+
+      .security-badges {
+         display: flex;
+         justify-content: center;
+         gap: 20px;
+         margin-bottom: 15px;
+      }
+
+      .badge {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         padding: 10px 15px;
+         background: rgba(102, 126, 234, 0.1);
+         border-radius: 10px;
+         transition: all 0.3s ease;
+         cursor: pointer;
+      }
+
+      .badge:hover {
+         background: rgba(102, 126, 234, 0.2);
+         transform: translateY(-2px);
+      }
+
+      .badge i {
+         font-size: 20px;
+         margin-bottom: 5px;
+      }
+
+      .badge span {
+         font-size: 12px;
+         font-weight: 600;
+         color: #667eea;
+      }
+
+      .footer-text {
+         color: #999;
+         font-size: 12px;
+         margin: 0;
+      }
+
+      /* Enhanced form styling */
+      .form-group input {
+         transition: all 0.3s ease;
+         position: relative;
+      }
+
+      .form-group input:focus {
+         transform: translateY(-2px);
+         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+      }
+
+      /* Logo enhancement */
+      .logo h1 {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         -webkit-background-clip: text;
+         -webkit-text-fill-color: transparent;
+         background-clip: text;
+         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Button enhancement */
+      .login-btn {
+         position: relative;
+         overflow: hidden;
+      }
+
+      .login-btn::before {
+         content: '';
+         position: absolute;
+         top: 0;
+         left: -100%;
+         width: 100%;
+         height: 100%;
+         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+         transition: left 0.5s;
+      }
+
+      .login-btn:hover::before {
+         left: 100%;
+      }
+
+      /* Loading enhancement */
+      .loading p {
+         animation: fadeInOut 2s ease-in-out infinite;
+      }
+
+      @keyframes fadeInOut {
+
+         0%,
+         100% {
+            opacity: 0.5;
+         }
+
+         50% {
+            opacity: 1;
+         }
+      }
+
+      @media (max-width: 480px) {
+         .login-container {
+            margin: 20px;
+            padding: 30px 20px;
+         }
+
+         .security-badges {
+            gap: 10px;
+         }
+
+         .badge {
+            padding: 8px 12px;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <!-- Animated Background Particles -->
+   <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+   </div>
+
+   <div class="login-container">
+      <div class="logo">
+         <h1>🎓 Ujian Online</h1>
+         <p>Sistem Ujian Online yang Aman & Terpercaya</p>
+      </div>
+
+      <!-- Unified Login Form -->
+      <form id="loginForm">
+         <div class="form-group">
+            <label for="username">Username / Email / Kode Peserta</label>
+            <input type="text" id="username" name="username" required
+               placeholder="Masukkan username, email, atau kode peserta">
+         </div>
+         <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required
+               placeholder="Masukkan password">
+         </div>
+         <button type="submit" class="login-btn" id="loginBtn">
+            <span id="loginText">Login</span>
+            <div id="loginSpinner" class="spinner" style="display: none;"></div>
+         </button>
+      </form>
+
+      <div id="loading" class="loading">
+         <div class="spinner"></div>
+         <p>Memproses login...</p>
+      </div>
+
+      <!-- Professional Footer -->
+      <div class="login-footer">
+         <div class="security-badges">
+            <div class="badge">
+               <i class="shield-icon">🛡️</i>
+               <span>Secure</span>
+            </div>
+            <div class="badge">
+               <i class="lock-icon">🔒</i>
+               <span>Encrypted</span>
+            </div>
+            <div class="badge">
+               <i class="check-icon">✅</i>
+               <span>Verified</span>
+            </div>
+         </div>
+         <p class="footer-text">© 2024 Ujian Online. All rights reserved.</p>
+      </div>
+   </div>
+
+   <script>
+      // CSRF Token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+      // Auto-detect user type based on input
+      function detectUserType(username) {
+         // Check if it's an email (contains @)
+         if (username.includes('@')) {
+            return 'admin';
+         }
+         // Check if it's admin username
+         if (username.toLowerCase() === 'admin') {
+            return 'admin';
+         }
+         // Default to peserta
+         return 'peserta';
+      }
+
+      function showAlert(message, type = 'error') {
+         // Remove existing alerts
+         const existingAlert = document.querySelector('.alert');
+         if (existingAlert) {
+            existingAlert.remove();
+         }
+
+         // Create new alert
+         const alert = document.createElement('div');
+         alert.className = `alert alert-${type}`;
+         alert.textContent = message;
+
+         // Insert after logo
+         const logo = document.querySelector('.logo');
+         logo.insertAdjacentElement('afterend', alert);
+
+         // Auto remove after 5 seconds
+         setTimeout(() => {
+            if (alert.parentNode) {
+               alert.remove();
+            }
+         }, 5000);
+      }
+
+      function showLoading(show) {
+         document.getElementById('loading').style.display = show ? 'block' : 'none';
+         document.getElementById('loginBtn').disabled = show;
+
+         if (show) {
+            document.getElementById('loginText').style.display = 'none';
+            document.getElementById('loginSpinner').style.display = 'inline-block';
+         } else {
+            document.getElementById('loginText').style.display = 'inline';
+            document.getElementById('loginSpinner').style.display = 'none';
+         }
+      }
+
+      // Unified Login
+      document.getElementById('loginForm').addEventListener('submit', async function(e) {
+         e.preventDefault();
+
+         const formData = new FormData(this);
+         const username = formData.get('username');
+         const password = formData.get('password');
+
+         // Detect user type
+         const userType = detectUserType(username);
+
+         showLoading(true);
+
+         try {
+            let endpoint, data;
+
+            if (userType === 'admin') {
+               // Admin login
+               endpoint = '/auth/admin/login';
+               data = {
+                  email: username,
+                  password: password
+               };
+            } else {
+               // Peserta login
+               endpoint = '/auth/peserta/login';
+               data = {
+                  kode_peserta: username,
+                  password: password
+               };
+            }
+
+            const response = await fetch(endpoint, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+               },
+               body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+               showAlert('Login berhasil! Mengalihkan ke dashboard...', 'success');
+
+               // Redirect based on user type
+               setTimeout(() => {
+                  if (userType === 'admin') {
+                     window.location.href = '/exam';
+                  } else {
+                     window.location.href = '/exam/candidate';
+                  }
+               }, 1500);
+            } else {
+               showAlert(result.message || 'Login gagal! Periksa kembali kredensial Anda.');
+            }
+         } catch (error) {
+            showAlert('Terjadi kesalahan. Silakan coba lagi.');
+            console.error('Error:', error);
+         } finally {
+            showLoading(false);
+         }
+      });
+   </script>
+</body>
+
+</html>

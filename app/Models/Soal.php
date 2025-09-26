@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * @property int $id_soal
+ * @property int $id_batch
+ * @property string $pertanyaan
+ * @property string $opsi_a
+ * @property string $opsi_b
+ * @property string $opsi_c
+ * @property string $opsi_d
+ * @property string $jawaban_benar
+ * @property int $poin
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Batch $batch
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Jawaban> $jawaban
+ * @property-read int|null $jawaban_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereIdBatch($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereIdSoal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereJawabanBenar($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereOpsiA($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereOpsiB($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereOpsiC($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereOpsiD($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal wherePertanyaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal wherePoin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Soal whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+class Soal extends Model
+{
+    protected $table = 'soal';
+    protected $primaryKey = 'id_soal';
+
+    protected $fillable = [
+        'id_batch',
+        'pertanyaan',
+        'opsi_a',
+        'opsi_b',
+        'opsi_c',
+        'opsi_d',
+        'jawaban_benar',
+        'poin'
+    ];
+
+    protected $casts = [
+        'poin' => 'integer'
+    ];
+
+    /**
+     * Relationship with batch
+     */
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(Batch::class, 'id_batch', 'id_batch');
+    }
+
+    /**
+     * Relationship with jawaban
+     */
+    public function jawaban(): HasMany
+    {
+        return $this->hasMany(Jawaban::class, 'id_soal', 'id_soal');
+    }
+}
