@@ -1,334 +1,223 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="id">
 
-@section('title', 'Dashboard Admin - Ujian Online')
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Dashboard Admin - Ujian Online</title>
+   <meta name="csrf-token" content="{{ csrf_token() }}">
 
-@section('sidebar')
-<div class="position-sticky pt-3">
-    <div class="text-center mb-4">
-        <h4 class="text-white">
-            <i class="bi bi-mortarboard me-2"></i>
-            Ujian Online
-        </h4>
-    </div>
+   <!-- Bootstrap CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   <!-- Bootstrap Icons -->
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link active" href="#" data-page="dashboard">
-                <i class="bi bi-speedometer2 me-2"></i>
-                Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/exam/exam" data-page="exams">
-                <i class="bi bi-file-text me-2"></i>
-                Ujian
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/exam/questions" data-page="questions">
-                <i class="bi bi-question-circle me-2"></i>
-                Bank Soal
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/exam/participants" data-page="participants">
-                <i class="bi bi-people me-2"></i>
-                Peserta
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/exam/proctoring" data-page="proctoring">
-                <i class="bi bi-camera-video me-2"></i>
-                Pengawas
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/exam/reports" data-page="reports">
-                <i class="bi bi-graph-up me-2"></i>
-                Laporan
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="/exam/settings" data-page="settings">
-                <i class="bi bi-gear me-2"></i>
-                Pengaturan
-            </a>
-        </li>
-        <li class="nav-item mt-4">
-            <a class="nav-link" href="/exam/candidate" data-page="candidate">
-                <i class="bi bi-person-check me-2"></i>
-                Tampilan Peserta
-            </a>
-        </li>
-    </ul>
-</div>
-@endsection
+   @include('layouts.sidebar-styles')
+   @include('layouts.alert-system')
+</head>
 
-@section('navbar')
-<button class="btn btn-outline-secondary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
-    <i class="bi bi-list"></i>
-</button>
-<h1 class="h2" id="pageTitle">Dashboard</h1>
-<div class="btn-toolbar mb-2 mb-md-0">
-    <div class="btn-group me-2">
-        <button type="button" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-download me-1"></i>
-            Ekspor
-        </button>
-    </div>
-    <div class="dropdown">
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle me-1"></i>
-            <span id="userName">Admin</span>
-        </button>
-        <ul class="dropdown-menu">
-            <li>
-                <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profil</a>
-            </li>
-            <li>
-                <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Pengaturan</a>
-            </li>
-            <li>
-                <hr class="dropdown-divider" />
-            </li>
-            <li>
-                <a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a>
-            </li>
-        </ul>
-    </div>
-</div>
-@endsection
+<body>
+   <div class="container-fluid">
+      <!-- Sidebar -->
+      @include('layouts.sidebar')
 
-@section('content')
-<!-- Dashboard Page -->
-<div id="dashboardPage" class="page-content">
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Ujian</div>
-                            <div class="h5 mb-0 font-weight-bold">24</div>
+      <!-- Main Content -->
+      <div class="main-content">
+         <!-- Navbar -->
+         @include('layouts.navbar')
+
+         <!-- Dashboard Content -->
+         <div class="p-4">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+               <div class="col-xl-3 col-md-6 mb-4">
+                  <div class="card stats-card border-0 shadow-sm">
+                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                           <div class="flex-grow-1">
+                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Total Ujian</div>
+                              <div class="h2 mb-0 fw-bold text-white" id="totalUjian">0</div>
+                              <div class="small text-white-60 mt-1">Semua ujian</div>
+                           </div>
+                           <div class="flex-shrink-0">
+                              <i class="bi bi-file-text fs-1 text-white-60"></i>
+                           </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="bi bi-file-text fa-2x text-white-50"></i>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="col-xl-3 col-md-6 mb-4">
+                  <div class="card stats-card border-0 shadow-sm">
+                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                           <div class="flex-grow-1">
+                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Peserta Aktif</div>
+                              <div class="h2 mb-0 fw-bold text-white" id="pesertaAktif">0</div>
+                              <div class="small text-white-60 mt-1">Sedang aktif</div>
+                           </div>
+                           <div class="flex-shrink-0">
+                              <i class="bi bi-people fs-1 text-white-60"></i>
+                           </div>
                         </div>
-                    </div>
-                </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="col-xl-3 col-md-6 mb-4">
+                  <div class="card stats-card border-0 shadow-sm">
+                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                           <div class="flex-grow-1">
+                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Ujian Hari Ini</div>
+                              <div class="h2 mb-0 fw-bold text-white" id="ujianHariIni">0</div>
+                              <div class="small text-white-60 mt-1">Hari ini</div>
+                           </div>
+                           <div class="flex-shrink-0">
+                              <i class="bi bi-calendar-check fs-1 text-white-60"></i>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="col-xl-3 col-md-6 mb-4">
+                  <div class="card stats-card border-0 shadow-sm">
+                     <div class="card-body">
+                        <div class="d-flex align-items-center">
+                           <div class="flex-grow-1">
+                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Selesai</div>
+                              <div class="h2 mb-0 fw-bold text-white" id="ujianSelesai">0</div>
+                              <div class="small text-white-60 mt-1">Ujian selesai</div>
+                           </div>
+                           <div class="flex-shrink-0">
+                              <i class="bi bi-check-circle fs-1 text-white-60"></i>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
             </div>
-        </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Peserta</div>
-                            <div class="h5 mb-0 font-weight-bold">1,234</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-people fa-2x text-white-50"></i>
-                        </div>
-                    </div>
-                </div>
+            <!-- Recent Exams Table -->
+            <div class="card">
+               <div class="card-header">
+                  <h6 class="m-0 font-weight-bold">Ujian Terbaru</h6>
+               </div>
+               <div class="card-body">
+                  <div class="table-responsive">
+                     <table class="table table-bordered">
+                        <thead>
+                           <tr>
+                              <th>Nama Ujian</th>
+                              <th>Tanggal</th>
+                              <th>Peserta</th>
+                              <th>Status</th>
+                              <th>Aksi</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr>
+                              <td>Ujian Matematika Dasar</td>
+                              <td>2024-01-15</td>
+                              <td>25</td>
+                              <td><span class="badge bg-success">Selesai</span></td>
+                              <td>
+                                 <button class="btn btn-sm btn-outline-primary">Lihat</button>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td>Ujian Bahasa Indonesia</td>
+                              <td>2024-01-16</td>
+                              <td>30</td>
+                              <td><span class="badge bg-warning">Berlangsung</span></td>
+                              <td>
+                                 <button class="btn btn-sm btn-outline-primary">Lihat</button>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
             </div>
-        </div>
+         </div>
+      </div>
+   </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Ujian Aktif</div>
-                            <div class="h5 mb-0 font-weight-bold">8</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-play-circle fa-2x text-white-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+   <!-- Bootstrap JS -->
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Nilai Rata-rata</div>
-                            <div class="h5 mb-0 font-weight-bold">78.5%</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-graph-up fa-2x text-white-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+   @include('layouts.logout-script')
 
-    <!-- Recent Exams Table -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-clock-history me-2"></i>
-                Ujian Terbaru
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nama Ujian</th>
-                            <th>Peserta</th>
-                            <th>Durasi</th>
-                            <th>Status</th>
-                            <th>Dibuat</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-file-text me-2 text-primary"></i>
-                                    <div>
-                                        <div class="fw-bold">Ujian Akhir Matematika</div>
-                                        <small class="text-muted">MATH-101</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">45/50</span>
-                            </td>
-                            <td>120 min</td>
-                            <td><span class="badge bg-success">Aktif</span></td>
-                            <td>2 jam yang lalu</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1" title="Pantau">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" title="Hentikan">
-                                    <i class="bi bi-stop-circle"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-file-text me-2 text-primary"></i>
-                                    <div>
-                                        <div class="fw-bold">Kuis Fisika</div>
-                                        <small class="text-muted">PHYS-201</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-warning">12/30</span>
-                            </td>
-                            <td>60 min</td>
-                            <td><span class="badge bg-warning">Sedang Berlangsung</span></td>
-                            <td>1 hari yang lalu</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1" title="Pantau">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" title="Hentikan">
-                                    <i class="bi bi-stop-circle"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-file-text me-2 text-primary"></i>
-                                    <div>
-                                        <div class="fw-bold">Ujian Kimia</div>
-                                        <small class="text-muted">CHEM-301</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-success">25/25</span>
-                            </td>
-                            <td>90 min</td>
-                            <td><span class="badge bg-secondary">Selesai</span></td>
-                            <td>3 hari yang lalu</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1" title="Lihat Hasil">
-                                    <i class="bi bi-bar-chart"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary me-1" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-success" title="Terbitkan Ulang">
-                                    <i class="bi bi-arrow-clockwise"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+   <script>
+      // CSRF Token is already declared in logout-script.blade.php
 
-@push('scripts')
-<script>
-    // CSRF Token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      // Load dashboard data from API
+      async function loadDashboardData() {
+         console.log('Loading dashboard data from API...');
+         try {
+            const response = await fetch('/admin/dashboard/data', {
+               method: 'GET',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+               }
+            });
 
-    // Logout function
-    async function logout() {
-        if (confirm('Apakah Anda yakin ingin logout?')) {
-            try {
-                const response = await fetch('/auth/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
-                    body: JSON.stringify({
-                        user_type: 'admin',
-                        user_id: 1
-                    })
-                });
+            if (response.ok) {
+               const result = await response.json();
+               console.log('Dashboard API response:', result);
 
-                const result = await response.json();
-
-                if (result.success) {
-                    window.location.href = '/';
-                } else {
-                    alert('Logout gagal. Silakan coba lagi.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat logout.');
+               if (result.success && result.data) {
+                  updateDashboardStats(result.data);
+                  return;
+               }
             }
-        }
-    }
 
-    // Initialize user info
-    function initializeUserInfo() {
-        const userName = document.getElementById('userName');
-        if (userName) {
-            userName.textContent = 'Admin Ujian Online';
-        }
-    }
+            console.log('Dashboard API failed, using fallback data');
+            updateDashboardStats({
+               total_ujian: 0,
+               peserta_aktif: 0,
+               ujian_hari_ini: 0,
+               ujian_selesai: 0
+            });
+         } catch (error) {
+            console.log('Error loading dashboard data:', error);
+            updateDashboardStats({
+               total_ujian: 0,
+               peserta_aktif: 0,
+               ujian_hari_ini: 0,
+               ujian_selesai: 0
+            });
+         }
+      }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeUserInfo();
-    });
-</script>
-@endpush
+      // Update dashboard statistics
+      function updateDashboardStats(stats) {
+         const totalUjianEl = document.getElementById('totalUjian');
+         const pesertaAktifEl = document.getElementById('pesertaAktif');
+         const ujianHariIniEl = document.getElementById('ujianHariIni');
+         const ujianSelesaiEl = document.getElementById('ujianSelesai');
+
+         if (totalUjianEl) totalUjianEl.textContent = stats.total_ujian || 0;
+         if (pesertaAktifEl) pesertaAktifEl.textContent = stats.peserta_aktif || 0;
+         if (ujianHariIniEl) ujianHariIniEl.textContent = stats.ujian_hari_ini || 0;
+         if (ujianSelesaiEl) ujianSelesaiEl.textContent = stats.ujian_selesai || 0;
+
+         console.log('Dashboard stats updated:', stats);
+      }
+
+      // Initialize user info
+      function initializeUserInfo() {
+         // Add any initialization logic here
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+         initializeUserInfo();
+         loadDashboardData();
+      });
+   </script>
+</body>
+
+</html>

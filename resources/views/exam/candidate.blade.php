@@ -1,311 +1,434 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portal Peserta - Pembuat Ujian</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
-    <!-- Common CSS -->
-    <link rel="stylesheet" href="css/common.css" />
-  </head>
-  <body>
-    <!-- Auto-save indicator -->
-    <div class="auto-save-indicator" id="autoSaveIndicator" style="display: none">
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        <span id="autoSaveText">Auto-saved</span>
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Dashboard Peserta - Ujian Online</title>
+   <meta name="csrf-token" content="{{ csrf_token() }}">
+
+   <!-- Bootstrap CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   <!-- Bootstrap Icons -->
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+   <!-- Google Fonts -->
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+   @include('layouts.sidebar-styles')
+   @include('layouts.alert-system')
+
+   <style>
+      .main-content {
+         background-color: #f8f9fa;
+         min-height: 100vh;
+      }
+
+      .stats-card {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         border: none;
+         border-radius: 12px;
+         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .stats-card .card-body {
+         padding: 1.5rem;
+      }
+
+      .stats-card .text-uppercase {
+         font-size: 0.75rem;
+         font-weight: 600;
+         letter-spacing: 0.5px;
+         opacity: 0.9;
+      }
+
+      .stats-card .h2 {
+         font-size: 2rem;
+         font-weight: 700;
+         margin-bottom: 0.5rem;
+      }
+
+      .stats-card .small {
+         font-size: 0.875rem;
+         opacity: 0.8;
+      }
+
+      .btn-primary {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         border: none;
+         border-radius: 8px;
+         padding: 0.75rem 1.5rem;
+         font-weight: 500;
+         transition: all 0.3s ease;
+      }
+
+      .btn-primary:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .exam-card {
+         background: white;
+         border: 1px solid #e5e7eb;
+         border-radius: 12px;
+         transition: all 0.3s ease;
+         cursor: pointer;
+         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .exam-card:hover {
+         transform: translateY(-4px);
+         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+         border-color: #667eea;
+      }
+
+      .exam-card .card-body {
+         padding: 1.5rem;
+      }
+
+      .text-white-60 {
+         color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .text-white-80 {
+         color: rgba(255, 255, 255, 0.8) !important;
+      }
+
+      .fs-1 {
+         font-size: 3rem !important;
+      }
+
+      .fw-semibold {
+         font-weight: 600 !important;
+      }
+
+      .fw-bold {
+         font-weight: 700 !important;
+      }
+
+      /* Additional consistency styles */
+      .card {
+         border-radius: 12px;
+         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-header {
+         border-radius: 12px 12px 0 0 !important;
+         border-bottom: 1px solid #e5e7eb;
+      }
+
+      .btn-outline-primary {
+         border-color: #667eea;
+         color: #667eea;
+         border-radius: 8px;
+         font-weight: 500;
+         transition: all 0.3s ease;
+      }
+
+      .btn-outline-primary:hover {
+         background-color: #667eea;
+         border-color: #667eea;
+         transform: translateY(-1px);
+         box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+      }
+
+      .text-primary {
+         color: #667eea !important;
+      }
+
+      .text-muted {
+         color: #6c757d !important;
+      }
+
+      .bg-gradient-primary {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      }
+
+      .border-warning {
+         border-color: #ffc107 !important;
+      }
+
+      .alert-warning {
+         background-color: #fff3cd;
+         border-color: #ffc107;
+      }
+
+      .form-check-input:checked {
+         background-color: #667eea;
+         border-color: #667eea;
+      }
+
+      .form-check-input:focus {
+         border-color: #667eea;
+         box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container-fluid">
+      <!-- Sidebar -->
+      @include('layouts.sidebar')
+
+      <!-- Main Content -->
+      <div class="main-content">
+         <!-- Navbar -->
+         @include('layouts.navbar')
+
+         <!-- Dashboard Content -->
+         <div class="p-4">
+            <!-- Welcome Message -->
+            <div class="row mb-4">
+               <div class="col-12">
+                  <div class="card border-0 shadow-sm bg-gradient-primary text-white">
+                     <div class="card-body text-center py-5">
+                        <i class="bi bi-mortarboard fs-1 mb-3"></i>
+                        <h2 class="fw-bold mb-3">Selamat Datang di Sistem Ujian Online</h2>
+                        <p class="fs-5 mb-0">Silakan baca tata cara ujian dan peringatan di bawah ini sebelum memulai ujian</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Exam Instructions -->
+            <div class="row mb-4">
+               <div class="col-12">
+                  <div class="card border-0 shadow-sm">
+                     <div class="card-header bg-white border-0 py-3">
+                        <h5 class="m-0 fw-bold text-dark">
+                           <i class="bi bi-info-circle me-2 text-primary"></i>
+                           Tata Cara Ujian
+                        </h5>
+                     </div>
+                     <div class="card-body">
+                        <div class="row">
+                           <div class="col-md-6 mb-3">
+                              <div class="d-flex align-items-start">
+                                 <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                       <span class="fw-bold">1</span>
+                                    </div>
+                                 </div>
+                                 <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-2">Persiapan Ujian</h6>
+                                    <p class="text-muted mb-0">Pastikan koneksi internet stabil dan perangkat dalam kondisi baik sebelum memulai ujian.</p>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="col-md-6 mb-3">
+                              <div class="d-flex align-items-start">
+                                 <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                       <span class="fw-bold">2</span>
+                                    </div>
+                                 </div>
+                                 <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-2">Durasi Ujian</h6>
+                                    <p class="text-muted mb-0">Setiap ujian memiliki batas waktu tertentu. Pastikan untuk menyelesaikan semua soal dalam waktu yang ditentukan.</p>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="col-md-6 mb-3">
+                              <div class="d-flex align-items-start">
+                                 <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                       <span class="fw-bold">3</span>
+                                    </div>
+                                 </div>
+                                 <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-2">Navigasi Soal</h6>
+                                    <p class="text-muted mb-0">Gunakan tombol navigasi untuk berpindah antar soal. Pastikan menjawab semua soal sebelum submit.</p>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="col-md-6 mb-3">
+                              <div class="d-flex align-items-start">
+                                 <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                       <span class="fw-bold">4</span>
+                                    </div>
+                                 </div>
+                                 <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-2">Submit Jawaban</h6>
+                                    <p class="text-muted mb-0">Setelah selesai menjawab semua soal, klik tombol submit untuk mengirimkan jawaban Anda.</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Warning Notice -->
+            <div class="row mb-4">
+               <div class="col-12">
+                  <div class="card border-0 shadow-sm border-warning">
+                     <div class="card-header bg-warning text-dark border-0 py-3">
+                        <h5 class="m-0 fw-bold">
+                           <i class="bi bi-exclamation-triangle me-2"></i>
+                           Peringatan Penting
+                        </h5>
+                     </div>
+                     <div class="card-body">
+                        <div class="alert alert-warning border-0 mb-0">
+                           <h6 class="fw-bold mb-3">Perhatian! Harap baca dengan seksama:</h6>
+                           <ul class="mb-3">
+                              <li class="mb-2">Ujian ini bersifat <strong>terbatas waktu</strong> dan tidak dapat diulang</li>
+                              <li class="mb-2">Dilarang keras melakukan <strong>kecurangan</strong> atau bekerja sama dengan peserta lain</li>
+                              <li class="mb-2">Pastikan tidak ada gangguan selama ujian berlangsung</li>
+                              <li class="mb-2">Jawaban yang sudah disubmit <strong>tidak dapat diubah</strong></li>
+                              <li class="mb-2">Sistem akan mencatat aktivitas ujian untuk keperluan monitoring</li>
+                           </ul>
+                           <div class="form-check">
+                              <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                              <label class="form-check-label fw-bold" for="agreeTerms">
+                                 Saya telah membaca dan menyetujui semua peringatan di atas
+                              </label>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Exam Status -->
+            <div class="row" id="examStatusSection">
+               <!-- Content will be loaded dynamically -->
+            </div>
+         </div>
       </div>
-    </div>
+   </div>
 
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
-          <div class="position-sticky pt-3">
-            <div class="text-center mb-4">
-              <h4 class="text-white">
-                <i class="bi bi-mortarboard me-2"></i>
-                Pembuat Ujian
-              </h4>
-            </div>
+   <!-- Bootstrap JS -->
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link" href="index.html">
-                  <i class="bi bi-speedometer2 me-2"></i>
-                  Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="exam.html">
-                  <i class="bi bi-file-text me-2"></i>
-                  Ujian
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="questions.html">
-                  <i class="bi bi-question-circle me-2"></i>
-                  Bank Soal
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="participants.html">
-                  <i class="bi bi-people me-2"></i>
-                  Peserta
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="proctoring.html">
-                  <i class="bi bi-camera-video me-2"></i>
-                  Pengawas
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="reports.html">
-                  <i class="bi bi-graph-up me-2"></i>
-                  Laporan
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="settings.html">
-                  <i class="bi bi-gear me-2"></i>
-                  Pengaturan
-                </a>
-              </li>
-              <li class="nav-item mt-4">
-                <a class="nav-link active" href="candidate.html">
-                  <i class="bi bi-person-check me-2"></i>
-                  Tampilan Peserta
-                </a>
-              </li>
-            </ul>
-          </div>
-        </nav>
+   @include('layouts.logout-script')
 
-        <!-- Main content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-          <!-- Top Navbar -->
-          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <button class="btn btn-outline-secondary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
-              <i class="bi bi-list"></i>
-            </button>
-            <h1 class="h2">Portal Peserta</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
-              <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  <i class="bi bi-person-circle me-1"></i>
-                  Peserta
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profil</a>
-                  </li>
-                  <li><hr class="dropdown-divider" /></li>
-                  <li>
-                    <a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+   <script>
+      // CSRF Token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-          <!-- Candidate Content -->
-          <!-- Exam Introduction -->
-          <div id="examIntro" class="text-center">
-            <div class="card mx-auto" style="max-width: 800px">
-              <div class="card-body p-5">
-                <h2 class="card-title mb-4">
-                  <i class="bi bi-mortarboard text-primary me-2"></i>
-                  Ujian Akhir Matematika
-                </h2>
-                <p class="card-text lead mb-4">Selamat datang di ujian online Anda. Silakan baca instruksi dengan cermat sebelum memulai.</p>
+      // Check exam status and load content
+      async function loadExamStatus() {
+         try {
+            const response = await fetch('/candidate/exam/data', {
+               method: 'GET',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+               }
+            });
 
-                <div class="alert alert-info text-start mb-4">
-                  <h6><i class="bi bi-info-circle me-2"></i>Instruksi Ujian:</h6>
-                  <ul class="mb-0">
-                    <li>Durasi: 120 menit</li>
-                    <li>Total Soal: 25</li>
-                    <li>Anda dapat berpindah antar soal menggunakan panel navigasi</li>
-                    <li>Progress Anda otomatis tersimpan setiap 30 detik</li>
-                    <li>Anda tidak dapat kembali ke soal sebelumnya setelah submit</li>
-                    <li>Pastikan Anda memiliki koneksi internet yang stabil</li>
-                  </ul>
-                </div>
+            const result = await response.json();
+            const examStatusSection = document.getElementById('examStatusSection');
 
-                <div class="alert alert-warning text-start mb-4">
-                  <h6><i class="bi bi-exclamation-triangle me-2"></i>Catatan Penting:</h6>
-                  <ul class="mb-0">
-                    <li>Jangan beralih tab atau meminimalkan jendela browser</li>
-                    <li>Jaga webcam tetap menyala selama ujian</li>
-                    <li>Pastikan pencahayaan yang baik dan visibilitas yang jelas</li>
-                    <li>Tidak diperbolehkan bantuan atau sumber daya eksternal</li>
-                  </ul>
-                </div>
-
-                <button class="btn btn-primary btn-lg" id="startExamBtn"><i class="bi bi-play-circle me-2"></i>Mulai Ujian</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pre-check Modal -->
-          <div class="modal fade" id="preCheckModal" tabindex="-1" aria-labelledby="preCheckModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="preCheckModalLabel">Pemeriksaan Pra-Ujian</h5>
-                </div>
-                <div class="modal-body text-center">
-                  <div class="mb-4">
-                    <i class="bi bi-camera-video fa-3x text-primary mb-3"></i>
-                    <h6>Izin Webcam Diperlukan</h6>
-                    <p class="text-muted">Silakan izinkan akses webcam untuk keperluan pengawasan.</p>
+            if (result.success && result.exams && result.exams.length > 0) {
+               // Show available exams
+               examStatusSection.innerHTML = `
+                  <div class="col-12">
+                     <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 py-3">
+                           <h5 class="m-0 fw-bold text-dark">
+                              <i class="bi bi-file-text me-2 text-primary"></i>
+                              Ujian Tersedia
+                           </h5>
+                        </div>
+                        <div class="card-body">
+                           <div class="row">
+                              ${result.exams.map(exam => `
+                                 <div class="col-md-6 mb-3">
+                                    <div class="card exam-card h-100">
+                                       <div class="card-body">
+                                          <div class="d-flex align-items-center mb-3">
+                                             <i class="bi bi-file-text fs-1 text-primary me-3"></i>
+                                             <div>
+                                                <h6 class="fw-bold mb-1">${exam.title || 'Ujian'}</h6>
+                                                <small class="text-muted">${exam.subject || 'Mata Pelajaran'}</small>
+                                             </div>
+                                          </div>
+                                          <p class="text-muted mb-3">${exam.description || 'Deskripsi ujian tidak tersedia'}</p>
+                                          <div class="d-flex justify-content-between align-items-center">
+                                             <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                ${exam.duration || '60'} menit
+                                             </small>
+                                             <button class="btn btn-primary btn-sm" onclick="startExam(${exam.id})" id="startExamBtn" disabled>
+                                                <i class="bi bi-play-fill me-1"></i>
+                                                Mulai Ujian
+                                             </button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              `).join('')}
+                           </div>
+                        </div>
+                     </div>
                   </div>
-
-                  <div id="webcamContainer" class="mb-3">
-                    <video id="webcamVideo" width="320" height="240" autoplay muted style="display: none"></video>
-                    <canvas id="webcamCanvas" width="320" height="240" style="display: none"></canvas>
-                    <div id="webcamPlaceholder" class="border rounded p-4 bg-light">
-                      <i class="bi bi-camera fa-2x text-muted mb-2"></i>
-                      <p class="text-muted">Pratinjau webcam akan muncul di sini</p>
-                    </div>
+               `;
+            } else {
+               // Show no exam message
+               examStatusSection.innerHTML = `
+                  <div class="col-12">
+                     <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                           <i class="bi bi-exclamation-circle fs-1 text-warning mb-3"></i>
+                           <h4 class="fw-bold text-dark mb-3">Tidak Ada Ujian Tersedia</h4>
+                           <p class="text-muted mb-4">Belum ada ujian yang ditugaskan untuk Anda. Silakan hubungi staff untuk informasi lebih lanjut.</p>
+                           <div class="alert alert-info border-0">
+                              <h6 class="fw-bold mb-2">Kontak Staff</h6>
+                              <p class="mb-0">Email: staff@ujian.com | Telepon: (021) 1234-5678</p>
+                           </div>
+                        </div>
+                     </div>
                   </div>
-
-                  <div class="mb-3">
-                    <button class="btn btn-outline-primary" id="enableWebcamBtn"><i class="bi bi-camera me-2"></i>Aktifkan Webcam</button>
-                    <button class="btn btn-outline-secondary" id="uploadPhotoBtn" style="display: none"><i class="bi bi-upload me-2"></i>Upload Foto</button>
+               `;
+            }
+         } catch (error) {
+            console.error('Error loading exam status:', error);
+            document.getElementById('examStatusSection').innerHTML = `
+               <div class="col-12">
+                  <div class="alert alert-danger">
+                     <i class="bi bi-exclamation-triangle me-2"></i>
+                     Terjadi kesalahan saat memuat data ujian. Silakan refresh halaman.
                   </div>
+               </div>
+            `;
+         }
+      }
 
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="agreeTerms" required />
-                    <label class="form-check-label" for="agreeTerms"> Saya setuju dengan syarat dan ketentuan ujian </label>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-primary" id="proceedToExamBtn" disabled>Lanjut ke Ujian</button>
-                </div>
-              </div>
-            </div>
-          </div>
+      // Handle agreement checkbox
+      function handleAgreement() {
+         const agreeCheckbox = document.getElementById('agreeTerms');
+         const startExamBtns = document.querySelectorAll('#startExamBtn');
 
-          <!-- Exam Interface -->
-          <div id="examInterface" style="display: none">
-            <!-- Exam Header -->
-            <div class="card mb-4">
-              <div class="card-body">
-                <div class="row align-items-center">
-                  <div class="col-md-6">
-                    <h5 class="mb-0">Ujian Akhir Matematika</h5>
-                    <small class="text-muted">Soal <span id="currentQuestionNum">1</span> dari 25</small>
-                  </div>
-                  <div class="col-md-6 text-end">
-                    <div class="timer h4 text-danger" id="examTimer">02:00:00</div>
-                    <small class="text-muted">Waktu Tersisa</small>
-                  </div>
-                </div>
-              </div>
-            </div>
+         agreeCheckbox.addEventListener('change', function() {
+            startExamBtns.forEach(btn => {
+               btn.disabled = !this.checked;
+            });
+         });
+      }
 
-            <div class="row">
-              <!-- Question Area -->
-              <div class="col-md-8">
-                <div class="card">
-                  <div class="card-body">
-                    <h6 class="card-title">Soal <span id="questionNumber">1</span></h6>
-                    <p class="card-text" id="questionText">Berapakah turunan dari x²?</p>
+      // Start exam function
+      function startExam(examId) {
+         if (!document.getElementById('agreeTerms').checked) {
+            alert('Anda harus menyetujui peringatan terlebih dahulu!');
+            return;
+         }
 
-                    <div class="mt-4" id="optionsContainer">
-                      <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="answer" id="optionA" value="A" />
-                        <label class="form-check-label" for="optionA"> A) 2x </label>
-                      </div>
-                      <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="answer" id="optionB" value="B" />
-                        <label class="form-check-label" for="optionB"> B) x </label>
-                      </div>
-                      <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="answer" id="optionC" value="C" />
-                        <label class="form-check-label" for="optionC"> C) 2 </label>
-                      </div>
-                      <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="answer" id="optionD" value="D" />
-                        <label class="form-check-label" for="optionD"> D) x² </label>
-                      </div>
-                    </div>
+         if (confirm('Apakah Anda yakin ingin memulai ujian? Pastikan Anda sudah siap.')) {
+            window.location.href = `/candidate/exam/${examId}`;
+         }
+      }
 
-                    <div class="d-flex justify-content-between mt-4">
-                      <button class="btn btn-outline-secondary" id="prevQuestionBtn" disabled><i class="bi bi-arrow-left me-1"></i>Sebelumnya</button>
-                      <button class="btn btn-primary" id="nextQuestionBtn">Selanjutnya <i class="bi bi-arrow-right ms-1"></i></button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+         loadExamStatus();
+         handleAgreement();
+      });
+   </script>
 
-              <!-- Navigation Panel -->
-              <div class="col-md-4">
-                <div class="card question-nav">
-                  <div class="card-header">
-                    <h6 class="mb-0">Navigasi Soal</h6>
-                  </div>
-                  <div class="card-body">
-                    <div class="d-flex flex-wrap" id="questionNavigation">
-                      <!-- Question navigation items will be generated here -->
-                    </div>
+</body>
 
-                    <hr />
-
-                    <div class="d-grid gap-2">
-                      <button class="btn btn-success" id="submitExamBtn"><i class="bi bi-check-circle me-1"></i>Submit Ujian</button>
-                      <button class="btn btn-outline-primary" id="reviewAnswersBtn"><i class="bi bi-eye me-1"></i>Review Jawaban</button>
-                    </div>
-
-                    <div class="mt-3">
-                      <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i>
-                        <span id="answeredCount">0</span> dari 25 dijawab
-                      </small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    </div>
-
-    <!-- Submit Exam Modal -->
-    <div class="modal fade" id="submitExamModal" tabindex="-1" aria-labelledby="submitExamModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="submitExamModalLabel">Submit Ujian</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p>Apakah Anda yakin ingin mengirim ujian? Tindakan ini tidak dapat dibatalkan.</p>
-            <div class="alert alert-info">
-              <i class="bi bi-info-circle me-2"></i>
-              <strong>Catatan:</strong> Jawaban Anda telah otomatis tersimpan. Anda dapat meninjau respons sebelum mengirim.
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Review Jawaban</button>
-            <button type="button" class="btn btn-success" id="confirmSubmitBtn">Submit Ujian</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Common JS -->
-    <script src="js/common.js"></script>
-    <!-- Candidate specific JS -->
-    <script src="js/candidate.js"></script>
-  </body>
 </html>
-

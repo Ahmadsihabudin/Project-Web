@@ -63,6 +63,7 @@ class Peserta extends Authenticatable
         'password_hash',
         'asal_smk',
         'jurusan',
+        'status',
         'last_login_at',
         'login_attempts',
         'locked_until',

@@ -1,415 +1,323 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ujian - Pembuat Ujian</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
-    <!-- Common CSS -->
-    <link rel="stylesheet" href="css/common.css" />
-  </head>
-  <body>
-    <!-- Auto-save indicator -->
-    <div class="auto-save-indicator" id="autoSaveIndicator" style="display: none">
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        <span id="autoSaveText">Auto-saved</span>
-      </div>
-    </div>
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Ujian - Ujian Online</title>
+   <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
-          <div class="position-sticky pt-3">
-            <div class="text-center mb-4">
-              <h4 class="text-white">
-                <i class="bi bi-mortarboard me-2"></i>
-                Pembuat Ujian
-              </h4>
-            </div>
+   <!-- Bootstrap CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   <!-- Bootstrap Icons -->
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link" href="index.html">
-                  <i class="bi bi-speedometer2 me-2"></i>
-                  Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link active" href="exam.html">
-                  <i class="bi bi-file-text me-2"></i>
-                  Ujian
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="questions.html">
-                  <i class="bi bi-question-circle me-2"></i>
-                  Bank Soal
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="participants.html">
-                  <i class="bi bi-people me-2"></i>
-                  Peserta
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="proctoring.html">
-                  <i class="bi bi-camera-video me-2"></i>
-                  Pengawas
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="reports.html">
-                  <i class="bi bi-graph-up me-2"></i>
-                  Laporan
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="settings.html">
-                  <i class="bi bi-gear me-2"></i>
-                  Pengaturan
-                </a>
-              </li>
-              <li class="nav-item mt-4">
-                <a class="nav-link" href="candidate.html">
-                  <i class="bi bi-person-check me-2"></i>
-                  Tampilan Peserta
-                </a>
-              </li>
-            </ul>
-          </div>
-        </nav>
+   <style>
+      .exam-body {
+         background-color: #f8f9fa;
+      }
 
-        <!-- Main content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-          <!-- Top Navbar -->
-          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <button class="btn btn-outline-secondary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
-              <i class="bi bi-list"></i>
-            </button>
-            <h1 class="h2">Exams Management</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
-              <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary">
-                  <i class="bi bi-download me-1"></i>
-                  Ekspor
-                </button>
-              </div>
-              <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  <i class="bi bi-person-circle me-1"></i>
-                  Admin
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profil</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Pengaturan</a>
-                  </li>
-                  <li><hr class="dropdown-divider" /></li>
-                  <li>
-                    <a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+      .exam-timer-bar {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         color: white;
+         padding: 1rem 0;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
 
-          <!-- Exams Content -->
-          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-            <h2>Manajemen Ujian</h2>
-            <div class="btn-toolbar mb-2 mb-md-0">
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExamModal"><i class="bi bi-plus-circle me-2"></i>Buat Ujian Baru</button>
-            </div>
-          </div>
+      .exam-container {
+         padding-top: 2rem;
+      }
 
-          <!-- Filter and Search -->
-          <div class="row mb-4">
+      .question-sidebar {
+         background: white;
+         border-radius: 12px;
+         padding: 1.5rem;
+         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+         height: fit-content;
+         position: sticky;
+         top: 2rem;
+      }
+
+      .question-grid {
+         display: grid;
+         grid-template-columns: repeat(5, 1fr);
+         gap: 0.5rem;
+         margin-bottom: 1rem;
+      }
+
+      .question-item {
+         width: 40px;
+         height: 40px;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         margin: 0 auto;
+         cursor: pointer;
+         transition: all 0.3s;
+         font-weight: bold;
+         font-size: 0.9rem;
+      }
+
+      .question-item:hover {
+         background-color: rgba(0, 123, 255, 0.1);
+         transform: scale(1.05);
+      }
+
+      .question-item.active {
+         background-color: #007bff;
+         color: white;
+         transform: scale(1.1);
+      }
+
+      .question-item.answered {
+         background-color: #28a745;
+         color: white;
+      }
+
+      .question-item.current {
+         background-color: #007bff;
+         color: white;
+      }
+
+      .question-item.unanswered {
+         background-color: #e9ecef;
+         color: #6c757d;
+      }
+
+      .exam-timer {
+         font-family: "Courier New", monospace;
+         font-weight: bold;
+         color: #dc3545;
+         animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+
+         0%,
+         100% {
+            opacity: 1;
+         }
+
+         50% {
+            opacity: 0.7;
+         }
+      }
+
+      .question-card {
+         background: white;
+         border-radius: 12px;
+         padding: 2rem;
+         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+         margin-bottom: 2rem;
+      }
+
+      .option-item {
+         padding: 1rem;
+         border: 2px solid #e9ecef;
+         border-radius: 8px;
+         margin-bottom: 0.5rem;
+         cursor: pointer;
+         transition: all 0.3s;
+      }
+
+      .option-item:hover {
+         border-color: #007bff;
+         background-color: rgba(0, 123, 255, 0.05);
+      }
+
+      .option-item.selected {
+         border-color: #007bff;
+         background-color: rgba(0, 123, 255, 0.1);
+      }
+   </style>
+</head>
+
+<body class="exam-body">
+   <!-- Timer Bar -->
+   <div class="exam-timer-bar">
+      <div class="container">
+         <div class="row align-items-center">
             <div class="col-md-6">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" placeholder="Cari ujian..." id="examSearch" />
-              </div>
+               <h5 class="mb-0">Ujian Matematika Dasar</h5>
             </div>
-            <div class="col-md-3">
-              <select class="form-select" id="statusFilter">
-                <option value="">Semua Status</option>
-                <option value="draft">Draft</option>
-                <option value="published">Diterbitkan</option>
-                <option value="active">Aktif</option>
-                <option value="completed">Selesai</option>
-              </select>
+            <div class="col-md-6 text-end">
+               <div class="exam-timer">
+                  <i class="bi bi-clock me-2"></i>
+                  <span id="timer">01:30:00</span>
+               </div>
             </div>
-            <div class="col-md-3">
-              <select class="form-select" id="topicFilter">
-                <option value="">Semua Topik</option>
-                <option value="mathematics">Matematika</option>
-                <option value="physics">Fisika</option>
-                <option value="chemistry">Kimia</option>
-                <option value="biology">Biologi</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Exams Grid -->
-          <div class="row" id="examsGrid">
-            <!-- Exam cards will be dynamically generated here -->
-          </div>
-        </main>
+         </div>
       </div>
-    </div>
+   </div>
 
-    <!-- Create Exam Modal -->
-    <div class="modal fade" id="createExamModal" tabindex="-1" aria-labelledby="createExamModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="createExamModalLabel">Buat Ujian Baru</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Progress Bar -->
-            <div class="progress mb-4">
-              <div class="progress-bar" role="progressbar" style="width: 25%" id="examProgressBar"></div>
+   <div class="container exam-container">
+      <div class="row">
+         <!-- Question Sidebar -->
+         <div class="col-md-3">
+            <div class="question-sidebar">
+               <h6 class="mb-3">Navigasi Soal</h6>
+               <div class="question-grid">
+                  <div class="question-item current">1</div>
+                  <div class="question-item answered">2</div>
+                  <div class="question-item unanswered">3</div>
+                  <div class="question-item unanswered">4</div>
+                  <div class="question-item unanswered">5</div>
+                  <div class="question-item unanswered">6</div>
+                  <div class="question-item unanswered">7</div>
+                  <div class="question-item unanswered">8</div>
+                  <div class="question-item unanswered">9</div>
+                  <div class="question-item unanswered">10</div>
+               </div>
+
+               <div class="legend">
+                  <div class="legend-item">
+                     <div class="legend-color answered"></div>
+                     <small>Dijawab</small>
+                  </div>
+                  <div class="legend-item">
+                     <div class="legend-color current"></div>
+                     <small>Saat ini</small>
+                  </div>
+                  <div class="legend-item">
+                     <div class="legend-color unanswered"></div>
+                     <small>Belum dijawab</small>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <!-- Question Content -->
+         <div class="col-md-9">
+            <div class="question-card">
+               <div class="d-flex justify-content-between align-items-center mb-4">
+                  <h5>Soal 1 dari 10</h5>
+                  <span class="badge bg-primary">Matematika</span>
+               </div>
+
+               <div class="question-content mb-4">
+                  <p class="lead">Berapakah hasil dari 15 + 27?</p>
+               </div>
+
+               <div class="options">
+                  <div class="option-item" onclick="selectOption(this)">
+                     <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="A" id="optionA">
+                        <label class="form-check-label" for="optionA">
+                           A. 40
+                        </label>
+                     </div>
+                  </div>
+                  <div class="option-item" onclick="selectOption(this)">
+                     <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="B" id="optionB">
+                        <label class="form-check-label" for="optionB">
+                           B. 42
+                        </label>
+                     </div>
+                  </div>
+                  <div class="option-item" onclick="selectOption(this)">
+                     <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="C" id="optionC">
+                        <label class="form-check-label" for="optionC">
+                           C. 32
+                        </label>
+                     </div>
+                  </div>
+                  <div class="option-item" onclick="selectOption(this)">
+                     <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="D" id="optionD">
+                        <label class="form-check-label" for="optionD">
+                           D. 52
+                        </label>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="d-flex justify-content-between mt-4">
+                  <button class="btn btn-outline-secondary" onclick="previousQuestion()">
+                     <i class="bi bi-chevron-left me-1"></i>
+                     Sebelumnya
+                  </button>
+                  <button class="btn btn-primary" onclick="nextQuestion()">
+                     Selanjutnya
+                     <i class="bi bi-chevron-right ms-1"></i>
+                  </button>
+               </div>
             </div>
 
-            <!-- Wizard Steps -->
-            <div class="wizard-step active" id="step1">
-              <h6>Langkah 1: Informasi Dasar</h6>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="examName" class="form-label">Nama Ujian *</label>
-                    <input type="text" class="form-control" id="examName" required />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="examCode" class="form-label">Kode Ujian *</label>
-                    <input type="text" class="form-control" id="examCode" required />
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="examSubject" class="form-label">Mata Pelajaran *</label>
-                    <select class="form-select" id="examSubject" required>
-                      <option value="">Pilih Mata Pelajaran</option>
-                      <option value="mathematics">Matematika</option>
-                      <option value="physics">Fisika</option>
-                      <option value="chemistry">Kimia</option>
-                      <option value="biology">Biologi</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="examDuration" class="form-label">Durasi (menit) *</label>
-                    <input type="number" class="form-control" id="examDuration" min="1" required />
-                  </div>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="examDescription" class="form-label">Deskripsi</label>
-                <textarea class="form-control" id="examDescription" rows="3"></textarea>
-              </div>
+            <div class="text-center">
+               <button class="btn btn-success btn-lg" onclick="submitExam()">
+                  <i class="bi bi-check-circle me-2"></i>
+                  Selesai Ujian
+               </button>
             </div>
-
-            <div class="wizard-step" id="step2">
-              <h6>Langkah 2: Pengaturan Ujian</h6>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="randomizeQuestions" />
-                    <label class="form-check-label" for="randomizeQuestions"> Acak Urutan Soal </label>
-                  </div>
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="randomizeOptions" />
-                    <label class="form-check-label" for="randomizeOptions"> Acak Pilihan Jawaban </label>
-                  </div>
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="allowReview" />
-                    <label class="form-check-label" for="allowReview"> Izinkan Review Sebelum Submit </label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="enableProctoring" />
-                    <label class="form-check-label" for="enableProctoring"> Aktifkan Pengawas </label>
-                  </div>
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="requireWebcam" />
-                    <label class="form-check-label" for="requireWebcam"> Wajib Webcam </label>
-                  </div>
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="fullScreenMode" />
-                    <label class="form-check-label" for="fullScreenMode"> Paksa Mode Layar Penuh </label>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="maxAttempts" class="form-label">Maksimal Percobaan</label>
-                    <input type="number" class="form-control" id="maxAttempts" min="1" value="1" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="passingScore" class="form-label">Nilai Kelulusan (%)</label>
-                    <input type="number" class="form-control" id="passingScore" min="0" max="100" value="60" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="wizard-step" id="step3">
-              <h6>Langkah 3: Tambah Soal</h6>
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <span>Soal: <span id="questionCount">0</span></span>
-                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addQuestionModal"><i class="bi bi-plus-circle me-1"></i>Tambah Soal</button>
-              </div>
-              <div id="questionsList">
-                <!-- Questions will be added here dynamically -->
-              </div>
-            </div>
-
-            <div class="wizard-step" id="step4">
-              <h6>Langkah 4: Review & Terbitkan</h6>
-              <div class="card">
-                <div class="card-body">
-                  <h6>Ringkasan Ujian</h6>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p><strong>Nama:</strong> <span id="summaryName">-</span></p>
-                      <p><strong>Kode:</strong> <span id="summaryCode">-</span></p>
-                      <p><strong>Mata Pelajaran:</strong> <span id="summarySubject">-</span></p>
-                    </div>
-                    <div class="col-md-6">
-                      <p><strong>Durasi:</strong> <span id="summaryDuration">-</span> menit</p>
-                      <p><strong>Soal:</strong> <span id="summaryQuestions">-</span></p>
-                      <p><strong>Pengaturan:</strong> <span id="summarySettings">-</span></p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="form-check mt-3">
-                <input class="form-check-input" type="checkbox" id="publishImmediately" />
-                <label class="form-check-label" for="publishImmediately"> Terbitkan ujian segera setelah dibuat </label>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-outline-primary" id="prevStepBtn" style="display: none">Sebelumnya</button>
-            <button type="button" class="btn btn-primary" id="nextStepBtn">Selanjutnya</button>
-            <button type="button" class="btn btn-success" id="createExamBtn" style="display: none">Buat Ujian</button>
-          </div>
-        </div>
+         </div>
       </div>
-    </div>
+   </div>
 
-    <!-- Add Question Modal -->
-    <div class="modal fade" id="addQuestionModal" tabindex="-1" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addQuestionModalLabel">Tambah Soal</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="questionText" class="form-label">Teks Soal *</label>
-              <textarea class="form-control" id="questionText" rows="3" required></textarea>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="questionType" class="form-label">Tipe Soal *</label>
-                  <select class="form-select" id="questionType" required>
-                    <option value="MCQ">Pilihan Ganda</option>
-                    <option value="TrueFalse">Benar/Salah</option>
-                    <option value="FillBlank">Isian</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="questionDifficulty" class="form-label">Tingkat Kesulitan</label>
-                  <select class="form-select" id="questionDifficulty">
-                    <option value="Easy">Mudah</option>
-                    <option value="Medium">Sedang</option>
-                    <option value="Hard">Sulit</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="questionTopic" class="form-label">Topik</label>
-              <input type="text" class="form-control" id="questionTopic" />
-            </div>
-            <div id="optionsContainer">
-              <label class="form-label">Pilihan Jawaban *</label>
-              <div class="mb-2">
-                <div class="input-group">
-                  <div class="input-group-text">
-                    <input class="form-check-input mt-0" type="radio" name="correctOption" value="0" />
-                  </div>
-                  <input type="text" class="form-control" placeholder="Pilihan 1" id="option0" />
-                </div>
-              </div>
-              <div class="mb-2">
-                <div class="input-group">
-                  <div class="input-group-text">
-                    <input class="form-check-input mt-0" type="radio" name="correctOption" value="1" />
-                  </div>
-                  <input type="text" class="form-control" placeholder="Pilihan 2" id="option1" />
-                </div>
-              </div>
-              <div class="mb-2">
-                <div class="input-group">
-                  <div class="input-group-text">
-                    <input class="form-check-input mt-0" type="radio" name="correctOption" value="2" />
-                  </div>
-                  <input type="text" class="form-control" placeholder="Pilihan 3" id="option2" />
-                </div>
-              </div>
-              <div class="mb-2">
-                <div class="input-group">
-                  <div class="input-group-text">
-                    <input class="form-check-input mt-0" type="radio" name="correctOption" value="3" />
-                  </div>
-                  <input type="text" class="form-control" placeholder="Pilihan 4" id="option3" />
-                </div>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="questionExplanation" class="form-label">Penjelasan (Opsional)</label>
-              <textarea class="form-control" id="questionExplanation" rows="2"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-primary" id="addQuestionBtn">Tambah Soal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+   <!-- Bootstrap JS -->
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Common JS -->
-    <script src="js/common.js"></script>
-    <!-- Exam specific JS -->
-    <script src="js/exam.js"></script>
-  </body>
+   <script>
+      // CSRF Token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+      // Timer functionality
+      let timeLeft = 90 * 60; // 90 minutes in seconds
+
+      function updateTimer() {
+         const hours = Math.floor(timeLeft / 3600);
+         const minutes = Math.floor((timeLeft % 3600) / 60);
+         const seconds = timeLeft % 60;
+
+         document.getElementById('timer').textContent =
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+         if (timeLeft > 0) {
+            timeLeft--;
+         } else {
+            alert('Waktu ujian telah habis!');
+            submitExam();
+         }
+      }
+
+      // Update timer every second
+      setInterval(updateTimer, 1000);
+
+      // Option selection
+      function selectOption(element) {
+         // Remove selected class from all options
+         document.querySelectorAll('.option-item').forEach(item => {
+            item.classList.remove('selected');
+         });
+
+         // Add selected class to clicked option
+         element.classList.add('selected');
+
+         // Check the radio button
+         const radio = element.querySelector('input[type="radio"]');
+         radio.checked = true;
+      }
+
+      // Navigation functions
+      function previousQuestion() {
+         // Implementation for previous question
+         console.log('Previous question');
+      }
+
+      function nextQuestion() {
+         // Implementation for next question
+         console.log('Next question');
+      }
+
+      function submitExam() {
+         if (confirm('Apakah Anda yakin ingin menyelesaikan ujian?')) {
+            // Implementation for exam submission
+            console.log('Exam submitted');
+         }
+      }
+   </script>
+</body>
+
 </html>
-

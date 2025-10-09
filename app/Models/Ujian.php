@@ -46,10 +46,15 @@ class Ujian extends Model
 
     protected $fillable = [
         'id_batch',
+        'nama_ujian',
+        'mata_pelajaran',
+        'deskripsi',
         'tanggal_mulai',
         'jam_mulai',
         'jam_selesai',
+        'tanggal_selesai',
         'durasi_menit',
+        'durasi',
         'status'
     ];
 
@@ -57,7 +62,9 @@ class Ujian extends Model
         'tanggal_mulai' => 'date',
         'jam_mulai' => 'datetime:H:i:s',
         'jam_selesai' => 'datetime:H:i:s',
-        'durasi_menit' => 'integer'
+        'tanggal_selesai' => 'datetime',
+        'durasi_menit' => 'integer',
+        'durasi' => 'integer'
     ];
 
     /**
@@ -98,5 +105,13 @@ class Ujian extends Model
     public function soalRandomization(): HasMany
     {
         return $this->hasMany(SoalRandomization::class, 'id_ujian', 'id_ujian');
+    }
+
+    /**
+     * Relationship with soal
+     */
+    public function soal(): HasMany
+    {
+        return $this->hasMany(Soal::class, 'id_ujian', 'id_ujian');
     }
 }

@@ -112,7 +112,7 @@ class SecureAuthController extends Controller
         // Store in session
         session([
             'user_id' => $user->id,
-            'user_type' => 'admin',
+            'user_type' => $user->role, // Use actual role from database
             'user_name' => $user->nama,
             'user_email' => $user->email,
             'session_token' => $sessionToken
@@ -143,20 +143,20 @@ class SecureAuthController extends Controller
 
         $validator = Validator::make($request->all(), [
             'kode_peserta' => 'required|string',
-            'password' => 'required|string'
+            'kode_akses' => 'required|string'
         ]);
 
         if ($validator->fails()) {
             RateLimiter::hit($key, 60);
             return response()->json([
                 'success' => false,
-                'message' => 'Kode peserta dan password harus diisi.'
+                'message' => 'Kode peserta dan kode akses harus diisi.'
             ], 400);
         }
 
         $peserta = Peserta::where('kode_peserta', $request->kode_peserta)->first();
 
-        if (!$peserta || !SecurityHelper::verifyPassword($request->password, $peserta->password_hash)) {
+        if (!$peserta || !SecurityHelper::verifyPassword($request->kode_akses, $peserta->password_hash)) {
             RateLimiter::hit($key, 60);
 
             // Update login attempts
@@ -256,9 +256,16 @@ class SecureAuthController extends Controller
         // Clear session
         session()->flush();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logout berhasil'
-        ]);
+        // Check if request expects JSON (AJAX)
+        if ($request->expectsJson() || $request->header('Content-Type') === 'application/json') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil'
+            ]);
+        }
+
+        // For form submissions, redirect to login page
+        $redirectTo = $request->input('redirect_to', '/');
+        return redirect($redirectTo)->with('success', 'Logout berhasil');
     }
 }

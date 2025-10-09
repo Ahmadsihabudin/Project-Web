@@ -591,14 +591,14 @@
       <!-- Unified Login Form -->
       <form id="loginForm">
          <div class="form-group">
-            <label for="username">Username / Email / Kode Peserta</label>
+            <label for="username" id="usernameLabel">Username / Email / Kode Peserta</label>
             <input type="text" id="username" name="username" required
                placeholder="Masukkan username, email, atau kode peserta">
          </div>
          <div class="form-group">
-            <label for="password">Password</label>
+            <label for="password" id="passwordLabel">Password / Kode Akses</label>
             <input type="password" id="password" name="password" required
-               placeholder="Masukkan password">
+               placeholder="Masukkan password atau kode akses">
          </div>
          <button type="submit" class="login-btn" id="loginBtn">
             <span id="loginText">Login</span>
@@ -647,6 +647,25 @@
          }
          // Default to peserta
          return 'peserta';
+      }
+
+      function updateFormLabels(userType) {
+         const usernameLabel = document.getElementById('usernameLabel');
+         const passwordLabel = document.getElementById('passwordLabel');
+         const usernameInput = document.getElementById('username');
+         const passwordInput = document.getElementById('password');
+
+         if (userType === 'admin') {
+            usernameLabel.textContent = 'Username / Email';
+            passwordLabel.textContent = 'Password';
+            usernameInput.placeholder = 'Masukkan username atau email';
+            passwordInput.placeholder = 'Masukkan password';
+         } else {
+            usernameLabel.textContent = 'Kode Peserta';
+            passwordLabel.textContent = 'Kode Akses';
+            usernameInput.placeholder = 'Masukkan kode peserta (contoh: RK78607462)';
+            passwordInput.placeholder = 'Masukkan kode akses';
+         }
       }
 
       function showAlert(message, type = 'error') {
@@ -714,7 +733,7 @@
                endpoint = '/auth/peserta/login';
                data = {
                   kode_peserta: username,
-                  password: password
+                  kode_akses: password
                };
             }
 
@@ -735,9 +754,9 @@
                // Redirect based on user type
                setTimeout(() => {
                   if (userType === 'admin') {
-                     window.location.href = '/exam';
+                     window.location.href = '/admin/dashboard';
                   } else {
-                     window.location.href = '/exam/candidate';
+                     window.location.href = '/candidate/dashboard';
                   }
                }, 1500);
             } else {
@@ -750,6 +769,15 @@
             showLoading(false);
          }
       });
+
+      // Update form labels based on input
+      document.getElementById('username').addEventListener('input', function() {
+         const userType = detectUserType(this.value);
+         updateFormLabels(userType);
+      });
+
+      // Initialize with default labels
+      updateFormLabels('peserta');
    </script>
 </body>
 

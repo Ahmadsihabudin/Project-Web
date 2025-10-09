@@ -44,6 +44,7 @@ class Soal extends Model
 
     protected $fillable = [
         'id_batch',
+        'id_ujian',
         'pertanyaan',
         'opsi_a',
         'opsi_b',
@@ -71,5 +72,13 @@ class Soal extends Model
     public function jawaban(): HasMany
     {
         return $this->hasMany(Jawaban::class, 'id_soal', 'id_soal');
+    }
+
+    /**
+     * Relationship with ujian
+     */
+    public function ujian(): BelongsTo
+    {
+        return $this->belongsTo(Ujian::class, 'id_ujian', 'id_ujian');
     }
 }
