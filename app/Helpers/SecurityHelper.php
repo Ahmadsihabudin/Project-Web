@@ -33,11 +33,28 @@ class SecurityHelper
    }
 
    /**
-    * Verify password
+    * Verify password using hashing when applicable.
+    * Falls back to plain-text comparison when the stored value
+    * is not a bcrypt/argon hash (useful for participant kode_akses
+    * that may be stored as plain text in legacy data).
     */
-   public static function verifyPassword($password, $hash)
+   public static function verifyPasswordFlexible(string $plainInput, string $storedValue): bool
    {
-      return Hash::check($password, $hash);
+      // Detect common hash prefixes
+      $isHashed = str_starts_with($storedValue, '$2y$')
+         || str_starts_with($storedValue, '$2a$')
+         || str_starts_with($storedValue, '$argon2');
+
+      if ($isHashed) {
+         try {
+            return Hash::check($plainInput, $storedValue);
+         } catch (\Throwable $e) {
+            // If hashing check fails unexpectedly, fall back to safe compare
+         }
+      }
+
+      // Constant-time comparison for non-hashed legacy values
+      return hash_equals((string) $storedValue, (string) $plainInput);
    }
 
    /**

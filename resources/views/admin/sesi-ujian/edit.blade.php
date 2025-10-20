@@ -219,23 +219,80 @@
                   const sesiUjian = result.data;
                   console.log('SesiUjian data loaded:', sesiUjian);
 
-                  // Fill form fields
+                  // Fill form fields (ensure options exist first)
                   document.getElementById('deskripsi').value = sesiUjian.deskripsi || '';
-                  document.getElementById('id_batch').value = sesiUjian.id_batch || '';
-                  document.getElementById('mata_pelajaran').value = sesiUjian.mata_pelajaran || '';
+
+                  // Mata pelajaran: set value if option exists, else prepend option then select
+                  const mpSelect = document.getElementById('mata_pelajaran');
+                  if (mpSelect) {
+                     const exists = Array.from(mpSelect.options).some(o => o.value === sesiUjian.mata_pelajaran);
+                     if (!exists && sesiUjian.mata_pelajaran) {
+                        const opt = document.createElement('option');
+                        opt.value = sesiUjian.mata_pelajaran;
+                        opt.textContent = sesiUjian.mata_pelajaran;
+                        mpSelect.insertBefore(opt, mpSelect.firstChild);
+                     }
+                     mpSelect.value = sesiUjian.mata_pelajaran || '';
+                  }
+
+                  // Batch: set by id; if current id not in list yet, inject option with current value
+                  const batchSelect = document.getElementById('id_batch');
+                  if (batchSelect) {
+                     const batchId = sesiUjian.id_batch?.toString() || '';
+                     const exists = Array.from(batchSelect.options).some(o => o.value === batchId);
+                     if (!exists && batchId) {
+                        const opt = document.createElement('option');
+                        opt.value = batchId;
+                        opt.textContent = sesiUjian.batch_name || `Batch ${batchId}`;
+                        batchSelect.insertBefore(opt, batchSelect.firstChild);
+                     }
+                     batchSelect.value = batchId;
+                  }
 
                   // Fill datetime-local fields
+                  console.log('Raw data for datetime fields:', {
+                     tanggal_mulai: sesiUjian.tanggal_mulai,
+                     jam_mulai: sesiUjian.jam_mulai,
+                     tanggal_selesai: sesiUjian.tanggal_selesai,
+                     jam_selesai: sesiUjian.jam_selesai
+                  });
+
                   if (sesiUjian.tanggal_mulai && sesiUjian.jam_mulai) {
-                     // Convert HH:MM:SS to HH:MM for datetime-local
-                     const jamMulai = sesiUjian.jam_mulai.substring(0, 5); // Remove seconds
-                     const startDateTime = sesiUjian.tanggal_mulai + 'T' + jamMulai;
-                     document.getElementById('tanggal_mulai').value = startDateTime;
+                     // Extract date part (YYYY-MM-DD) from tanggal_mulai
+                     const tanggalMulai = sesiUjian.tanggal_mulai.split(' ')[0]; // Get date part only
+                     // Extract time part (HH:MM) from jam_mulai (format: HH:MM:SS)
+                     const jamMulai = sesiUjian.jam_mulai.substring(0, 5); // Get HH:MM from HH:MM:SS
+                     const startDateTime = tanggalMulai + 'T' + jamMulai;
+                     console.log('Setting tanggal_mulai:', startDateTime);
+
+                     const tanggalMulaiElement = document.getElementById('tanggal_mulai');
+                     if (tanggalMulaiElement) {
+                        tanggalMulaiElement.value = startDateTime;
+                        console.log('Tanggal mulai element value set to:', tanggalMulaiElement.value);
+                     } else {
+                        console.error('Tanggal mulai element not found!');
+                     }
+                  } else {
+                     console.log('Missing data for tanggal_mulai or jam_mulai');
                   }
+
                   if (sesiUjian.tanggal_selesai && sesiUjian.jam_selesai) {
-                     // Convert HH:MM:SS to HH:MM for datetime-local
-                     const jamSelesai = sesiUjian.jam_selesai.substring(0, 5); // Remove seconds
-                     const endDateTime = sesiUjian.tanggal_selesai + 'T' + jamSelesai;
-                     document.getElementById('tanggal_selesai').value = endDateTime;
+                     // Extract date part (YYYY-MM-DD) from tanggal_selesai
+                     const tanggalSelesai = sesiUjian.tanggal_selesai.split(' ')[0]; // Get date part only
+                     // Extract time part (HH:MM) from jam_selesai (format: HH:MM:SS)
+                     const jamSelesai = sesiUjian.jam_selesai.substring(0, 5); // Get HH:MM from HH:MM:SS
+                     const endDateTime = tanggalSelesai + 'T' + jamSelesai;
+                     console.log('Setting tanggal_selesai:', endDateTime);
+
+                     const tanggalSelesaiElement = document.getElementById('tanggal_selesai');
+                     if (tanggalSelesaiElement) {
+                        tanggalSelesaiElement.value = endDateTime;
+                        console.log('Tanggal selesai element value set to:', tanggalSelesaiElement.value);
+                     } else {
+                        console.error('Tanggal selesai element not found!');
+                     }
+                  } else {
+                     console.log('Missing data for tanggal_selesai or jam_selesai');
                   }
                   document.getElementById('durasi_menit').value = sesiUjian.durasi_menit || '';
                }
@@ -467,12 +524,27 @@
                method: 'PUT',
                headers: {
                   'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': csrfToken
+                  'X-CSRF-TOKEN': csrfToken,
+                  'Accept': 'application/json'
                },
                body: JSON.stringify(sesiUjianData)
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+               const textResponse = await response.text();
+               console.error('Non-JSON response received:', textResponse);
+               alertSystem.hide(loadingAlert);
+               alertSystem.error('Gagal menyimpan', 'Server mengembalikan response yang tidak valid. Status: ' + response.status);
+               return;
+            }
+
             const result = await response.json();
+            console.log('Response result:', result);
             alertSystem.hide(loadingAlert);
 
             if (result.success) {
@@ -510,19 +582,21 @@
       }
 
       // Initialize on page load
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', async function() {
          console.log('DOM Content Loaded');
 
          // Load sesi ujian data if ID is provided
+         // Urutan: muat opsi (mata pelajaran & batch), lalu set nilai sesi agar select sudah punya opsi
          if (sesiUjianId) {
+            await loadMataPelajaran();
+            await loadBatches();
             console.log('Loading sesi ujian data for ID:', sesiUjianId);
-            loadSesiUjianData(sesiUjianId);
+            await loadSesiUjianData(sesiUjianId);
          } else {
-            console.log('No sesiUjianId provided');
+            // No ID, just load dropdowns without awaiting
+            loadMataPelajaran();
+            loadBatches();
          }
-
-         loadMataPelajaran();
-         loadBatches();
 
          // Add form listeners
          const editForm = document.getElementById('editSessionForm');

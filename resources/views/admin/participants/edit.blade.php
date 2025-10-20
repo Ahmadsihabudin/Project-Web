@@ -100,6 +100,10 @@
                                  <label for="email" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
                                  <input type="email" class="form-control" id="email" name="email" required>
                               </div>
+                              <div class="mb-3">
+                                 <label for="kode_peserta" class="form-label fw-bold">Kode Peserta <span class="text-danger">*</span></label>
+                                 <input type="text" class="form-control" id="kode_peserta" name="kode_peserta" required readonly>
+                              </div>
                            </div>
                         </div>
 
@@ -135,6 +139,13 @@
                                     <option value="Batch 18">Batch 18</option>
                                     <option value="Batch 19">Batch 19</option>
                                     <option value="Batch 20">Batch 20</option>
+                                 </select>
+                              </div>
+                              <div class="mb-3">
+                                 <label for="status" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                                 <select class="form-select" id="status" name="status" required>
+                                    <option value="aktif">Aktif</option>
+                                    <option value="tidak_aktif">Tidak Aktif</option>
                                  </select>
                               </div>
                            </div>
@@ -206,10 +217,12 @@
                   // Fill form fields
                   document.getElementById('nama').value = participant.nama_peserta || '';
                   document.getElementById('email').value = participant.email || '';
+                  document.getElementById('kode_peserta').value = participant.kode_peserta || '';
                   document.getElementById('kode_akses').value = participant.kode_akses || '';
                   document.getElementById('asal_smk').value = participant.asal_smk || '';
                   document.getElementById('jurusan').value = participant.jurusan || '';
                   document.getElementById('batch').value = participant.batch || '';
+                  document.getElementById('status').value = participant.status || 'aktif';
                }
             }
          } catch (error) {
@@ -275,12 +288,14 @@
             const formData = new FormData(event.target);
 
             const participantData = {
-               nama_peserta: formData.get('nama'),
+               nama: formData.get('nama'),
                email: formData.get('email'),
                kode_akses: formData.get('kode_akses'),
                asal_smk: formData.get('asal_smk'),
                jurusan: formData.get('jurusan'),
-               batch: formData.get('batch')
+               batch: formData.get('batch'),
+               kode_peserta: formData.get('kode_peserta') || '', // Add kode_peserta
+               status: formData.get('status') || 'aktif' // Add status
             };
 
             console.log('Participant Data to be sent:', participantData);

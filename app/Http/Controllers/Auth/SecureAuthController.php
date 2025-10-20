@@ -48,7 +48,7 @@ class SecureAuthController extends Controller
             ->orWhere('name', $request->email)
             ->first();
 
-        if (!$user || !SecurityHelper::verifyPassword($request->password, $user->password)) {
+        if (!$user || !SecurityHelper::verifyPasswordFlexible($request->password, $user->password)) {
             RateLimiter::hit($key, 60);
 
             // Update login attempts
@@ -113,7 +113,7 @@ class SecureAuthController extends Controller
         session([
             'user_id' => $user->id,
             'user_type' => $user->role, // Use actual role from database
-            'user_name' => $user->nama,
+            'user_name' => $user->name,
             'user_email' => $user->email,
             'session_token' => $sessionToken
         ]);
@@ -156,7 +156,7 @@ class SecureAuthController extends Controller
 
         $peserta = Peserta::where('kode_peserta', $request->kode_peserta)->first();
 
-        if (!$peserta || !SecurityHelper::verifyPassword($request->kode_akses, $peserta->kode_akses)) {
+        if (!$peserta || !SecurityHelper::verifyPasswordFlexible($request->kode_akses, $peserta->kode_akses)) {
             RateLimiter::hit($key, 60);
 
             // Update login attempts

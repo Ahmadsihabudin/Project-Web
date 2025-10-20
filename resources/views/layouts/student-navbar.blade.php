@@ -162,7 +162,7 @@
       <div class="container">
          <!-- Brand/Logo -->
          <a class="navbar-brand" href="{{ route('student.information') }}">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" class="navbar-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <img src="{{ asset('images/Favicon_akti.png') }}" alt="Logo" class="navbar-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="navbar-brand-text" style="display: none;">
                <h1 class="navbar-title">Ujian Online</h1>
                <p class="navbar-tagline">Student Portal</p>

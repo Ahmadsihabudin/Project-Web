@@ -159,7 +159,9 @@ class ExamController extends Controller
                     'nama' => $peserta->nama_peserta ?? $peserta->nama ?? 'Peserta',
                     'email' => $peserta->email,
                     'kode_peserta' => $peserta->kode_peserta ?? 'N/A',
-                    'batch' => $batchPeserta
+                    'batch' => $batchPeserta,
+                    'asal_smk' => $peserta->asal_smk ?? 'N/A',
+                    'jurusan' => $peserta->jurusan ?? 'N/A'
                 ]
             ]);
         } catch (\Exception $e) {
@@ -176,7 +178,46 @@ class ExamController extends Controller
      */
     public function information()
     {
-        return view('students.information');
+        $initialPeserta = null;
+        try {
+            $userId = session('user_id');
+            $userType = session('user_type');
+            if ($userId && $userType === 'peserta') {
+                $peserta = \App\Models\Peserta::find($userId);
+                if ($peserta) {
+                    $initialPeserta = [
+                        'nama' => $peserta->nama_peserta ?? $peserta->nama ?? 'Peserta',
+                        'kode_peserta' => $peserta->kode_peserta ?? 'N/A',
+                        'batch' => $peserta->batch ?? 'N/A',
+                        'email' => $peserta->email ?? 'N/A',
+                        'asal_smk' => $peserta->asal_smk ?? 'N/A',
+                        'jurusan' => $peserta->jurusan ?? 'N/A',
+                    ];
+
+                    // Cek apakah ada sesi ujian untuk batch peserta
+                    $batchPeserta = $peserta->batch;
+                    if ($batchPeserta) {
+                        // Cari batch ID berdasarkan nama batch
+                        $batch = \App\Models\Batch::where('nama_batch', $batchPeserta)->first();
+                        if ($batch) {
+                            // Cek apakah ada sesi ujian aktif untuk batch ini
+                            $sesiUjianCount = SesiUjian::where('id_batch', $batch->id_batch)
+                                ->where('status', 'aktif')
+                                ->count();
+
+                            // Jika tidak ada sesi ujian, redirect ke halaman peserta-wrong
+                            if ($sesiUjianCount == 0) {
+                                return view('students.peserta-wrong');
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore and render without initial data
+        }
+
+        return view('students.information', compact('initialPeserta'));
     }
 
     /**

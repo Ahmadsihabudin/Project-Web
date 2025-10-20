@@ -1,71 +1,32 @@
-# 🎓 Sistem Ujian Online
+# 🎓 Sistem Ujian Online - Laravel
 
-Sistem ujian online berbasis Laravel dengan fitur lengkap untuk admin, staff, dan peserta ujian.
+sistem kelompok 7
 
-## 📋 Fitur Utama
+## 🚀 Quick Start
 
-### 👨‍💼 Admin Dashboard
+### Yang Perlu Disiapin
 
--   **Manajemen User** - Kelola staff dan admin
--   **Manajemen Peserta** - Kelola data peserta ujian
--   **Bank Soal** - Kelola soal ujian
--   **Laporan** - Laporan hasil ujian
--   **Pengaturan** - Konfigurasi sistem
-
-### 👨‍🏫 Staff Dashboard
-
--   **Manajemen Peserta** - Kelola data peserta
--   **Bank Soal** - Kelola soal ujian
--   **Laporan** - Lihat laporan ujian
-
-### 👨‍🎓 Peserta Dashboard
-
--   **Tata Cara Ujian** - Panduan lengkap ujian
--   **Peringatan & Agreement** - Sistem consent wajib
--   **Ujian Online** - Interface ujian yang user-friendly
-
-## 🚀 Setup Awal untuk Kolaborasi
-
-### Prerequisites
-
--   PHP 8.1 atau lebih tinggi
+-   PHP 8.1+ (diusahkan banget ini mah kalo bisa di samain)
 -   Composer
--   Node.js & NPM
 -   MySQL/MariaDB
 -   Git
 
-### 1. Clone Repository
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/Ahmadsihabudin/Project-Web.git
+git clone https://github.com/username/Project-Web.git
 cd Project-Web
-```
-
-### 2. Install Dependencies
-
-```bash
-# Install PHP dependencies
 composer install
-
-# Install Node.js dependencies
 npm install
 ```
 
-### 3. Setup Environment
+### 2. Setup Database
 
 ```bash
-# Copy file environment
+# Copy environment file
 cp .env.example .env
 
-# Generate application key
-php artisan key:generate
-```
-
-### 4. Konfigurasi Database
-
-Edit file `.env` dan sesuaikan dengan database Anda:
-
-```env
+# Edit .env file, sesuaikan database:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -74,219 +35,128 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### 5. Setup Database
+### 3. Import Database
 
 ```bash
-# Buat database
-mysql -u root -p
-CREATE DATABASE ujian_online;
-exit
-
-# Jalankan migrations
-php artisan migrate
-
-# Jalankan seeders untuk data sample
-php artisan db:seed --class=StaffSeeder
-php artisan db:seed --class=ExamSeeder
+# Import database dari folder database/db/
+mysql -u root -p ujian_online < database/db/ujian_online.sql
 ```
 
-### 6. Build Assets
+### 4. Generate Key & Run
 
 ```bash
-# Build frontend assets
-npm run build
-# atau untuk development
-npm run dev
-```
-
-### 7. Jalankan Server
-
-```bash
+php artisan key:generate
 php artisan serve
 ```
 
-Akses aplikasi di: `http://127.0.0.1:8000`
-
-## 👥 Kolaborasi Tim
-
-### 🔄 Mengambil Perubahan Terbaru
-
-**Setiap kali ada perubahan dari tim, lakukan langkah berikut:**
-
-#### 1. Pull Perubahan Terbaru
-
-```bash
-git pull origin main
-```
-
-#### 2. Update Dependencies (jika ada yang baru)
-
-```bash
-composer install
-npm install
-```
-
-#### 3. Jalankan Migrations Baru
-
-```bash
-php artisan migrate
-```
-
-#### 4. Jalankan Seeders (jika ada data baru)
-
-```bash
-# Jalankan semua seeders
-php artisan db:seed
-
-# Atau jalankan seeders tertentu
-php artisan db:seed --class=StaffSeeder
-php artisan db:seed --class=ExamSeeder
-```
-
-#### 5. Clear Cache
-
-```bash
-php artisan config:clear
-php artisan cache:clear
-php artisan view:clear
-php artisan route:clear
-```
-
-#### 6. Build Assets (jika ada perubahan frontend)
-
-```bash
-npm run build
-```
-
-### 🚨 Troubleshooting
-
-#### Jika Migration Error:
-
-```bash
-# Rollback migration terakhir
-php artisan migrate:rollback
-
-# Jalankan migration lagi
-php artisan migrate
-```
-
-#### Jika Seeder Error (Duplicate Data):
-
-```bash
-# Masuk ke tinker
-php artisan tinker
-
-# Hapus data lama (HATI-HATI!)
-DB::table('users')->truncate();
-DB::table('ujian')->truncate();
-DB::table('peserta')->truncate();
-exit
-
-# Jalankan seeders lagi
-php artisan db:seed
-```
-
-#### Jika Database Kosong:
-
-```bash
-# Reset database lengkap
-php artisan migrate:fresh --seed
-```
-
-### 📊 Verifikasi Database
-
-Setelah setup, verifikasi data dengan:
-
-```bash
-php artisan tinker
-
-# Cek data
-App\Models\User::count();        # Harus ada data staff/admin
-App\Models\Ujian::count();       # Harus ada data ujian
-App\Models\Peserta::count();     # Harus ada data peserta
-App\Models\Soal::count();        # Harus ada data soal
-```
+Buka: `http://127.0.0.1:8000`
 
 ## 🔐 Login Default
 
 ### Admin
 
--   **Email:** admin@ujian.com
--   **Password:** password
-
-### Staff
-
--   **Email:** proktor@ujian.com
--   **Password:** password
+-   **Email:** `admin@ujianonline.com`
+-   **Password:** `admin123`
 
 ### Peserta
 
--   **Kode Peserta:** TEST001
--   **Kode Akses:** password123
+-   **Kode Peserta:** `RK00001`
+-   **Kode Akses:** `123456`
 
-## 📁 Struktur Database
+## 📊 Progress Project
 
-### Tabel Utama
+### ✅ Yang Udah Kelar (95%)
 
--   `users` - Data admin dan staff
--   `peserta` - Data peserta ujian
--   `ujian` - Data ujian
--   `soal` - Bank soal
--   `jawaban` - Jawaban peserta
--   `batches` - Batch ujian
+-   **Authentication System** - Login admin & peserta ✅
+-   **Admin Dashboard** - Manajemen user, peserta, soal ✅
+-   **Database Integration** - Semua data real dari MySQL ✅
+-   **Student Information** - Info peserta & routing ✅
+-   **Exam Info Warning** - Komposisi soal real ✅
+-   **UI/UX Design** - Responsive & modern ✅
+-   **Navigation Flow** - Routing yang bener ✅
 
-### Relasi
+### 🔄 Yang Masih Dikerjain (5%)
 
--   Ujian → Soal (One to Many)
--   Peserta → Jawaban (One to Many)
--   Ujian → Jawaban (One to Many)
+-   **Exam Taking System** - Halaman ujian aktual 🔄
+-   **Results & Scoring** - Hasil ujian & nilai 🔄
+-   **Timer System** - Countdown ujian 🔄
+
+## 🎯 Fitur Yang Bisa Dipake Sekarang
+
+### Admin Panel
+
+-   Dashboard dengan statistik real
+-   Kelola user (admin/staff)
+-   Kelola peserta ujian
+-   Kelola bank soal
+-   Kelola sesi ujian
+-   Laporan basic
+
+### Student Panel
+
+-   Login dengan kode akses
+-   Lihat info peserta
+-   Lihat komposisi ujian
+-   Navigation yang smooth
 
 ## 🛠️ Development
 
-### Menjalankan Development Server
+### Update dari GitHub
 
 ```bash
-# Backend
-php artisan serve
-
-# Frontend (terminal terpisah)
-npm run dev
+git pull origin main
+composer install
+php artisan migrate
+php artisan config:clear
 ```
 
-### Menjalankan Tests
+### Reset Database
 
 ```bash
-php artisan test
+php artisan migrate:fresh --seed
 ```
 
-## 📝 Changelog
+## 📁 Struktur Database
 
-### v1.0.0
+Database udah include di `database/db/ujian_online.sql` dengan data sample:
 
--   ✅ Admin dashboard dengan manajemen user
--   ✅ Staff dashboard dengan akses terbatas
--   ✅ Peserta dashboard dengan tata cara ujian
--   ✅ Sistem agreement dan peringatan
--   ✅ Database schema lengkap
--   ✅ API endpoints untuk semua fitur
--   ✅ Design responsif dan konsisten
+-   **users** - Admin & staff
+-   **peserta** - Data peserta ujian
+-   **soal** - Bank soal
+-   **sesi_ujian** - Jadwal ujian
+-   **batch** - Kelompok peserta
+-   **jawaban** - Jawaban peserta
 
-## 🤝 Contributing
+## 🚨 Troubleshooting
 
-1. Fork repository
-2. Buat feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
-4. Push ke branch (`git push origin feature/AmazingFeature`)
-5. Buat Pull Request
+### Database Error
 
-## 📞 Support
+```bash
+# Cek koneksi database
+php artisan tinker
+DB::connection()->getPdo();
+```
 
-Jika ada masalah atau pertanyaan, silakan buat issue di GitHub atau hubungi tim development.
+### Permission Error
 
-## 📄 License
+```bash
+# Fix permission
+chmod -R 755 storage bootstrap/cache
+```
 
-Project ini menggunakan [MIT License](https://opensource.org/licenses/MIT).
+### Cache Error
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+```
+
+
+
 
 ---
 
 **Happy Coding! 🚀**
+
+_Project ini udah 95% kelar, tinggal sistem ujian aktual yang masih dikerjain. Semua fitur admin & info peserta udah bisa dipake dengan lancar! Alhamdulillah_

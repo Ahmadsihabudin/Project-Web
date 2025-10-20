@@ -126,9 +126,9 @@
          .table td {
             padding: 0.375rem 0.125rem;
             font-size: 0.75rem;
-      }
+         }
 
-      .action-buttons .btn {
+         .action-buttons .btn {
             padding: 0.1rem 0.2rem;
             font-size: 0.65rem;
             min-width: 24px;
@@ -254,7 +254,7 @@
                      <table class="table table-striped" id="sesiUjianTable">
                         <thead>
                            <tr>
-                              <th width="5%">ID</th>
+                              <th width="5%">No</th>
                               <th width="20%">Nama Ujian</th>
                               <th width="10%">Batch</th>
                               <th width="15%">Tanggal Mulai</th>
@@ -367,7 +367,7 @@
          sesiUjian.forEach((sesiUjianItem, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-               <td><span class="badge bg-primary">${sesiUjianItem.id || 'N/A'}</span></td>
+               <td>${index + 1}</td>
                <td>
                   <div>
                      <h6 class="mb-1">${sesiUjianItem.nama_ujian || 'Nama Ujian'}</h6>
@@ -542,16 +542,16 @@
             // If all else fails, try to parse as is
             const date = new Date(cleanDateString);
             if (!isNaN(date.getTime())) {
-            const formattedDate = date.toLocaleDateString('id-ID', {
-               day: '2-digit',
-               month: '2-digit',
-               year: 'numeric'
-            });
-            const formattedTime = date.toLocaleTimeString('id-ID', {
-               hour: '2-digit',
-               minute: '2-digit',
-               hour12: false
-            });
+               const formattedDate = date.toLocaleDateString('id-ID', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+               });
+               const formattedTime = date.toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+               });
                return `${formattedDate} ${formattedTime}`;
             }
 

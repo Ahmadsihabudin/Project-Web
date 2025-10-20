@@ -28,10 +28,10 @@ class SesiUjian extends Model
     ];
 
     protected $casts = [
-        'tanggal_mulai' => 'date',
-        'tanggal_selesai' => 'date',
-        'jam_mulai' => 'datetime:H:i',
-        'jam_selesai' => 'datetime:H:i',
+        'tanggal_mulai' => 'date:Y-m-d',
+        'tanggal_selesai' => 'date:Y-m-d',
+        'jam_mulai' => 'string',
+        'jam_selesai' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

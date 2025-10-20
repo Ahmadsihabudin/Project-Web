@@ -155,6 +155,124 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
     Route::view('/reports/create', 'admin.reports.create')->name('admin.reports.create');
     Route::view('/reports/{id}/edit', 'admin.reports.edit')->name('admin.reports.edit');
 
+    // Sesi Ujian (Admin)
+    Route::view('/sesi-ujian', 'admin.sesi-ujian.index')->name('admin.sesi-ujian.index');
+    Route::view('/sesi-ujian/create', 'admin.sesi-ujian.create')->name('admin.sesi-ujian.create');
+    Route::view('/sesi-ujian/{id}/edit', 'admin.sesi-ujian.edit')->name('admin.sesi-ujian.edit');
+    // Sesi Ujian API (dummy handlers for now)
+    Route::get('/sesi-ujian/stats', function () {
+        $total = App\Models\SesiUjian::count();
+        $aktif = App\Models\SesiUjian::where('status', 'aktif')->count();
+        $selesai = App\Models\SesiUjian::where('status', 'selesai')->count();
+        return response()->json([
+            'success' => true,
+            'data' => compact('total', 'aktif', 'selesai'),
+        ]);
+    })->name('admin.sesi-ujian.stats');
+    Route::get('/sesi-ujian/data', function () {
+        $rows = App\Models\SesiUjian::with(['ujian', 'batch'])
+            ->orderBy('tanggal_mulai', 'desc')
+            ->orderBy('jam_mulai', 'desc')
+            ->get();
+        $data = $rows->map(function ($r) {
+            return [
+                'id' => $r->id_sesi,
+                'nama_ujian' => optional($r->ujian)->nama_ujian ?? ($r->mata_pelajaran ?: 'Ujian'),
+                // Both batch (string) and batch_name (for frontend) for compatibility
+                'batch' => optional($r->batch)->nama_batch ?? optional(App\Models\Batch::find($r->id_batch))->nama_batch ?? (string) $r->id_batch,
+                'batch_name' => optional($r->batch)->nama_batch ?? optional(App\Models\Batch::find($r->id_batch))->nama_batch ?? (string) $r->id_batch,
+                'deskripsi' => $r->deskripsi,
+                'tanggal_mulai' => $r->tanggal_mulai,
+                'jam_mulai' => $r->jam_mulai,
+                'tanggal_selesai' => $r->tanggal_selesai,
+                'jam_selesai' => $r->jam_selesai,
+                'durasi_menit' => $r->durasi_menit,
+                'status' => $r->status,
+                'created_at' => $r->created_at,
+            ];
+        });
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    })->name('admin.sesi-ujian.data');
+    Route::put('/sesi-ujian/{id}', function ($id, Request $request) {
+        try {
+            $sesiUjian = App\Models\SesiUjian::findOrFail($id);
+
+            // Parse datetime-local input
+            $tanggalMulai = $request->tanggal_mulai;
+            $tanggalSelesai = $request->tanggal_selesai;
+
+            // Split datetime-local into date and time parts
+            $tanggalMulaiParts = explode('T', $tanggalMulai);
+            $tanggalSelesaiParts = explode('T', $tanggalSelesai);
+
+            $sesiUjian->update([
+                'id_batch' => $request->id_batch,
+                'mata_pelajaran' => $request->mata_pelajaran,
+                'deskripsi' => $request->deskripsi,
+                'tanggal_mulai' => $tanggalMulaiParts[0], // YYYY-MM-DD
+                'jam_mulai' => $tanggalMulaiParts[1] . ':00', // HH:MM:SS
+                'tanggal_selesai' => $tanggalSelesaiParts[0], // YYYY-MM-DD
+                'jam_selesai' => $tanggalSelesaiParts[1] . ':00', // HH:MM:SS
+                'durasi_menit' => $request->durasi_menit,
+                'status' => 'aktif'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sesi ujian berhasil diperbarui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui sesi ujian: ' . $e->getMessage()
+            ], 500);
+        }
+    })->name('admin.sesi-ujian.update');
+
+    Route::delete('/sesi-ujian/{id}', function ($id) {
+        return response()->json([
+            'success' => true,
+        ]);
+    })->name('admin.sesi-ujian.destroy');
+
+    // Form helpers: mata pelajaran dan daftar batch untuk create/edit sesi ujian
+    Route::get('/sesi-ujian/mata-pelajaran', function () {
+        // Ambil distinct mata pelajaran dari tabel soal
+        $mapel = App\Models\Soal::select('mata_pelajaran')
+            ->whereNotNull('mata_pelajaran')
+            ->distinct()
+            ->orderBy('mata_pelajaran')
+            ->pluck('mata_pelajaran');
+        return response()->json(['success' => true, 'data' => $mapel]);
+    })->name('admin.sesi-ujian.mata-pelajaran');
+
+    Route::get('/participants/batches', function () {
+        $batches = App\Models\Batch::orderBy('nama_batch')->get(['id_batch', 'nama_batch']);
+        return response()->json(['success' => true, 'data' => $batches]);
+    })->name('admin.participants.batches');
+
+    // Data sesi ujian detail
+    Route::get('/sesi-ujian/{id}/data', function ($id) {
+        $sesi = App\Models\SesiUjian::with(['ujian', 'batch'])->findOrFail($id);
+        $payload = [
+            'id_sesi' => $sesi->id_sesi,
+            'id_batch' => $sesi->id_batch,
+            'batch_name' => optional($sesi->batch)->nama_batch,
+            'mata_pelajaran' => $sesi->mata_pelajaran,
+            'deskripsi' => $sesi->deskripsi,
+            'tanggal_mulai' => $sesi->tanggal_mulai ? $sesi->tanggal_mulai->format('Y-m-d') : null,
+            'jam_mulai' => $sesi->jam_mulai,
+            'tanggal_selesai' => $sesi->tanggal_selesai ? $sesi->tanggal_selesai->format('Y-m-d') : null,
+            'jam_selesai' => $sesi->jam_selesai,
+            'durasi_menit' => $sesi->durasi_menit,
+            'status' => $sesi->status,
+        ];
+        return response()->json(['success' => true, 'data' => $payload]);
+    })->name('admin.sesi-ujian.show');
+
     Route::view('/settings', 'admin.settings.index')->name('admin.settings.index');
     Route::view('/settings/create', 'admin.settings.create')->name('admin.settings.create');
     Route::view('/settings/{id}/edit', 'admin.settings.edit')->name('admin.settings.edit');
@@ -274,12 +392,72 @@ Route::prefix('student')->middleware(['custom.auth'])->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.dashboard');
     Route::view('/exam', 'student.exam')->name('student.exam.index');
     Route::get('/information', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.information');
+    Route::get('/peserta-wrong', function () {
+        return view('students.peserta-wrong');
+    })->name('student.peserta-wrong');
     Route::get('/profile', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.profile');
 
     // Exam API Routes for students
     Route::get('/exam/data', [App\Http\Controllers\Student\ExamController::class, 'index'])->name('student.exam.data');
     Route::get('/exam/available', [App\Http\Controllers\Student\ExamController::class, 'index'])->name('student.exam.available');
+    Route::get('/exam/{id}/data', function ($id) {
+        $sesi = App\Models\SesiUjian::with(['ujian', 'batch'])->findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $sesi->id_sesi,
+                'mata_pelajaran' => $sesi->mata_pelajaran,
+                'deskripsi' => $sesi->deskripsi,
+                'tanggal_mulai' => $sesi->tanggal_mulai,
+                'jam_mulai' => $sesi->jam_mulai,
+                'tanggal_selesai' => $sesi->tanggal_selesai,
+                'jam_selesai' => $sesi->jam_selesai,
+                'durasi_menit' => $sesi->durasi_menit,
+                'status' => $sesi->status,
+                'batch_name' => optional($sesi->batch)->nama_batch,
+            ]
+        ]);
+    })->name('student.exam.data.single');
     Route::get('/exam/{id}/info', [App\Http\Controllers\Student\ExamController::class, 'showExamInfo'])->name('student.exam.info');
+    Route::get('/exam/{id}/info-warning', function ($id) {
+        return view('students.exam-info-warning', ['examId' => $id]);
+    })->name('student.exam.info-warning');
+    Route::get('/exam/{id}/questions-composition', function ($id) {
+        try {
+            // Get session info first
+            $sesi = \App\Models\SesiUjian::find($id);
+            if (!$sesi || !$sesi->batch) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sesi ujian tidak ditemukan'
+                ], 404);
+            }
+
+            // Get soal data for this batch
+            $soal = \App\Models\Soal::where('batch', $sesi->batch->nama_batch)->get();
+
+            // Count by type
+            $pilihanGanda = $soal->where('tipe_soal', 'pilihan_ganda')->count();
+            $essay = $soal->where('tipe_soal', 'essay')->count();
+            $trueFalse = $soal->where('tipe_soal', 'true_false')->count();
+            $total = $soal->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'pilihan_ganda' => $pilihanGanda,
+                    'essay' => $essay,
+                    'true_false' => $trueFalse,
+                    'total' => $total
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat komposisi soal: ' . $e->getMessage()
+            ], 500);
+        }
+    })->name('student.exam.questions-composition');
     Route::get('/exam/{id}/warning', [App\Http\Controllers\Student\ExamController::class, 'showExamWarning'])->name('student.exam.warning');
     Route::get('/exam/{id}', [App\Http\Controllers\Student\ExamController::class, 'showExam'])->name('student.exam.show');
     Route::post('/exam/{id}/submit', [App\Http\Controllers\Student\ExamController::class, 'submitExam'])->name('student.exam.submit');

@@ -99,7 +99,8 @@ class ParticipantController extends Controller
          'kode_akses' => 'required|string|min:3|max:255',
          'batch' => 'required|string|max:255|min:1',
          'status' => 'required|in:aktif,tidak_aktif|string',
-         'asal_smk' => 'nullable|string|max:255'
+         'asal_smk' => 'nullable|string|max:255',
+         'jurusan' => 'nullable|string|max:255'
       ]);
 
       if ($validator->fails()) {
@@ -119,9 +120,8 @@ class ParticipantController extends Controller
          $batch = Batch::firstOrCreate(
             ['nama_batch' => $request->batch],
             [
-               'deskripsi' => 'Batch untuk ' . $request->batch,
-               'created_at' => now(),
-               'updated_at' => now()
+               'keterangan' => 'Batch untuk ' . $request->batch,
+               'created_at' => now()
             ]
          );
 
@@ -129,9 +129,10 @@ class ParticipantController extends Controller
             'nomor_urut' => $nextNomor,
             'nama_peserta' => $request->nama,
             'kode_peserta' => $request->kode_peserta,
-            'password_hash' => Hash::make($request->kode_akses),
+            'kode_akses' => $request->kode_akses, // Store as plain text, not hashed
             'asal_smk' => $request->asal_smk ?: 'SMK Default',
-            'jurusan' => $request->batch,
+            'jurusan' => $request->jurusan ?: $request->batch, // Use jurusan field if provided
+            'batch' => $request->batch,
             'status' => $request->status,
             'email' => $request->email ?: null, // Will be null if not provided
             'last_login_at' => null,
@@ -181,6 +182,7 @@ class ParticipantController extends Controller
          'nama' => 'required|string|max:255|min:1',
          'email' => 'nullable|email|max:255', // Email optional for peserta yaa cuy
          'asal_smk' => 'nullable|string|max:255',
+         'jurusan' => 'nullable|string|max:255',
          'kode_peserta' => 'required|string|max:255|min:1|unique:peserta,kode_peserta,' . $id . ',id_peserta',
          'kode_akses' => 'nullable|string|min:3|max:255',
          'batch' => 'required|string|max:255|min:1',
@@ -202,9 +204,8 @@ class ParticipantController extends Controller
          $batch = Batch::firstOrCreate(
             ['nama_batch' => $request->batch],
             [
-               'deskripsi' => 'Batch untuk ' . $request->batch,
-               'created_at' => now(),
-               'updated_at' => now()
+               'keterangan' => 'Batch untuk ' . $request->batch,
+               'created_at' => now()
             ]
          );
 
@@ -212,14 +213,15 @@ class ParticipantController extends Controller
             'nama_peserta' => $request->nama,
             'kode_peserta' => $request->kode_peserta,
             'asal_smk' => $request->asal_smk ?: 'SMK Default',
-            'jurusan' => $request->batch,
+            'jurusan' => $request->jurusan ?: $request->batch, // Use jurusan field if provided
+            'batch' => $request->batch,
             'status' => $request->status,
             'email' => $request->email, // Will be null if not provided
          ];
 
          // Only update password if provided
          if ($request->filled('kode_akses')) {
-            $updateData['password_hash'] = Hash::make($request->kode_akses);
+            $updateData['kode_akses'] = $request->kode_akses; // Store as plain text
          }
 
          $participant->update($updateData);

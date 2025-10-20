@@ -24,6 +24,7 @@
             <i class="bi bi-speedometer2 me-2"></i>
             Dashboard
          </a>
+
          <a class="nav-link {{ request()->is('admin/users*') ? 'active' : '' }}" href="/admin/users">
             <i class="bi bi-people-fill me-2"></i>
             Manajemen User
@@ -36,10 +37,15 @@
             <i class="bi bi-question-circle me-2"></i>
             Soal
          </a>
+         <a class="nav-link {{ request()->is('admin/sesi-ujian*') ? 'active' : '' }}" href="/admin/sesi-ujian">
+            <i class="bi bi-calendar-event me-2"></i>
+            Sesi Ujian
+         </a>
          <a class="nav-link {{ request()->is('admin/reports*') ? 'active' : '' }}" href="/admin/reports">
             <i class="bi bi-graph-up me-2"></i>
             Laporan
          </a>
+
          <a class="nav-link {{ request()->is('admin/settings*') ? 'active' : '' }}" href="/admin/settings">
             <i class="bi bi-gear me-2"></i>
             Pengaturan
@@ -75,6 +81,10 @@
             <i class="bi bi-question-circle me-2"></i>
             Soal
          </a>
+         <a class="nav-link {{ request()->is('student/exam*') ? 'active' : '' }}" href="/student/exam">
+            <i class="bi bi-file-text me-2"></i>
+            Sesi Ujian
+         </a>
          <a class="nav-link {{ request()->is('admin/reports*') ? 'active' : '' }}" href="/admin/reports">
             <i class="bi bi-graph-up me-2"></i>
             Laporan
@@ -102,14 +112,11 @@
          </button>
       </div>
       <nav class="nav flex-column">
-         <a class="nav-link {{ request()->is('candidate/dashboard') ? 'active' : '' }}" href="/candidate/dashboard">
+         <a class="nav-link {{ request()->is('student/dashboard') ? 'active' : '' }}" href="/student/dashboard">
             <i class="bi bi-house me-2"></i>
             Beranda
          </a>
-         <a class="nav-link {{ request()->is('candidate/exam*') ? 'active' : '' }}" href="/candidate/exam">
-            <i class="bi bi-file-text me-2"></i>
-            Ujian
-         </a>
+
       </nav>
    </div>
 </div>
