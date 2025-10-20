@@ -45,7 +45,7 @@ class SecureAuthController extends Controller
 
         // Support both email and username login
         $user = User::where('email', $request->email)
-            ->orWhere('nama', $request->email)
+            ->orWhere('name', $request->email)
             ->first();
 
         if (!$user || !SecurityHelper::verifyPassword($request->password, $user->password)) {
@@ -156,7 +156,7 @@ class SecureAuthController extends Controller
 
         $peserta = Peserta::where('kode_peserta', $request->kode_peserta)->first();
 
-        if (!$peserta || !SecurityHelper::verifyPassword($request->kode_akses, $peserta->password_hash)) {
+        if (!$peserta || !SecurityHelper::verifyPassword($request->kode_akses, $peserta->kode_akses)) {
             RateLimiter::hit($key, 60);
 
             // Update login attempts

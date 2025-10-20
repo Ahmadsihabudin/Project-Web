@@ -46,7 +46,7 @@ Route::get('/debug/session', function () {
 
 // Debug reports route
 Route::get('/debug/reports', function () {
-    return view('exam.reports');
+    return view('admin.reports.index');
 });
 
 
@@ -60,7 +60,7 @@ Route::get('/debug/reports-staff', function () {
         'user_email' => 'staff@test.com',
     ]);
 
-    return view('exam.reports');
+    return view('admin.reports.index');
 });
 
 // Debug participants API
@@ -121,12 +121,63 @@ Route::post('/debug/login-staff', function (Request $request) {
 
 // Admin Routes (Protected)
 Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
-    Route::view('/dashboard', 'exam.admin-dashboard')->name('admin.dashboard');
-    Route::view('/users', 'exam.users')->name('admin.users.index');
-    Route::view('/questions', 'exam.questions')->name('admin.questions.index');
-    Route::view('/participants', 'exam.participants')->name('admin.participants.index');
-    Route::view('/reports', 'exam.reports')->name('admin.reports.index');
-    Route::view('/settings', 'exam.settings')->name('admin.settings.index');
+    // Redirect /admin to /admin/dashboard
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
+
+    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
+    Route::view('/users', 'admin.users.index')->name('admin.users.index');
+    Route::view('/users/create', 'admin.users.create')->name('admin.users.create');
+    Route::view('/users/{id}/edit', 'admin.users.edit')->name('admin.users.edit');
+
+    Route::view('/questions', 'admin.questions.index')->name('admin.questions.index');
+    Route::view('/questions/create', 'admin.questions.create')->name('admin.questions.create');
+    Route::view('/questions/{id}/edit', 'admin.questions.edit')->name('admin.questions.edit');
+    Route::get('/questions/import/template', function () {
+        return response()->download(public_path('sample_import_peserta.csv'));
+    })->name('admin.questions.import.template');
+    Route::post('/questions/import', function () {
+        return redirect()->back()->with('success', 'Import berhasil');
+    })->name('admin.questions.import');
+
+    Route::view('/participants', 'admin.participants.index')->name('admin.participants.index');
+    Route::view('/participants/create', 'admin.participants.create')->name('admin.participants.create');
+    Route::view('/participants/{id}/edit', 'admin.participants.edit')->name('admin.participants.edit');
+    Route::get('/participants/import/template', function () {
+        return response()->download(public_path('sample_import_peserta.csv'));
+    })->name('admin.participants.import.template');
+    Route::post('/participants/import', function () {
+        return redirect()->back()->with('success', 'Import berhasil');
+    })->name('admin.participants.import');
+
+    Route::view('/reports', 'admin.reports.index')->name('admin.reports.index');
+    Route::view('/reports/create', 'admin.reports.create')->name('admin.reports.create');
+    Route::view('/reports/{id}/edit', 'admin.reports.edit')->name('admin.reports.edit');
+
+    Route::view('/settings', 'admin.settings.index')->name('admin.settings.index');
+    Route::view('/settings/create', 'admin.settings.create')->name('admin.settings.create');
+    Route::view('/settings/{id}/edit', 'admin.settings.edit')->name('admin.settings.edit');
+
+    // Settings API routes
+    Route::get('/settings/stats', function () {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total' => 0,
+                'active' => 0,
+                'encrypted' => 0,
+                'public' => 0
+            ]
+        ]);
+    })->name('admin.settings.stats');
+
+    Route::get('/settings/data', function () {
+        return response()->json([
+            'success' => true,
+            'data' => []
+        ]);
+    })->name('admin.settings.data');
 
     // Legacy redirect for /admin/exams
     Route::get('/exams', function () {
@@ -158,13 +209,21 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
 
     // Dashboard API Routes
     Route::get('/dashboard/data', [App\Http\Controllers\DashboardController::class, 'getStats'])->name('admin.dashboard.data');
+
+    // Question Management API Routes
+    Route::get('/questions/data', [App\Http\Controllers\QuestionController::class, 'data'])->name('admin.questions.data');
+    Route::get('/questions/stats', [App\Http\Controllers\QuestionController::class, 'getStats'])->name('admin.questions.stats');
+    Route::post('/questions', [App\Http\Controllers\QuestionController::class, 'store'])->name('admin.questions.store');
+    Route::get('/questions/{id}', [App\Http\Controllers\QuestionController::class, 'show'])->name('admin.questions.show');
+    Route::put('/questions/{id}', [App\Http\Controllers\QuestionController::class, 'update'])->name('admin.questions.update');
+    Route::delete('/questions/{id}', [App\Http\Controllers\QuestionController::class, 'destroy'])->name('admin.questions.destroy');
 });
 
 // Candidate Routes (Protected)
 Route::prefix('candidate')->middleware(['custom.auth'])->group(function () {
-    Route::view('/dashboard', 'exam.candidate')->name('candidate.dashboard');
-    Route::view('/exam', 'exam.student-exam')->name('candidate.exam.index');
-    Route::view('/profile', 'exam.candidate')->name('candidate.profile');
+    Route::view('/dashboard', 'student.dashboard')->name('candidate.dashboard');
+    Route::view('/exam', 'student.exam')->name('candidate.exam.index');
+    Route::view('/profile', 'student.dashboard')->name('candidate.profile');
 
     // Exam API Routes for students
     Route::get('/exam/data', [App\Http\Controllers\ExamController::class, 'getExamData'])->name('candidate.exam.data');
@@ -195,5 +254,40 @@ Route::middleware(['custom.auth'])->group(function () {
     });
     Route::get('/exam/settings', function () {
         return redirect()->route('admin.settings.index');
+    });
+});
+
+// Batch Management API Routes
+Route::get('/admin/batches', [App\Http\Controllers\BatchController::class, 'getAll'])->name('admin.batches.all');
+Route::post('/admin/batches', [App\Http\Controllers\BatchController::class, 'store'])->name('admin.batches.store');
+Route::put('/admin/batches/{id}', [App\Http\Controllers\BatchController::class, 'update'])->name('admin.batches.update');
+Route::delete('/admin/batches/{id}', [App\Http\Controllers\BatchController::class, 'destroy'])->name('admin.batches.destroy');
+
+// Participant Batch Routes
+Route::get('/admin/participants/batches', [App\Http\Controllers\ParticipantController::class, 'getBatches'])->name('admin.participants.batches');
+
+// Question Batch Routes
+Route::get('/admin/questions/batches', [App\Http\Controllers\QuestionController::class, 'getBatches'])->name('admin.questions.batches');
+
+// Student Routes (Protected)
+Route::prefix('student')->middleware(['custom.auth'])->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.dashboard');
+    Route::view('/exam', 'student.exam')->name('student.exam.index');
+    Route::get('/information', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.information');
+    Route::get('/profile', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.profile');
+
+    // Exam API Routes for students
+    Route::get('/exam/data', [App\Http\Controllers\Student\ExamController::class, 'index'])->name('student.exam.data');
+    Route::get('/exam/available', [App\Http\Controllers\Student\ExamController::class, 'index'])->name('student.exam.available');
+    Route::get('/exam/{id}/info', [App\Http\Controllers\Student\ExamController::class, 'showExamInfo'])->name('student.exam.info');
+    Route::get('/exam/{id}/warning', [App\Http\Controllers\Student\ExamController::class, 'showExamWarning'])->name('student.exam.warning');
+    Route::get('/exam/{id}', [App\Http\Controllers\Student\ExamController::class, 'showExam'])->name('student.exam.show');
+    Route::post('/exam/{id}/submit', [App\Http\Controllers\Student\ExamController::class, 'submitExam'])->name('student.exam.submit');
+});
+
+// Redirect candidate dashboard to student information
+Route::middleware(['custom.auth'])->group(function () {
+    Route::get('/candidate/dashboard', function () {
+        return redirect()->route('student.information');
     });
 });

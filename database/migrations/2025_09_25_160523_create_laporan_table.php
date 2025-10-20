@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('laporan', function (Blueprint $table) {
             $table->id('id_laporan');
-            $table->foreignId('id_ujian')->constrained('ujian', 'id_ujian')->onDelete('cascade');
-            $table->foreignId('id_peserta')->constrained('peserta', 'id_peserta')->onDelete('cascade');
+            $table->unsignedBigInteger('id_peserta');
             $table->decimal('total_score', 5, 2)->default(0);
             $table->integer('jumlah_benar')->default(0);
             $table->integer('waktu_pengerjaan')->default(0); // dalam menit

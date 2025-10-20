@@ -18,7 +18,7 @@ class UserController extends Controller
    public function index()
    {
       try {
-         $users = User::select('id', 'nama', 'email', 'role', 'last_login_at', 'created_at')
+         $users = User::select('id', 'name', 'email', 'role', 'last_login_at', 'created_at')
             ->orderBy('created_at', 'desc')
             ->get();
 

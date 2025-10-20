@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Peserta;
+use App\Models\Batch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -10,12 +11,32 @@ use Illuminate\Support\Facades\Hash;
 class ParticipantController extends Controller
 {
    /**
+    * Get all batches for dropdown
+    */
+   public function getBatches()
+   {
+      try {
+         $batches = Batch::orderBy('nama_batch', 'asc')->get();
+
+         return response()->json([
+            'success' => true,
+            'data' => $batches
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Gagal memuat data batch: ' . $e->getMessage()
+         ], 500);
+      }
+   }
+
+   /**
     * Display a listing of participants with statistics
     */
    public function index()
    {
       try {
-         $participants = Peserta::select('id_peserta', 'nama_peserta', 'kode_peserta', 'asal_smk', 'jurusan', 'created_at')
+         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'asal_smk', 'jurusan', 'batch', 'status', 'created_at')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -24,14 +45,15 @@ class ParticipantController extends Controller
             return [
                'id' => $participant->id_peserta,
                'nama' => $participant->nama_peserta,
-               'email' => $participant->kode_peserta . '@peserta.com', // Generate email from kode_peserta
+               'email' => $participant->email, // Use actual email from database
                'kode_peserta' => $participant->kode_peserta,
                'kode_akses' => '****', // Masked password for security
-               'ujian' => $participant->jurusan ?? 'Belum ditentukan',
-               'status' => 'aktif', // Default status since it's not in the current schema
+               'batch' => $participant->batch ?? 'Belum ditentukan', // Use actual batch from database
+               'status' => $participant->status ?? 'aktif', // Use actual status from database
                'nilai' => null, // Will be calculated from jawaban table if needed
                'avatar' => strtoupper(substr($participant->nama_peserta, 0, 1)),
                'asal_smk' => $participant->asal_smk,
+               'jurusan' => $participant->jurusan,
                'created_at' => $participant->created_at
             ];
          });
@@ -71,30 +93,51 @@ class ParticipantController extends Controller
    public function store(Request $request)
    {
       $validator = Validator::make($request->all(), [
-         'nama' => 'required|string|max:255',
-         'email' => 'required|email',
-         'kode_peserta' => 'required|string|max:50',
-         'kode_akses' => 'required|string|min:6',
-         'ujian' => 'required|string',
-         'status' => 'required|in:aktif,tidak_aktif,berlangsung,selesai'
+         'nama' => 'required|string|max:255|min:1',
+         'email' => 'nullable|email|max:255', // Email optional for peserta yaa
+         'kode_peserta' => 'required|string|max:255|min:1|unique:peserta,kode_peserta',
+         'kode_akses' => 'required|string|min:3|max:255',
+         'batch' => 'required|string|max:255|min:1',
+         'status' => 'required|in:aktif,tidak_aktif|string',
+         'asal_smk' => 'nullable|string|max:255'
       ]);
 
       if ($validator->fails()) {
          return response()->json([
             'success' => false,
             'message' => 'Validasi gagal',
-            'errors' => $validator->errors()
+            'errors' => $validator->errors(),
+            'debug' => $request->all()
          ], 400);
       }
 
       try {
+         // Get next nomor_urut
+         $nextNomor = (Peserta::max('nomor_urut') ?? 0) + 1;
+
+         // Create or find batch
+         $batch = Batch::firstOrCreate(
+            ['nama_batch' => $request->batch],
+            [
+               'deskripsi' => 'Batch untuk ' . $request->batch,
+               'created_at' => now(),
+               'updated_at' => now()
+            ]
+         );
+
          $participant = Peserta::create([
+            'nomor_urut' => $nextNomor,
             'nama_peserta' => $request->nama,
             'kode_peserta' => $request->kode_peserta,
             'password_hash' => Hash::make($request->kode_akses),
-            'asal_smk' => $request->asal_smk ?? 'SMK Default',
-            'jurusan' => $request->ujian,
+            'asal_smk' => $request->asal_smk ?: 'SMK Default',
+            'jurusan' => $request->batch,
             'status' => $request->status,
+            'email' => $request->email ?: null, // Will be null if not provided
+            'last_login_at' => null,
+            'login_attempts' => 0,
+            'locked_until' => null,
+            'remember_token' => null
          ]);
 
          return response()->json([
@@ -135,12 +178,13 @@ class ParticipantController extends Controller
    public function update(Request $request, $id)
    {
       $validator = Validator::make($request->all(), [
-         'nama' => 'required|string|max:255',
-         'email' => 'required|email',
-         'kode_peserta' => 'required|string|max:50',
-         'kode_akses' => 'nullable|string|min:6',
-         'ujian' => 'required|string',
-         'status' => 'required|in:aktif,tidak_aktif,berlangsung,selesai'
+         'nama' => 'required|string|max:255|min:1',
+         'email' => 'nullable|email|max:255', // Email optional for peserta yaa cuy
+         'asal_smk' => 'nullable|string|max:255',
+         'kode_peserta' => 'required|string|max:255|min:1|unique:peserta,kode_peserta,' . $id . ',id_peserta',
+         'kode_akses' => 'nullable|string|min:3|max:255',
+         'batch' => 'required|string|max:255|min:1',
+         'status' => 'required|in:aktif,tidak_aktif|string'
       ]);
 
       if ($validator->fails()) {
@@ -154,11 +198,23 @@ class ParticipantController extends Controller
       try {
          $participant = Peserta::findOrFail($id);
 
+         // Create or find batch
+         $batch = Batch::firstOrCreate(
+            ['nama_batch' => $request->batch],
+            [
+               'deskripsi' => 'Batch untuk ' . $request->batch,
+               'created_at' => now(),
+               'updated_at' => now()
+            ]
+         );
+
          $updateData = [
             'nama_peserta' => $request->nama,
             'kode_peserta' => $request->kode_peserta,
-            'jurusan' => $request->ujian,
+            'asal_smk' => $request->asal_smk ?: 'SMK Default',
+            'jurusan' => $request->batch,
             'status' => $request->status,
+            'email' => $request->email, // Will be null if not provided
          ];
 
          // Only update password if provided

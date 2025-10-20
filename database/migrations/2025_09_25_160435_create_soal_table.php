@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('soal', function (Blueprint $table) {
             $table->id('id_soal');
-            $table->foreignId('id_batch')->constrained('batches', 'id_batch')->onDelete('cascade');
             $table->text('pertanyaan');
             $table->string('opsi_a');
             $table->string('opsi_b');

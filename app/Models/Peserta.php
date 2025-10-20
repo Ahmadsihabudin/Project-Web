@@ -64,6 +64,7 @@ class Peserta extends Authenticatable
         'asal_smk',
         'jurusan',
         'status',
+        'email',
         'last_login_at',
         'login_attempts',
         'locked_until',

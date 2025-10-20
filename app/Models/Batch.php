@@ -2,52 +2,56 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @property int $id_batch
- * @property string $nama_batch
- * @property string|null $deskripsi
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Soal> $soal
- * @property-read int|null $soal_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Ujian> $ujian
- * @property-read int|null $ujian_count
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch whereDeskripsi($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch whereIdBatch($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch whereNamaBatch($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Batch whereUpdatedAt($value)
- * @mixin \Eloquent
- */
 class Batch extends Model
 {
-    protected $table = 'batches';
+    use HasFactory;
+
+    protected $table = 'batch';
     protected $primaryKey = 'id_batch';
+    public $timestamps = false;
 
     protected $fillable = [
         'nama_batch',
-        'deskripsi'
+        'keterangan'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime'
     ];
 
     /**
-     * Relationship with soal
+     * Get the peserta for the batch.
      */
-    public function soal(): HasMany
+    public function peserta(): HasMany
     {
-        return $this->hasMany(Soal::class, 'id_batch', 'id_batch');
+        return $this->hasMany(Peserta::class, 'batch', 'nama_batch');
     }
 
     /**
-     * Relationship with ujian
+     * Get the sesi ujian for the batch.
      */
-    public function ujian(): HasMany
+    public function sesiUjian(): HasMany
     {
-        return $this->hasMany(Ujian::class, 'id_batch', 'id_batch');
+        return $this->hasMany(SesiUjian::class, 'id_batch', 'id_batch');
+    }
+
+    /**
+     * Scope untuk batch yang memiliki peserta
+     */
+    public function scopeWithPeserta($query)
+    {
+        return $query->whereHas('peserta');
+    }
+
+    /**
+     * Get jumlah peserta dalam batch
+     */
+    public function getJumlahPesertaAttribute()
+    {
+        return $this->peserta()->count();
     }
 }

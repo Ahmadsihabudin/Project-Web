@@ -38,7 +38,6 @@ class Jawaban extends Model
     protected $primaryKey = 'id_jawaban';
 
     protected $fillable = [
-        'id_ujian',
         'id_peserta',
         'id_soal',
         'jawaban_dipilih',
@@ -50,13 +49,6 @@ class Jawaban extends Model
         'nilai_essay' => 'decimal:2'
     ];
 
-    /**
-     * Relationship with ujian
-     */
-    public function ujian(): BelongsTo
-    {
-        return $this->belongsTo(Ujian::class, 'id_ujian', 'id_ujian');
-    }
 
     /**
      * Relationship with peserta

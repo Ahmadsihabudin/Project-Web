@@ -15,25 +15,25 @@ class StaffSeeder extends Seeder
    {
       $staffs = [
          [
-            'nama' => 'Admin Utama',
+            'name' => 'Admin Utama',
             'email' => 'admin@ujian.com',
             'password' => 'admin123',
             'role' => 'admin'
          ],
          [
-            'nama' => 'Staff Proktor',
+            'name' => 'Staff Proktor',
             'email' => 'proktor@ujian.com',
             'password' => 'staff123',
             'role' => 'staff'
          ],
          [
-            'nama' => 'Staff Teknis',
+            'name' => 'Staff Teknis',
             'email' => 'teknis@ujian.com',
             'password' => 'staff123',
             'role' => 'staff'
          ],
          [
-            'nama' => 'Staff Laporan',
+            'name' => 'Staff Laporan',
             'email' => 'laporan@ujian.com',
             'password' => 'staff123',
             'role' => 'staff'
@@ -44,7 +44,7 @@ class StaffSeeder extends Seeder
          User::updateOrCreate(
             ['email' => $staff['email']],
             [
-               'nama' => $staff['nama'],
+               'name' => $staff['name'],
                'password' => SecurityHelper::hashPassword($staff['password']),
                'role' => $staff['role'],
                'login_attempts' => 0,

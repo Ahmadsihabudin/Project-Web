@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('jawaban', function (Blueprint $table) {
             $table->id('id_jawaban');
-            $table->foreignId('id_ujian')->constrained('ujian', 'id_ujian')->onDelete('cascade');
-            $table->foreignId('id_peserta')->constrained('peserta', 'id_peserta')->onDelete('cascade');
-            $table->foreignId('id_soal')->constrained('soal', 'id_soal')->onDelete('cascade');
+            $table->unsignedBigInteger('id_peserta');
+            $table->unsignedBigInteger('id_soal');
             $table->string('jawaban_dipilih')->nullable();
             $table->enum('status', ['benar', 'salah', 'pending'])->default('pending');
             $table->decimal('nilai_essay', 5, 2)->nullable();

@@ -30,9 +30,11 @@ class ExamController extends Controller
             ], 404);
          }
 
-         // Get exams based on participant's jurusan (subject)
+         // Get exams based on participant's batch
          $exams = Ujian::where('status', 'aktif')
-            ->where('mata_pelajaran', $peserta->jurusan)
+            ->whereHas('batch', function ($query) use ($peserta) {
+               $query->where('nama_batch', $peserta->jurusan);
+            })
             ->get();
 
          $formattedExams = [];

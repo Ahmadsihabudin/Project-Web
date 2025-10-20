@@ -27,23 +27,21 @@ class DashboardController extends Controller
          $ujianHariIni = Ujian::whereDate('created_at', Carbon::today())->count();
 
          // Get ujian selesai (ujian yang sudah selesai)
-         // Assuming ujian selesai means ujian yang sudah ada jawaban
-         $ujianSelesai = Ujian::whereHas('jawaban')->count();
-
-         // Alternative: Get ujian yang statusnya selesai (if you have status field)
-         // $ujianSelesai = Ujian::where('status', 'selesai')->count();
+         // Since ujian table doesn't have status column, we'll use a different approach
+         $ujianSelesai = 0; // No status column available
 
          // Get additional stats
          $totalSoal = Soal::count();
          $totalJawaban = Jawaban::count();
 
          // Get peserta yang sedang ujian (peserta yang ada jawaban hari ini)
-         $pesertaSedangUjian = Peserta::whereHas('jawaban', function ($query) {
-            $query->whereDate('created_at', Carbon::today());
-         })->count();
+         $pesertaSedangUjian = Jawaban::whereDate('created_at', Carbon::today())
+            ->distinct('id_peserta')
+            ->count('id_peserta');
 
          // Get peserta selesai ujian (peserta yang sudah ada jawaban)
-         $pesertaSelesaiUjian = Peserta::whereHas('jawaban')->count();
+         $pesertaSelesaiUjian = Jawaban::distinct('id_peserta')
+            ->count('id_peserta');
 
          $stats = [
             'total_ujian' => $totalUjian,

@@ -11,8 +11,6 @@
          <i class="bi bi-question-circle me-2"></i>Bank Soal
          @elseif(request()->is('admin/reports*'))
          <i class="bi bi-graph-up me-2"></i>Laporan
-         @elseif(request()->is('admin/settings*'))
-         <i class="bi bi-gear me-2"></i>Pengaturan
          @else
          <i class="bi bi-speedometer2 me-2"></i>Dashboard
          @endif
@@ -73,14 +71,6 @@
                      <span>Profil Saya</span>
                   </a>
                </li>
-               @if(session('user_type') === 'admin')
-               <li>
-                  <a class="dropdown-item d-flex align-items-center" href="#" onclick="showSettings()">
-                     <i class="bi bi-gear me-2"></i>
-                     <span>Pengaturan</span>
-                  </a>
-               </li>
-               @endif
                <li>
                   <hr class="dropdown-divider">
                </li>

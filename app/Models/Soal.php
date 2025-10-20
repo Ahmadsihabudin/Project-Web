@@ -43,14 +43,19 @@ class Soal extends Model
     protected $primaryKey = 'id_soal';
 
     protected $fillable = [
-        'id_batch',
-        'id_ujian',
+        'batch',
         'pertanyaan',
+        'mata_pelajaran',
+        'level_kesulitan',
+        'tipe_soal',
         'opsi_a',
         'opsi_b',
         'opsi_c',
         'opsi_d',
+        'opsi_e',
+        'opsi_f',
         'jawaban_benar',
+        'umpan_balik',
         'poin'
     ];
 
@@ -59,11 +64,11 @@ class Soal extends Model
     ];
 
     /**
-     * Relationship with batch
+     * Relationship with batch (using batch string field)
      */
     public function batch(): BelongsTo
     {
-        return $this->belongsTo(Batch::class, 'id_batch', 'id_batch');
+        return $this->belongsTo(Batch::class, 'batch', 'nama_batch');
     }
 
     /**
