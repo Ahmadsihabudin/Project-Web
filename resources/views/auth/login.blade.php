@@ -15,15 +15,27 @@
 
       body {
          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
          min-height: 100vh;
          display: flex;
          align-items: center;
          justify-content: center;
+         position: relative;
+      }
+
+      body::after {
+         content: '';
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: rgba(255, 255, 255, 0.3);
+         z-index: -1;
       }
 
       .login-container {
-         background: white;
+         background: rgba(255, 255, 255, 0.95);
+         backdrop-filter: blur(10px);
          border-radius: 20px;
          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
          padding: 40px;
@@ -31,6 +43,19 @@
          max-width: 400px;
          position: relative;
          overflow: hidden;
+         animation: fadeInUp 0.8s ease-out;
+         border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      @keyframes fadeInUp {
+         from {
+            opacity: 0;
+            transform: translateY(30px);
+         }
+         to {
+            opacity: 1;
+            transform: translateY(0);
+         }
       }
 
       .login-container::before {
@@ -40,7 +65,7 @@
          left: 0;
          right: 0;
          height: 5px;
-         background: linear-gradient(90deg, #667eea, #764ba2);
+         background: linear-gradient(90deg, #991B1B, #B91C1C);
       }
 
       .logo {
@@ -59,6 +84,7 @@
          color: #666;
          font-size: 14px;
       }
+
 
       .login-tabs {
          display: flex;
@@ -80,7 +106,7 @@
       }
 
       .tab-button.active {
-         background: #667eea;
+         background: #991B1B;
          color: white;
       }
 
@@ -94,7 +120,14 @@
 
       .form-group {
          margin-bottom: 20px;
+         animation: fadeInUp 0.6s ease-out;
+         opacity: 0;
+         animation-fill-mode: forwards;
       }
+
+      .form-group:nth-child(1) { animation-delay: 0.1s; }
+      .form-group:nth-child(2) { animation-delay: 0.2s; }
+      .form-group:nth-child(3) { animation-delay: 0.3s; }
 
       .form-group label {
          display: block;
@@ -116,15 +149,15 @@
 
       .form-group input:focus {
          outline: none;
-         border-color: #667eea;
+         border-color: #991B1B;
          background: white;
-         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+         box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1);
       }
 
       .login-btn {
          width: 100%;
          padding: 14px;
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         background: linear-gradient(135deg, #991B1B 0%, #B91C1C 100%);
          color: white;
          border: none;
          border-radius: 10px;
@@ -133,11 +166,12 @@
          cursor: pointer;
          transition: all 0.3s ease;
          margin-top: 10px;
+         animation: fadeInUp 0.6s ease-out 0.4s both;
       }
 
       .login-btn:hover {
          transform: translateY(-2px);
-         box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+         box-shadow: 0 10px 20px rgba(153, 27, 27, 0.3);
       }
 
       .login-btn:disabled {
@@ -252,18 +286,18 @@
          }
       }
 
-      /* Floating animation for background */
-      body::before {
+      /* Floating animation for background - disabled when using background image */
+      /* body::before {
          content: '';
          position: fixed;
          top: 0;
          left: 0;
          width: 100%;
          height: 100%;
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
          z-index: -2;
          animation: float 6s ease-in-out infinite;
-      }
+      } */
 
       /* Animated Particles */
       .particles {
@@ -278,7 +312,7 @@
 
       .particle {
          position: absolute;
-         background: rgba(255, 255, 255, 0.1);
+         background: rgba(108, 117, 125, 0.1);
          border-radius: 50%;
          animation: floatParticle 8s infinite linear;
       }
@@ -449,51 +483,58 @@
          }
       }
 
+
       /* Professional Footer */
       .login-footer {
-         margin-top: 30px;
-         text-align: center;
+         margin-top: 40px;
+         padding-top: 30px;
+         border-top: 1px solid #e9ecef;
          animation: fadeInUp 1s ease-out 1.2s both;
       }
 
-      .security-badges {
-         display: flex;
-         justify-content: center;
-         gap: 20px;
-         margin-bottom: 15px;
+
+      .footer-bottom {
+         text-align: center;
+         padding-top: 15px;
+         border-top: 1px solid #f1f3f4;
       }
 
-      .badge {
-         display: flex;
-         flex-direction: column;
-         align-items: center;
-         padding: 10px 15px;
-         background: rgba(102, 126, 234, 0.1);
-         border-radius: 10px;
-         transition: all 0.3s ease;
-         cursor: pointer;
-      }
-
-      .badge:hover {
-         background: rgba(102, 126, 234, 0.2);
-         transform: translateY(-2px);
-      }
-
-      .badge i {
-         font-size: 20px;
-         margin-bottom: 5px;
-      }
-
-      .badge span {
-         font-size: 12px;
-         font-weight: 600;
-         color: #667eea;
-      }
-
-      .footer-text {
+      .footer-bottom p {
          color: #999;
-         font-size: 12px;
+         font-size: 11px;
          margin: 0;
+      }
+
+      /* Notification Span */
+      .notification-container {
+         margin-top: 20px;
+         overflow: hidden;
+         white-space: nowrap;
+         border-top: 1px solid #e9ecef;
+         padding-top: 15px;
+      }
+
+      .notification-text {
+         display: inline-block;
+         font-size: 13px;
+         color: #666;
+         animation: scrollText 15s linear infinite;
+         font-style: italic;
+         transition: all 0.3s ease;
+      }
+
+      .notification-container:hover .notification-text {
+         animation-play-state: paused;
+         color: #991B1B;
+      }
+
+      @keyframes scrollText {
+         0% {
+            transform: translateX(100%);
+         }
+         100% {
+            transform: translateX(-100%);
+         }
       }
 
       /* Enhanced form styling */
@@ -504,12 +545,12 @@
 
       .form-group input:focus {
          transform: translateY(-2px);
-         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+         box-shadow: 0 8px 25px rgba(153, 27, 27, 0.15);
       }
 
       /* Logo enhancement */
       .logo h1 {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         background: linear-gradient(135deg, #991B1B 0%, #B91C1C 100%);
          -webkit-background-clip: text;
          -webkit-text-fill-color: transparent;
          background-clip: text;
@@ -554,18 +595,11 @@
          }
       }
 
+
       @media (max-width: 480px) {
          .login-container {
             margin: 20px;
             padding: 30px 20px;
-         }
-
-         .security-badges {
-            gap: 10px;
-         }
-
-         .badge {
-            padding: 8px 12px;
          }
       }
    </style>
@@ -583,10 +617,10 @@
    </div>
 
    <div class="login-container">
-      <div class="logo">
-         <h1>🎓 Ujian Online</h1>
-         <p>Sistem Ujian Online yang Aman & Terpercaya</p>
-      </div>
+       <div class="logo">
+          <h1>🎓 Ujian Online</h1>
+          <p>Sistem Ujian Online yang Aman & Terpercaya</p>
+       </div>
 
       <!-- Unified Login Form -->
       <form id="loginForm">
@@ -606,29 +640,23 @@
          </button>
       </form>
 
-      <div id="loading" class="loading">
-         <div class="spinner"></div>
-         <p>Memproses login...</p>
-      </div>
+       <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Memproses login...</p>
+       </div>
 
-      <!-- Professional Footer -->
-      <div class="login-footer">
-         <div class="security-badges">
-            <div class="badge">
-               <i class="shield-icon">🛡️</i>
-               <span>Secure</span>
-            </div>
-            <div class="badge">
-               <i class="lock-icon">🔒</i>
-               <span>Encrypted</span>
-            </div>
-            <div class="badge">
-               <i class="check-icon">✅</i>
-               <span>Verified</span>
-            </div>
-         </div>
-         <p class="footer-text">© 2024 Ujian Online. All rights reserved.</p>
-      </div>
+       <!-- Notification Span -->
+       <div class="notification-container">
+          <span class="notification-text">Harap pastikan username dan password anda benar!!</span>
+       </div>
+
+       <!-- Professional Footer -->
+       <div class="login-footer">
+          <div class="footer-bottom">
+             <p>&copy; 2024 Ujian Online. All rights reserved.</p>
+          </div>
+       </div>
+
    </div>
 
    <script>

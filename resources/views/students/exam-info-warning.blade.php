@@ -5,7 +5,7 @@
 @section('content')
 <style>
    body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
    }
@@ -14,23 +14,47 @@
       max-width: 1400px;
       margin: 0 auto;
       padding: 40px 20px;
+      animation: fadeInUp 0.8s ease-out;
+   }
+
+   @keyframes fadeInUp {
+      from {
+         opacity: 0;
+         transform: translateY(30px);
+      }
+      to {
+         opacity: 1;
+         transform: translateY(0);
+      }
    }
 
    .exam-header {
       text-align: center;
       margin-bottom: 40px;
+      animation: fadeInDown 0.6s ease-out;
+   }
+
+   @keyframes fadeInDown {
+      from {
+         opacity: 0;
+         transform: translateY(-20px);
+      }
+      to {
+         opacity: 1;
+         transform: translateY(0);
+      }
    }
 
    .exam-title {
-      color: white;
+      color: #333;
       font-size: 2.5rem;
       font-weight: bold;
       margin-bottom: 10px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
    }
 
    .exam-subtitle {
-      color: rgba(255, 255, 255, 0.9);
+      color: #666;
       font-size: 1.2rem;
    }
 
@@ -39,6 +63,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 30px;
       margin-bottom: 40px;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
    }
 
    .warning-card {
@@ -46,7 +71,19 @@
       border-radius: 20px;
       padding: 40px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      border-left: 5px solid #dc3545;
+      border-left: 5px solid #991B1B;
+      animation: fadeInLeft 0.6s ease-out 0.3s both;
+   }
+
+   @keyframes fadeInLeft {
+      from {
+         opacity: 0;
+         transform: translateX(-30px);
+      }
+      to {
+         opacity: 1;
+         transform: translateX(0);
+      }
    }
 
    .composition-card {
@@ -54,7 +91,19 @@
       border-radius: 20px;
       padding: 40px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      border-left: 5px solid #28a745;
+      border-left: 5px solid #991B1B;
+      animation: fadeInRight 0.6s ease-out 0.4s both;
+   }
+
+   @keyframes fadeInRight {
+      from {
+         opacity: 0;
+         transform: translateX(30px);
+      }
+      to {
+         opacity: 1;
+         transform: translateX(0);
+      }
    }
 
    .card-title {
@@ -78,26 +127,44 @@
       align-items: flex-start;
       margin-bottom: 20px;
       padding: 15px;
-      background: #fff5f5;
+      background: #fef2f2;
       border-radius: 10px;
-      border-left: 4px solid #dc3545;
+      border-left: 4px solid #991B1B;
+      animation: fadeInUp 0.6s ease-out;
+      opacity: 0;
+      animation-fill-mode: forwards;
    }
+
+   .warning-item:nth-child(1) { animation-delay: 0.1s; }
+   .warning-item:nth-child(2) { animation-delay: 0.2s; }
+   .warning-item:nth-child(3) { animation-delay: 0.3s; }
+   .warning-item:nth-child(4) { animation-delay: 0.4s; }
 
    .warning-item:last-child {
       margin-bottom: 0;
+   }
+
+   .warning-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
    }
 
    .warning-icon {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #dc3545;
+      background: #991B1B;
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-right: 15px;
       flex-shrink: 0;
+      transition: transform 0.3s ease;
+   }
+
+   .warning-icon:hover {
+      transform: scale(1.1) rotate(5deg);
    }
 
    .warning-content {
@@ -131,13 +198,18 @@
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      background: #28a745;
+      background: #991B1B;
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-right: 10px;
       font-size: 0.9rem;
+      transition: transform 0.3s ease;
+   }
+
+   .section-icon:hover {
+      transform: scale(1.1) rotate(5deg);
    }
 
    .info-grid {
@@ -179,10 +251,23 @@
       align-items: center;
       padding: 10px 0;
       border-bottom: 1px solid #dee2e6;
+      animation: fadeInUp 0.6s ease-out;
+      opacity: 0;
+      animation-fill-mode: forwards;
    }
+
+   .question-item:nth-child(1) { animation-delay: 0.1s; }
+   .question-item:nth-child(2) { animation-delay: 0.2s; }
+   .question-item:nth-child(3) { animation-delay: 0.3s; }
+   .question-item:nth-child(4) { animation-delay: 0.4s; }
 
    .question-item:last-child {
       border-bottom: none;
+   }
+
+   .question-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
    }
 
    .question-type {
@@ -191,7 +276,7 @@
    }
 
    .question-count {
-      background: #28a745;
+      background: #991B1B;
       color: white;
       padding: 5px 12px;
       border-radius: 20px;
@@ -202,17 +287,18 @@
    .action-buttons {
       text-align: center;
       margin-top: 40px;
+      animation: fadeInUp 0.8s ease-out 0.5s both;
    }
 
    .btn-start-exam {
-      background: linear-gradient(135deg, #28a745, #20c997);
+      background: linear-gradient(135deg, #991B1B, #B91C1C);
       border: none;
       color: white;
       padding: 15px 40px;
       font-size: 1.2rem;
       font-weight: bold;
       border-radius: 50px;
-      box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+      box-shadow: 0 10px 30px rgba(153, 27, 27, 0.3);
       transition: all 0.3s ease;
       text-decoration: none;
       display: inline-block;
@@ -220,14 +306,14 @@
 
    .btn-start-exam:hover {
       transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+      box-shadow: 0 15px 40px rgba(153, 27, 27, 0.4);
       color: white;
    }
 
    .btn-back {
       background: transparent;
-      border: 2px solid white;
-      color: white;
+      border: 2px solid #991B1B;
+      color: #991B1B;
       padding: 12px 30px;
       font-size: 1rem;
       font-weight: 500;
@@ -239,13 +325,13 @@
    }
 
    .btn-back:hover {
-      background: white;
-      color: #667eea;
+      background: #991B1B;
+      color: white;
       transform: translateY(-2px);
    }
 
    .exam-status {
-      background: linear-gradient(135deg, #ffc107, #fd7e14);
+      background: linear-gradient(135deg, #991B1B, #B91C1C);
       color: white;
       padding: 10px 20px;
       border-radius: 25px;
@@ -397,7 +483,7 @@
                </div>
                <div class="question-item" style="background: #e9ecef; font-weight: bold; color: #495057;">
                   <span>Total Soal</span>
-                  <span class="question-count" style="background: #6c757d;" id="totalQuestions">40 Soal</span>
+                  <span class="question-count" style="background: #991B1B;" id="totalQuestions">40 Soal</span>
                </div>
             </div>
          </div>
@@ -474,7 +560,7 @@
             const statusElement = document.getElementById('examStatus');
             if (exam.status === 'aktif') {
                statusElement.textContent = 'Status: Siap Dimulai';
-               statusElement.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+               statusElement.style.background = 'linear-gradient(135deg, #991B1B, #B91C1C)';
                startBtn.style.display = 'inline-block';
             } else {
                statusElement.textContent = 'Status: Belum Aktif';
@@ -546,7 +632,7 @@
       // Update exam status to show error
       const statusElement = document.getElementById('examStatus');
       statusElement.textContent = 'Status: Error - ' + message;
-      statusElement.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+      statusElement.style.background = 'linear-gradient(135deg, #991B1B, #B91C1C)';
 
       // Hide start button
       const startBtn = document.getElementById('startExamBtn');

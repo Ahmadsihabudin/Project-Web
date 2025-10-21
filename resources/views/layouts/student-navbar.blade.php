@@ -13,8 +13,8 @@
 
    <style>
       .student-navbar {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+         background-color: #991B1B;
+         box-shadow: 0 8px 36px 0 rgba(0, 0, 0, 0.35);
          padding: 15px 0;
          position: sticky;
          top: 0;
@@ -33,11 +33,8 @@
       .navbar-logo {
          width: 50px;
          height: 50px;
-         border-radius: 50%;
          margin-right: 15px;
          object-fit: cover;
-         border: 3px solid rgba(255, 255, 255, 0.3);
-         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
 
       .navbar-brand-text {
@@ -67,7 +64,7 @@
       }
 
       .nav-link {
-         color: white !important;
+         color: #f5f5f5 !important;
          font-weight: 600;
          padding: 8px 16px !important;
          border-radius: 25px;
@@ -76,12 +73,13 @@
       }
 
       .nav-link:hover {
-         background: rgba(255, 255, 255, 0.2);
+         background: white;
+         color: #333 !important;
          transform: translateY(-2px);
       }
 
       .nav-link.active {
-         background: rgba(255, 255, 255, 0.3);
+         background: #B91C1C;
          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
 
@@ -96,12 +94,19 @@
          width: 40px;
          height: 40px;
          border-radius: 50%;
-         background: rgba(255, 255, 255, 0.2);
+         background: #f5f5f5;
+         color: #333;
          display: flex;
          align-items: center;
          justify-content: center;
          font-size: 1.2rem;
          font-weight: bold;
+         transition: all 0.3s ease;
+      }
+
+      .user-avatar:hover {
+         background: white;
+         color: #333;
       }
 
       .user-details {
@@ -124,9 +129,9 @@
       }
 
       .logout-btn {
-         background: rgba(255, 255, 255, 0.2);
-         border: 2px solid rgba(255, 255, 255, 0.3);
-         color: white;
+         background: #f5f5f5;
+         border: 2px solid #f5f5f5;
+         color: #991B1B;
          padding: 8px 20px;
          border-radius: 25px;
          font-weight: 600;
@@ -135,9 +140,9 @@
       }
 
       .logout-btn:hover {
-         background: rgba(255, 255, 255, 0.3);
-         border-color: rgba(255, 255, 255, 0.5);
-         color: white;
+         background: white;
+         border-color: white;
+         color: maroon;
          transform: translateY(-2px);
       }
 
