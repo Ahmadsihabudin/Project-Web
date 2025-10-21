@@ -263,9 +263,9 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
             'batch_name' => optional($sesi->batch)->nama_batch,
             'mata_pelajaran' => $sesi->mata_pelajaran,
             'deskripsi' => $sesi->deskripsi,
-            'tanggal_mulai' => $sesi->tanggal_mulai ? $sesi->tanggal_mulai->format('Y-m-d') : null,
+            'tanggal_mulai' => $sesi->tanggal_mulai ? date('Y-m-d', strtotime($sesi->tanggal_mulai)) : null,
             'jam_mulai' => $sesi->jam_mulai,
-            'tanggal_selesai' => $sesi->tanggal_selesai ? $sesi->tanggal_selesai->format('Y-m-d') : null,
+            'tanggal_selesai' => $sesi->tanggal_selesai ? date('Y-m-d', strtotime($sesi->tanggal_selesai)) : null,
             'jam_selesai' => $sesi->jam_selesai,
             'durasi_menit' => $sesi->durasi_menit,
             'status' => $sesi->status,
@@ -418,6 +418,7 @@ Route::prefix('student')->middleware(['custom.auth'])->group(function () {
             ]
         ]);
     })->name('student.exam.data.single');
+    Route::get('/exam/{id}/start', [App\Http\Controllers\Student\ExamController::class, 'startExam'])->name('student.exam.start');
     Route::get('/exam/{id}/info', [App\Http\Controllers\Student\ExamController::class, 'showExamInfo'])->name('student.exam.info');
     Route::get('/exam/{id}/info-warning', function ($id) {
         return view('students.exam-info-warning', ['examId' => $id]);

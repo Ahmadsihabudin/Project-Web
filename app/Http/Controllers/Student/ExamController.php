@@ -200,12 +200,27 @@ class ExamController extends Controller
                         // Cari batch ID berdasarkan nama batch
                         $batch = \App\Models\Batch::where('nama_batch', $batchPeserta)->first();
                         if ($batch) {
-                            // Cek apakah ada sesi ujian aktif untuk batch ini
+                            // Cek apakah ada sesi ujian aktif untuk batch ini (real-time check)
+                            $now = now();
                             $sesiUjianCount = SesiUjian::where('id_batch', $batch->id_batch)
                                 ->where('status', 'aktif')
+                                ->where(function($query) use ($now) {
+                                    $query->where(function($q) use ($now) {
+                                        // Ujian yang sudah dimulai dan belum selesai
+                                        $q->where('tanggal_mulai', '<=', $now->format('Y-m-d'))
+                                          ->where('tanggal_selesai', '>=', $now->format('Y-m-d'))
+                                          ->where('jam_mulai', '<=', $now->format('H:i:s'))
+                                          ->where('jam_selesai', '>=', $now->format('H:i:s'));
+                                    })->orWhere(function($q) use ($now) {
+                                        // Ujian yang akan dimulai dalam waktu dekat (dalam 1 jam)
+                                        $q->where('tanggal_mulai', '=', $now->format('Y-m-d'))
+                                          ->where('jam_mulai', '>', $now->format('H:i:s'))
+                                          ->whereRaw('TIMEDIFF(jam_mulai, ?) <= "01:00:00"', [$now->format('H:i:s')]);
+                                    });
+                                })
                                 ->count();
 
-                            // Jika tidak ada sesi ujian, redirect ke halaman peserta-wrong
+                            // Jika tidak ada sesi ujian aktif, redirect ke halaman peserta-wrong
                             if ($sesiUjianCount == 0) {
                                 return view('students.peserta-wrong');
                             }
@@ -312,6 +327,80 @@ class ExamController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error showing exam warning: ' . $e->getMessage());
             return redirect('/student/dashboard')->with('error', 'Terjadi kesalahan saat memuat peringatan ujian');
+        }
+    }
+
+    /**
+     * Memulai ujian (redirect ke halaman ujian)
+     */
+    public function startExam($id)
+    {
+        try {
+            // Cek apakah user sudah login via session
+            $userId = session('user_id');
+            $userType = session('user_type');
+
+            if (!$userId || !$userType) {
+                return redirect('/auth/peserta/login')->with('error', 'Silakan login terlebih dahulu');
+            }
+
+            // Ambil data peserta
+            if ($userType === 'peserta') {
+                $peserta = Peserta::find($userId);
+            } else {
+                $user = \App\Models\User::find($userId);
+                $peserta = Peserta::where('email', $user->email)->first();
+            }
+
+            if (!$peserta) {
+                return redirect('/student/dashboard')->with('error', 'Data peserta tidak ditemukan');
+            }
+
+            // Ambil sesi ujian
+            $sesiUjian = SesiUjian::with(['ujian', 'batch'])->find($id);
+            if (!$sesiUjian) {
+                return redirect('/student/dashboard')->with('error', 'Ujian tidak ditemukan');
+            }
+
+            // Pastikan relasi ujian ada, jika tidak buat dummy
+            if (!$sesiUjian->ujian) {
+                $sesiUjian->ujian = (object) [
+                    'nama_ujian' => 'Ujian ' . $sesiUjian->mata_pelajaran
+                ];
+            }
+
+            // Cek apakah ujian untuk batch peserta
+            $batch = \App\Models\Batch::where('nama_batch', $peserta->batch)->first();
+            if (!$batch || $sesiUjian->id_batch != $batch->id_batch) {
+                return redirect('/student/dashboard')->with('error', 'Anda tidak memiliki akses ke ujian ini');
+            }
+
+            // Cek status ujian
+            $now = now();
+            $tanggalMulai = $sesiUjian->tanggal_mulai . ' ' . $sesiUjian->jam_mulai;
+            $tanggalSelesai = $sesiUjian->tanggal_selesai . ' ' . $sesiUjian->jam_selesai;
+
+            if ($now < $tanggalMulai) {
+                return redirect('/student/peserta-wrong')->with('error', 'Ujian belum dimulai');
+            }
+
+            if ($now > $tanggalSelesai) {
+                return redirect('/student/peserta-wrong')->with('error', 'Ujian sudah selesai');
+            }
+
+            // Ambil soal berdasarkan mata pelajaran
+            $soal = \App\Models\Soal::where('mata_pelajaran', $sesiUjian->mata_pelajaran)
+                ->inRandomOrder()
+                ->get();
+
+            if ($soal->isEmpty()) {
+                return redirect('/student/peserta-wrong')->with('error', 'Tidak ada soal tersedia untuk mata pelajaran ini');
+            }
+
+            return view('students.exam', compact('sesiUjian', 'soal', 'peserta'));
+        } catch (\Exception $e) {
+            \Log::error('Error starting exam: ' . $e->getMessage());
+            return redirect('/student/peserta-wrong')->with('error', 'Terjadi kesalahan saat memulai ujian');
         }
     }
 
