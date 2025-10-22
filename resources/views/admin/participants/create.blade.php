@@ -52,6 +52,20 @@
          padding: 1.5rem;
          margin-bottom: 1.5rem;
       }
+      
+      /* Ensure all form fields are visible */
+      .form-control, .form-select {
+         display: block !important;
+         visibility: visible !important;
+         opacity: 1 !important;
+      }
+      
+      /* Ensure form sections are visible */
+      .form-section {
+         display: block !important;
+         visibility: visible !important;
+         opacity: 1 !important;
+      }
    </style>
 </head>
 
@@ -160,6 +174,15 @@
                                     </div>
                                  </div>
                               </div>
+                              <div class="row">
+                                 <div class="col-md-6">
+                                    <div class="mb-3">
+                                       <label for="kode_peserta" class="form-label fw-bold">Kode Peserta <span class="text-danger">*</span></label>
+                                       <input type="text" class="form-control" id="kode_peserta" name="kode_peserta" required placeholder="Contoh: RK000001">
+                                       <small class="form-text text-muted">Format: RK + 6 digit angka</small>
+                                    </div>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      </div>
@@ -203,6 +226,7 @@
          const email = form.querySelector('#email').value.trim();
          const kodeAkses = form.querySelector('#kode_akses').value.trim();
          const asalSmk = form.querySelector('#asal_smk').value.trim();
+         const kodePeserta = form.querySelector('#kode_peserta').value.trim();
          const batch = form.querySelector('#batch').value.trim();
 
          if (!nama) {
@@ -229,6 +253,12 @@
             return;
          }
 
+         if (!kodePeserta) {
+            alert('Kode Peserta harus diisi!');
+            form.querySelector('#kode_peserta').focus();
+            return;
+         }
+
          if (!batch) {
             alert('Batch harus diisi!');
             form.querySelector('#batch').focus();
@@ -242,13 +272,21 @@
          try {
             const formData = new FormData(event.target);
 
+            // Debug: Log all form data
+            console.log('All form data:');
+            for (let [key, value] of formData.entries()) {
+               console.log(`  ${key}: ${value}`);
+            }
+
             const participantData = {
-               nama_peserta: formData.get('nama'),
+               nama: formData.get('nama'),
                email: formData.get('email'),
                kode_akses: formData.get('kode_akses'),
                asal_smk: formData.get('asal_smk'),
+               kode_peserta: formData.get('kode_peserta'),
                jurusan: formData.get('jurusan'),
                batch: formData.get('batch')
+               // Note: kode_peserta is now user input, not auto-generated
             };
 
             console.log('Participant Data to be sent:', participantData);
@@ -266,10 +304,17 @@
             alertSystem.hide(loadingAlert);
 
             if (result.success) {
+               // Show success message with user input kode peserta
+               const kodePeserta = result.data.kode_peserta;
                alertSystem.createSuccess('Peserta');
+               
+               // Show kode peserta
+               alert(`Peserta berhasil ditambahkan!\n\nKode Peserta: ${kodePeserta}\n\nData telah disimpan.`);
 
                // Redirect to index page
-               window.location.href = '{{ route("admin.participants.index") }}';
+               setTimeout(() => {
+                  window.location.href = '{{ route("admin.participants.index") }}';
+               }, 2000);
             } else {
                alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
             }

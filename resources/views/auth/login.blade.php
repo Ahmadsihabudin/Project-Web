@@ -804,6 +804,8 @@
                };
             }
 
+            console.log('Login attempt:', { userType, endpoint, data });
+
             const response = await fetch(endpoint, {
                method: 'POST',
                headers: {
@@ -813,6 +815,9 @@
                },
                body: JSON.stringify(data)
             });
+
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
             // Check if response is JSON
             const contentType = response.headers.get('content-type');
@@ -839,7 +844,7 @@
                   if (userType === 'admin') {
                      window.location.href = '/admin/dashboard';
                   } else {
-                     window.location.href = '/candidate/dashboard';
+                     window.location.href = '/student/information';
                   }
                }, 1500);
             } else {

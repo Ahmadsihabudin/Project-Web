@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\SesiUjian;
 use App\Models\Peserta;
 use App\Models\Batch;
+use App\Models\Soal;
+use App\Models\Jawaban;
+use App\Models\Laporan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -185,6 +188,14 @@ class ExamController extends Controller
             if ($userId && $userType === 'peserta') {
                 $peserta = \App\Models\Peserta::find($userId);
                 if ($peserta) {
+                    // Check if peserta has already completed exam in the current batch
+                    $hasCompletedExamInCurrentBatch = \App\Models\Laporan::where('id_peserta', $peserta->id_peserta)
+                        ->where('batch_saat_ujian', $peserta->batch)
+                        ->exists();
+                    if ($hasCompletedExamInCurrentBatch) {
+                        return redirect()->route('student.selesai')->with('info', 'Anda sudah menyelesaikan ujian di batch ini');
+                    }
+                    
                     $initialPeserta = [
                         'nama' => $peserta->nama_peserta ?? $peserta->nama ?? 'Peserta',
                         'kode_peserta' => $peserta->kode_peserta ?? 'N/A',
@@ -202,27 +213,45 @@ class ExamController extends Controller
                         if ($batch) {
                             // Cek apakah ada sesi ujian aktif untuk batch ini (real-time check)
                             $now = now();
+                            
+                            // Debug log untuk melihat data
+                            \Log::info('Checking exam sessions for batch:', [
+                                'batch_id' => $batch->id_batch,
+                                'batch_name' => $batchPeserta,
+                                'current_time' => $now->format('Y-m-d H:i:s')
+                            ]);
+                            
+                            // Query yang lebih sederhana untuk mengecek sesi ujian aktif
+                            // Cek semua sesi ujian aktif untuk batch ini (tidak perlu cek waktu untuk sementara)
                             $sesiUjianCount = SesiUjian::where('id_batch', $batch->id_batch)
                                 ->where('status', 'aktif')
-                                ->where(function($query) use ($now) {
-                                    $query->where(function($q) use ($now) {
-                                        // Ujian yang sudah dimulai dan belum selesai
-                                        $q->where('tanggal_mulai', '<=', $now->format('Y-m-d'))
-                                          ->where('tanggal_selesai', '>=', $now->format('Y-m-d'))
-                                          ->where('jam_mulai', '<=', $now->format('H:i:s'))
-                                          ->where('jam_selesai', '>=', $now->format('H:i:s'));
-                                    })->orWhere(function($q) use ($now) {
-                                        // Ujian yang akan dimulai dalam waktu dekat (dalam 1 jam)
-                                        $q->where('tanggal_mulai', '=', $now->format('Y-m-d'))
-                                          ->where('jam_mulai', '>', $now->format('H:i:s'))
-                                          ->whereRaw('TIMEDIFF(jam_mulai, ?) <= "01:00:00"', [$now->format('H:i:s')]);
-                                    });
-                                })
                                 ->count();
+                                
+                            // Debug: ambil detail sesi ujian
+                            $sesiUjianDetails = SesiUjian::where('id_batch', $batch->id_batch)
+                                ->where('status', 'aktif')
+                                ->get(['id_sesi', 'tanggal_mulai', 'tanggal_selesai', 'jam_mulai', 'jam_selesai']);
+                                
+                            \Log::info('Sesi ujian details:', [
+                                'details' => $sesiUjianDetails->toArray()
+                            ]);
+                            
+                            \Log::info('Exam sessions found:', [
+                                'count' => $sesiUjianCount,
+                                'batch_id' => $batch->id_batch
+                            ]);
 
-                            // Jika tidak ada sesi ujian aktif, redirect ke halaman peserta-wrong
+                            // Log hasil pengecekan sesi ujian
                             if ($sesiUjianCount == 0) {
-                                return view('students.peserta-wrong');
+                                \Log::info('No active exam sessions found for batch:', [
+                                    'batch_id' => $batch->id_batch,
+                                    'batch_name' => $batchPeserta
+                                ]);
+                            } else {
+                                \Log::info('Active exam sessions found:', [
+                                    'count' => $sesiUjianCount,
+                                    'batch_id' => $batch->id_batch
+                                ]);
                             }
                         }
                     }
@@ -306,6 +335,14 @@ class ExamController extends Controller
                 return redirect('/student/dashboard')->with('error', 'Data peserta tidak ditemukan');
             }
 
+            // Check if peserta has already completed exam in the current batch
+            $hasCompletedExamInCurrentBatch = \App\Models\Laporan::where('id_peserta', $peserta->id_peserta)
+                ->where('batch_saat_ujian', $peserta->batch)
+                ->exists();
+            if ($hasCompletedExamInCurrentBatch) {
+                return redirect()->route('student.selesai')->with('info', 'Anda sudah menyelesaikan ujian di batch ini');
+            }
+
             // Ambil sesi ujian
             $sesiUjian = SesiUjian::with(['ujian', 'batch'])->find($id);
             if (!$sesiUjian) {
@@ -319,8 +356,9 @@ class ExamController extends Controller
             }
 
             // Ambil soal untuk menampilkan jumlah soal
-            $soal = \App\Models\Soal::where('mata_pelajaran', $sesiUjian->mata_pelajaran)
-                ->where('status', 'aktif')
+            // Split mata pelajaran dan ambil soal dari semua mata pelajaran
+            $mataPelajaranArray = explode(', ', $sesiUjian->mata_pelajaran);
+            $soal = \App\Models\Soal::whereIn('mata_pelajaran', $mataPelajaranArray)
                 ->get();
 
             return view('students.exam-warning', compact('sesiUjian', 'peserta', 'soal'));
@@ -335,6 +373,8 @@ class ExamController extends Controller
      */
     public function startExam($id)
     {
+        \Log::info('startExam method called:', ['exam_id' => $id]);
+        
         try {
             // Cek apakah user sudah login via session
             $userId = session('user_id');
@@ -354,6 +394,14 @@ class ExamController extends Controller
 
             if (!$peserta) {
                 return redirect('/student/dashboard')->with('error', 'Data peserta tidak ditemukan');
+            }
+
+            // Check if peserta has already completed exam in the current batch
+            $hasCompletedExamInCurrentBatch = Laporan::where('id_peserta', $peserta->id_peserta)
+                ->where('batch_saat_ujian', $peserta->batch)
+                ->exists();
+            if ($hasCompletedExamInCurrentBatch) {
+                return redirect()->route('student.selesai')->with('info', 'Anda sudah menyelesaikan ujian di batch ini');
             }
 
             // Ambil sesi ujian
@@ -380,20 +428,39 @@ class ExamController extends Controller
             $tanggalMulai = $sesiUjian->tanggal_mulai . ' ' . $sesiUjian->jam_mulai;
             $tanggalSelesai = $sesiUjian->tanggal_selesai . ' ' . $sesiUjian->jam_selesai;
 
+            \Log::info('Exam time check:', [
+                'current_time' => $now->format('Y-m-d H:i:s'),
+                'tanggal_mulai' => $tanggalMulai,
+                'tanggal_selesai' => $tanggalSelesai,
+                'current_less_than_start' => $now < $tanggalMulai,
+                'current_greater_than_end' => $now > $tanggalSelesai
+            ]);
+
             if ($now < $tanggalMulai) {
+                \Log::info('Redirecting to peserta-wrong: Ujian belum dimulai');
                 return redirect('/student/peserta-wrong')->with('error', 'Ujian belum dimulai');
             }
 
             if ($now > $tanggalSelesai) {
+                \Log::info('Redirecting to peserta-wrong: Ujian sudah selesai');
                 return redirect('/student/peserta-wrong')->with('error', 'Ujian sudah selesai');
             }
 
             // Ambil soal berdasarkan mata pelajaran
-            $soal = \App\Models\Soal::where('mata_pelajaran', $sesiUjian->mata_pelajaran)
+            // Split mata pelajaran dan ambil soal dari semua mata pelajaran
+            $mataPelajaranArray = explode(', ', $sesiUjian->mata_pelajaran);
+            $soal = \App\Models\Soal::whereIn('mata_pelajaran', $mataPelajaranArray)
                 ->inRandomOrder()
                 ->get();
 
+            \Log::info('Soal check:', [
+                'mata_pelajaran_array' => $mataPelajaranArray,
+                'soal_count' => $soal->count(),
+                'soal_empty' => $soal->isEmpty()
+            ]);
+
             if ($soal->isEmpty()) {
+                \Log::info('Redirecting to peserta-wrong: Tidak ada soal tersedia');
                 return redirect('/student/peserta-wrong')->with('error', 'Tidak ada soal tersedia untuk mata pelajaran ini');
             }
 
@@ -456,8 +523,9 @@ class ExamController extends Controller
             }
 
             // Ambil soal berdasarkan mata pelajaran
-            $soal = \App\Models\Soal::where('mata_pelajaran', $sesiUjian->mata_pelajaran)
-                ->where('status', 'aktif')
+            // Split mata pelajaran dan ambil soal dari semua mata pelajaran
+            $mataPelajaranArray = explode(', ', $sesiUjian->mata_pelajaran);
+            $soal = \App\Models\Soal::whereIn('mata_pelajaran', $mataPelajaranArray)
                 ->inRandomOrder()
                 ->get();
 
@@ -513,6 +581,15 @@ class ExamController extends Controller
                 ], 404);
             }
 
+            // Debug logging
+            \Log::info('Exam submission request:', [
+                'user_id' => $userId,
+                'user_type' => $userType,
+                'exam_id' => $id,
+                'request_data' => $request->all(),
+                'jawaban_data' => $request->jawaban ?? 'NOT_SET'
+            ]);
+
             // Validasi jawaban
             $validator = \Validator::make($request->all(), [
                 'jawaban' => 'required|array',
@@ -520,6 +597,10 @@ class ExamController extends Controller
             ]);
 
             if ($validator->fails()) {
+                \Log::error('Validation failed:', [
+                    'errors' => $validator->errors(),
+                    'request_data' => $request->all()
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Jawaban tidak valid',
@@ -527,19 +608,212 @@ class ExamController extends Controller
                 ], 400);
             }
 
-            // Simpan jawaban (implementasi sesuai kebutuhan)
-            // TODO: Implementasi penyimpanan jawaban ke database
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Jawaban berhasil disimpan'
+            // Ambil soal untuk perhitungan skor
+            $mataPelajaranArray = explode(', ', $sesiUjian->mata_pelajaran);
+            $soal = \App\Models\Soal::whereIn('mata_pelajaran', $mataPelajaranArray)->get();
+            
+            // Hitung skor
+            $totalQuestions = $soal->count();
+            $correctAnswers = 0;
+            $jawabanData = $request->jawaban;
+            
+            // Simpan jawaban individual dan hitung yang benar
+            foreach ($soal as $soalItem) {
+                $soalId = $soalItem->id_soal;
+                $jawabanPeserta = $jawabanData[$soalId] ?? null;
+                
+                if ($jawabanPeserta) {
+                    // Handle different question types
+                    if ($soalItem->tipe_soal === 'pilihan_ganda') {
+                        // Multiple choice - case insensitive match
+                        $isCorrect = strtolower(trim($soalItem->jawaban_benar)) === strtolower(trim($jawabanPeserta));
+                        $nilaiEssay = null;
+                    } else {
+                        // Essay - calculate score based on keyword similarity
+                        $nilaiEssay = $this->calculateEssayScore($jawabanPeserta, $soalItem->jawaban_benar, $soalItem->poin);
+                        $isCorrect = $nilaiEssay >= ($soalItem->poin * 0.8); // 80% threshold for "correct"
+                    }
+                    
+                    if ($isCorrect) {
+                        $correctAnswers++;
+                    }
+                    
+                    // Simpan jawaban individual
+                    \App\Models\Jawaban::create([
+                        'id_peserta' => $peserta->id_peserta,
+                        'id_soal' => $soalId,
+                        'jawaban_dipilih' => $jawabanPeserta,
+                        'status' => $isCorrect ? 'benar' : 'salah',
+                        'nilai_essay' => $nilaiEssay
+                    ]);
+                }
+            }
+            
+            // Hitung skor
+            $totalScore = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
+            
+            // Hitung waktu pengerjaan (dalam menit) - gunakan waktu aktual dari frontend
+            $waktuPengerjaan = $request->input('waktu_pengerjaan', $sesiUjian->durasi_menit);
+            
+            \Log::info('Waktu pengerjaan calculated:', [
+                'waktu_pengerjaan_from_frontend' => $request->input('waktu_pengerjaan'),
+                'durasi_sesi' => $sesiUjian->durasi_menit,
+                'final_waktu_pengerjaan' => $waktuPengerjaan
             ]);
+            
+            // Simpan ke tabel laporan
+            $laporan = \App\Models\Laporan::create([
+                'id_peserta' => $peserta->id_peserta,
+                'batch_saat_ujian' => $peserta->batch, // Simpan batch saat ujian dilakukan
+                'total_score' => round($totalScore, 2),
+                'jumlah_benar' => $correctAnswers,
+                'jumlah_salah' => $totalQuestions - $correctAnswers,
+                'waktu_pengerjaan' => $waktuPengerjaan,
+                'status_submit' => 'manual'
+            ]);
+            
+            \Log::info('Laporan created:', [
+                'id_laporan' => $laporan->id_laporan,
+                'id_peserta' => $peserta->id_peserta,
+                'total_score' => $totalScore,
+                'correct_answers' => $correctAnswers,
+                'total_questions' => $totalQuestions
+            ]);
+            
+            // Log aktivitas
+            \App\Models\ActivityLog::create([
+                'user_type' => 'peserta',
+                'user_id' => $peserta->id_peserta,
+                'action' => 'submit_exam',
+                'description' => "Menyelesaikan ujian: {$sesiUjian->ujian->nama_ujian} (Skor: {$totalScore}%)",
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'metadata' => \App\Helpers\SecurityHelper::getDeviceInfo($request->userAgent())
+            ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Ujian berhasil diselesaikan',
+                    'redirect_url' => route('student.selesai'),
+                    'data' => [
+                        'total_score' => round($totalScore, 2),
+                        'correct_answers' => $correctAnswers,
+                        'total_questions' => $totalQuestions
+                    ]
+                ]);
         } catch (\Exception $e) {
             \Log::error('Error submitting exam: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat menyimpan jawaban'
             ], 500);
+        }
+    }
+
+    /**
+     * Calculate essay score based on keyword similarity
+     */
+    private function calculateEssayScore($jawabanPeserta, $jawabanBenar, $poinMaksimal)
+    {
+        // Konversi ke lowercase untuk perbandingan
+        $jawabanPeserta = strtolower(trim($jawabanPeserta));
+        $jawabanBenar = strtolower(trim($jawabanBenar));
+        
+        // Jika jawaban kosong
+        if (empty($jawabanPeserta)) {
+            return 0;
+        }
+        
+        // Jika jawaban identik (exact match)
+        if ($jawabanPeserta === $jawabanBenar) {
+            return $poinMaksimal;
+        }
+        
+        // Hitung kemiripan kata kunci
+        $kataKunciBenar = $this->extractKeywords($jawabanBenar);
+        $kataKunciPeserta = $this->extractKeywords($jawabanPeserta);
+        
+        if (empty($kataKunciBenar)) {
+            return 0;
+        }
+        
+        $kataSama = 0;
+        foreach ($kataKunciBenar as $kata) {
+            if (in_array($kata, $kataKunciPeserta)) {
+                $kataSama++;
+            }
+        }
+        
+        $persentaseKataSama = $kataSama / count($kataKunciBenar);
+        
+        // Hitung skor berdasarkan persentase kata kunci yang sama
+        $skor = round($persentaseKataSama * $poinMaksimal, 1);
+        
+        // Minimum skor 0, maksimum sesuai poin
+        $skor = max(0, min($skor, $poinMaksimal));
+        
+        return $skor;
+    }
+    
+    /**
+     * Extract keywords from text
+     */
+    private function extractKeywords($text)
+    {
+        // Hapus tanda baca dan konversi ke lowercase
+        $text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $text);
+        $text = strtolower($text);
+        
+        // Split menjadi kata-kata
+        $words = preg_split('/\s+/', $text);
+        
+        // Filter kata yang lebih dari 3 karakter dan bukan stop words
+        $stopWords = ['yang', 'dan', 'atau', 'dari', 'dengan', 'untuk', 'pada', 'adalah', 'adalah', 'ini', 'itu', 'dia', 'mereka', 'kita', 'kami', 'saya', 'anda'];
+        
+        $keywords = array_filter($words, function($word) use ($stopWords) {
+            return strlen($word) > 3 && !in_array($word, $stopWords);
+        });
+        
+        // Return unique keywords
+        return array_values(array_unique($keywords));
+    }
+
+    /**
+     * Show peserta selesai page
+     */
+    public function pesertaSelesai()
+    {
+        try {
+            $userId = session('user_id');
+            $userType = session('user_type');
+
+            if (!$userId || !$userType) {
+                return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+            }
+
+            // Get peserta data
+            $peserta = Peserta::find($userId);
+            if (!$peserta) {
+                return redirect()->route('login')->with('error', 'Data peserta tidak ditemukan');
+            }
+
+            // Get latest laporan for this peserta
+            $laporan = Laporan::where('id_peserta', $userId)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$laporan) {
+                // If no laporan found, redirect to information page
+                return redirect()->route('student.information')->with('info', 'Anda belum menyelesaikan ujian');
+            }
+
+            // Get total soal count from jawaban
+            $totalSoal = Jawaban::where('id_peserta', $userId)->count();
+
+            return view('students.peserta-selesai', compact('peserta', 'laporan', 'totalSoal'));
+        } catch (\Exception $e) {
+            \Log::error('Error in pesertaSelesai: ' . $e->getMessage());
+            return redirect()->route('student.information')->with('error', 'Terjadi kesalahan saat memuat halaman');
         }
     }
 }

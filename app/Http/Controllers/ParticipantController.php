@@ -92,18 +92,28 @@ class ParticipantController extends Controller
     */
    public function store(Request $request)
    {
+      // Debug: Log all request data
+      \Log::info('Participant creation request:', [
+         'all_data' => $request->all(),
+         'headers' => $request->headers->all()
+      ]);
+      
       $validator = Validator::make($request->all(), [
          'nama' => 'required|string|max:255|min:1',
-         'email' => 'nullable|email|max:255', // Email optional for peserta yaa
-         'kode_peserta' => 'required|string|max:255|min:1|unique:peserta,kode_peserta',
+         'email' => 'nullable|email|max:255', // Email optional for peserta
          'kode_akses' => 'required|string|min:3|max:255',
+         'kode_peserta' => 'required|string|min:6|max:255|unique:peserta,kode_peserta',
          'batch' => 'required|string|max:255|min:1',
-         'status' => 'required|in:aktif,tidak_aktif|string',
          'asal_smk' => 'nullable|string|max:255',
          'jurusan' => 'nullable|string|max:255'
       ]);
 
       if ($validator->fails()) {
+         \Log::error('Participant validation failed:', [
+            'errors' => $validator->errors(),
+            'request_data' => $request->all()
+         ]);
+         
          return response()->json([
             'success' => false,
             'message' => 'Validasi gagal',
@@ -113,7 +123,10 @@ class ParticipantController extends Controller
       }
 
       try {
-         // Get next nomor_urut
+         // Use kode_peserta from request (user input)
+         $kodePeserta = $request->kode_peserta;
+         
+         // Generate nomor_urut automatically
          $nextNomor = (Peserta::max('nomor_urut') ?? 0) + 1;
 
          // Create or find batch
@@ -128,12 +141,12 @@ class ParticipantController extends Controller
          $participant = Peserta::create([
             'nomor_urut' => $nextNomor,
             'nama_peserta' => $request->nama,
-            'kode_peserta' => $request->kode_peserta,
+            'kode_peserta' => $kodePeserta, // Auto-generated
             'kode_akses' => $request->kode_akses, // Store as plain text, not hashed
             'asal_smk' => $request->asal_smk ?: 'SMK Default',
             'jurusan' => $request->jurusan ?: $request->batch, // Use jurusan field if provided
             'batch' => $request->batch,
-            'status' => $request->status,
+            'status' => 'aktif', // Default status
             'email' => $request->email ?: null, // Will be null if not provided
             'last_login_at' => null,
             'login_attempts' => 0,

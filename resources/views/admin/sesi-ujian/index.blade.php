@@ -169,6 +169,37 @@
       input[type="datetime-local"]::-webkit-datetime-edit-minute-field {
          color: #495057;
       }
+
+      /* Nama ujian cell styling */
+      .nama-ujian-cell {
+         max-width: 250px;
+         word-wrap: break-word;
+      }
+
+      .nama-ujian-title {
+         font-weight: 600;
+         color: #495057;
+         margin-bottom: 0.25rem;
+         font-size: 0.9rem;
+      }
+
+      .mata-pelajaran-badges {
+         margin-top: 0.25rem;
+      }
+
+      .nama-ujian-cell .badge {
+         font-size: 0.7rem;
+         padding: 0.2rem 0.4rem;
+      }
+
+      .clickable-subject {
+         transition: all 0.2s ease;
+      }
+
+      .clickable-subject:hover {
+         transform: scale(1.05);
+         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
    </style>
 </head>
 
@@ -255,7 +286,7 @@
                         <thead>
                            <tr>
                               <th width="5%">No</th>
-                              <th width="20%">Nama Ujian</th>
+                              <th width="25%">Nama Ujian</th>
                               <th width="10%">Batch</th>
                               <th width="15%">Tanggal Mulai</th>
                               <th width="10%">Jam Mulai</th>
@@ -353,6 +384,53 @@
          }
       }
 
+      // Create nama ujian display with preview functionality
+      function createNamaUjianDisplay(namaUjian, mataPelajaranString) {
+         if (!namaUjian) return '<span class="text-muted">Tidak ada nama ujian</span>';
+         
+         // If there are multiple subjects, show preview functionality
+         if (mataPelajaranString && mataPelajaranString.includes(',')) {
+            const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
+            const maxDisplay = 2; // Show max 2 subjects, then "..."
+            
+            if (subjects.length <= maxDisplay) {
+               // Show all subjects if 2 or less
+               return `
+                  <div class="nama-ujian-title">${namaUjian}</div>
+                  <div class="mata-pelajaran-badges">
+                     ${subjects.map(subject => 
+                        `<span class="badge bg-primary me-1 mb-1">${subject}</span>`
+                     ).join('')}
+                  </div>
+               `;
+            } else {
+               // Show first 2 subjects + "..."
+               const displaySubjects = subjects.slice(0, maxDisplay);
+               const remainingCount = subjects.length - maxDisplay;
+               
+               return `
+                  <div class="nama-ujian-title">${namaUjian}</div>
+                  <div class="mata-pelajaran-badges">
+                     ${displaySubjects.map(subject => 
+                        `<span class="badge bg-primary me-1 mb-1">${subject}</span>`
+                     ).join('')}
+                     <span class="badge bg-secondary me-1 mb-1 clickable-subject" 
+                           style="cursor: pointer;" 
+                           title="Klik untuk melihat semua mata pelajaran">
+                        +${remainingCount} lainnya
+                     </span>
+                  </div>
+               `;
+            }
+         } else {
+            // Single subject or no subjects
+            return `
+               <div class="nama-ujian-title">${namaUjian}</div>
+               ${mataPelajaranString ? `<div class="mata-pelajaran-badges"><span class="badge bg-primary me-1 mb-1">${mataPelajaranString.toLowerCase()}</span></div>` : ''}
+            `;
+         }
+      }
+
       // Display sesi ujian
       function displaySesiUjian(sesiUjian) {
          console.log('Displaying sesi ujian:', sesiUjian);
@@ -366,12 +444,13 @@
 
          sesiUjian.forEach((sesiUjianItem, index) => {
             const row = document.createElement('tr');
+            const namaUjianDisplay = createNamaUjianDisplay(sesiUjianItem.nama_ujian, sesiUjianItem.mata_pelajaran);
+            
             row.innerHTML = `
                <td>${index + 1}</td>
                <td>
-                  <div>
-                     <h6 class="mb-1">${sesiUjianItem.nama_ujian || 'Nama Ujian'}</h6>
-                     <small class="text-muted">${sesiUjianItem.deskripsi || 'Tidak ada deskripsi'}</small>
+                  <div class="nama-ujian-cell" data-full-text="${sesiUjianItem.nama_ujian || ''}" data-mata-pelajaran="${sesiUjianItem.mata_pelajaran || ''}">
+                     ${namaUjianDisplay}
                   </div>
                </td>
                <td><span class="badge bg-secondary">${sesiUjianItem.batch_name || 'N/A'}</span></td>
@@ -397,6 +476,68 @@
                </td>
             `;
             tbody.appendChild(row);
+         });
+         
+         // Add click event listeners for preview functionality
+         addPreviewEventListeners();
+      }
+      
+      // Add preview event listeners
+      function addPreviewEventListeners() {
+         const clickableSubjects = document.querySelectorAll('.clickable-subject');
+         clickableSubjects.forEach(element => {
+            element.addEventListener('click', function(e) {
+               e.preventDefault();
+               const cell = this.closest('.nama-ujian-cell');
+               const namaUjian = cell.getAttribute('data-full-text');
+               const mataPelajaranString = cell.getAttribute('data-mata-pelajaran');
+               
+               if (this.textContent.includes('lainnya')) {
+                  // Show all subjects
+                  const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
+                  const allSubjectsHtml = subjects.map(subject => 
+                     `<span class="badge bg-primary me-1 mb-1">${subject}</span>`
+                  ).join('');
+                  
+                  cell.innerHTML = `
+                     <div class="nama-ujian-title">${namaUjian}</div>
+                     <div class="mata-pelajaran-badges">
+                        ${allSubjectsHtml}
+                        <span class="badge bg-secondary me-1 mb-1 clickable-subject" 
+                              style="cursor: pointer;" 
+                              title="Klik untuk menutup">
+                           <i class="bi bi-chevron-up"></i> Tutup
+                        </span>
+                     </div>
+                  `;
+                  
+                  // Re-add event listeners
+                  addPreviewEventListeners();
+               } else {
+                  // Show truncated view
+                  const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
+                  const maxDisplay = 2;
+                  const displaySubjects = subjects.slice(0, maxDisplay);
+                  const remainingCount = subjects.length - maxDisplay;
+                  
+                  cell.innerHTML = `
+                     <div class="nama-ujian-title">${namaUjian}</div>
+                     <div class="mata-pelajaran-badges">
+                        ${displaySubjects.map(subject => 
+                           `<span class="badge bg-primary me-1 mb-1">${subject}</span>`
+                        ).join('')}
+                        <span class="badge bg-secondary me-1 mb-1 clickable-subject" 
+                              style="cursor: pointer;" 
+                              title="Klik untuk melihat semua mata pelajaran">
+                           +${remainingCount} lainnya
+                        </span>
+                     </div>
+                  `;
+                  
+                  // Re-add event listeners
+                  addPreviewEventListeners();
+               }
+            });
          });
       }
 
@@ -598,6 +739,8 @@
          loadSesiUjian();
       });
    </script>
+
+   @include('layouts.logout-script')
 
 </body>
 

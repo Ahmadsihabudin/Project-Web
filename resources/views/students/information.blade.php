@@ -456,7 +456,7 @@
 
    <!-- Next to Exam Info Button -->
    <div class="text-center mt-3 mb-3">
-      <a id="nextExamBtn" href="/student/exam/2/info-warning" class="btn btn-primary" role="button">
+      <a id="nextExamBtn" href="#" class="btn btn-primary" role="button">
          <i class="bi bi-arrow-right-circle me-2"></i>
          Next
       </a>
@@ -468,7 +468,6 @@
    // Load user info only
    async function loadUserInfo() {
       try {
-         console.log('Loading user info...');
          const response = await fetch('/student/exam/data', {
             method: 'GET',
             headers: {
@@ -483,7 +482,10 @@
          }
 
          const result = await response.json();
-         console.log('API result:', result);
+         console.log('📡 API Response:', result);
+         console.log('📡 API Response success:', result.success);
+         console.log('📡 API Response data:', result.data);
+         console.log('📡 API Response peserta:', result.peserta);
 
          if (result.success && result.peserta) {
             // Update student info
@@ -493,31 +495,76 @@
             document.getElementById('studentEmail').textContent = result.peserta.email || 'N/A';
             document.getElementById('studentSchool').textContent = result.peserta.asal_smk || 'N/A';
             document.getElementById('studentMajor').textContent = result.peserta.jurusan || 'N/A';
-            console.log('User info updated successfully');
-         } else {
-            console.error('API returned unsuccessful result:', result);
-            // Set default values if API fails
-            document.getElementById('studentName').textContent = 'Error loading data';
-            document.getElementById('studentCode').textContent = 'Error loading data';
-            document.getElementById('studentBatch').textContent = 'Error loading data';
-            document.getElementById('studentEmail').textContent = 'Error loading data';
-            document.getElementById('studentSchool').textContent = 'Error loading data';
-            document.getElementById('studentMajor').textContent = 'Error loading data';
+            
+            // Update button if we have exam data
+            console.log('🔍 Checking exam data...');
+            console.log('🔍 result.data exists:', !!result.data);
+            console.log('🔍 result.data is array:', Array.isArray(result.data));
+            console.log('🔍 result.data length:', result.data ? result.data.length : 'N/A');
+            
+            if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+               const firstExam = result.data[0];
+               const nextExamBtn = document.getElementById('nextExamBtn');
+               
+               console.log('🔍 Exam data found:', firstExam);
+               console.log('🔍 Button element:', nextExamBtn);
+               
+               if (nextExamBtn) {
+                  const newHref = `/student/exam/${firstExam.id}/info-warning`;
+                  nextExamBtn.href = newHref;
+                  console.log('✅ Button href updated to:', newHref);
+                  console.log('✅ Button current href:', nextExamBtn.href);
+               } else {
+                  console.error('❌ Button not found!');
+               }
+            } else {
+               console.log('❌ No exam data available or invalid format');
+               console.log('❌ result.data:', result.data);
+            }
          }
       } catch (error) {
          console.error('Error loading user info:', error);
-         // Set error values
-         document.getElementById('studentName').textContent = 'Error: ' + error.message;
-         document.getElementById('studentCode').textContent = 'Error: ' + error.message;
-         document.getElementById('studentBatch').textContent = 'Error: ' + error.message;
-         document.getElementById('studentEmail').textContent = 'Error: ' + error.message;
-         document.getElementById('studentSchool').textContent = 'Error: ' + error.message;
-         document.getElementById('studentMajor').textContent = 'Error: ' + error.message;
       }
    }
 
    // Initialize on page load
    document.addEventListener('DOMContentLoaded', function() {
+      // Check for error message from session
+      @if(session('error'))
+         alert('{{ session('error') }}');
+      @endif
+      
+      // Add click listener to button for debugging
+      const nextBtn = document.getElementById('nextExamBtn');
+      if (nextBtn) {
+         nextBtn.addEventListener('click', function(e) {
+            console.log('🖱️ Button clicked!');
+            console.log('🖱️ Current href:', this.href);
+            console.log('🖱️ Event:', e);
+            
+            if (this.href === '#' || this.href === window.location.href) {
+               console.error('❌ Button href is not set properly!');
+               console.log('🔧 Attempting to set href manually...');
+               
+               // Try to set href manually as fallback
+               this.href = '/student/exam/3/info-warning';
+               console.log('🔧 Manual href set to:', this.href);
+               
+               // Try again
+               if (this.href === '#' || this.href === window.location.href) {
+                  e.preventDefault();
+                  alert('Button belum diatur dengan benar. Silakan refresh halaman.');
+               } else {
+                  console.log('✅ Manual href set successfully, proceeding...');
+                  window.location.href = this.href;
+               }
+            } else {
+               console.log('✅ Button href is valid, proceeding...');
+            }
+         });
+      }
+      
+      // Load user info
       loadUserInfo();
    });
 </script>

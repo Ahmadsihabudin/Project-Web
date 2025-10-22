@@ -11,6 +11,8 @@
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
    <!-- Bootstrap Icons -->
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+   <!-- Chart.js -->
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
    <!-- Bootstrap JS -->
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -19,25 +21,77 @@
 
    <style>
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
          color: white;
-         border-radius: 10px;
-         padding: 1.5rem;
+         border-radius: 15px;
+         padding: 2rem;
          margin-bottom: 2rem;
+         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       }
 
       .stats-card {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
-         border-radius: 10px;
+         background: white;
+         border-radius: 15px;
          padding: 1.5rem;
-         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
          margin-bottom: 1.5rem;
          border: none;
+         transition: transform 0.3s ease, box-shadow 0.3s ease;
+         position: relative;
+         overflow: hidden;
       }
 
-      .stats-card .text-muted {
-         color: rgba(255, 255, 255, 0.8) !important;
+      .stats-card:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .stats-card::before {
+         content: '';
+         position: absolute;
+         top: 0;
+         left: 0;
+         right: 0;
+         height: 4px;
+         background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+      }
+
+      .stats-card .icon-wrapper {
+         width: 60px;
+         height: 60px;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         margin-bottom: 1rem;
+      }
+
+      .stats-card.primary .icon-wrapper { background: linear-gradient(135deg, #3498db, #2980b9); }
+      .stats-card.success .icon-wrapper { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+      .stats-card.warning .icon-wrapper { background: linear-gradient(135deg, #f39c12, #e67e22); }
+      .stats-card.info .icon-wrapper { background: linear-gradient(135deg, #17a2b8, #138496); }
+      .stats-card.danger .icon-wrapper { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+      .chart-container {
+         background: white;
+         border-radius: 15px;
+         padding: 1.5rem;
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+         margin-bottom: 1.5rem;
+      }
+
+      .chart-title {
+         font-size: 1.2rem;
+         font-weight: 600;
+         color: #2c3e50;
+         margin-bottom: 1rem;
+         display: flex;
+         align-items: center;
+      }
+
+      .chart-title i {
+         margin-right: 0.5rem;
+         color: #3498db;
       }
 
       .action-buttons {
@@ -171,8 +225,8 @@
          <div class="p-4">
             <!-- Page Header -->
             <div class="page-header">
-               <h2><i class="bi bi-file-earmark-text me-2"></i> Manajemen Laporan</h2>
-               <p class="mb-0">Kelola dan generate laporan ujian online</p>
+               <h2><i class="bi bi-file-earmark-text me-2"></i> Laporan Hasil Ujian</h2>
+               <p class="mb-0">Data hasil ujian peserta yang telah diselesaikan</p>
             </div>
 
             <!-- Statistics Cards -->
@@ -180,25 +234,87 @@
                <!-- Stats will be loaded here -->
             </div>
 
-            <!-- Reports Table -->
+            <!-- Charts Section -->
+            <div class="row mb-4">
+               <div class="col-lg-8">
+                  <div class="chart-container">
+                     <div class="chart-title">
+                        <i class="bi bi-graph-up"></i>
+                        Distribusi Skor Ujian
+                     </div>
+                     <canvas id="scoreDistributionChart" width="400" height="200"></canvas>
+                  </div>
+               </div>
+               <div class="col-lg-4">
+                  <div class="chart-container">
+                     <div class="chart-title">
+                        <i class="bi bi-pie-chart"></i>
+                        Status Submit
+                     </div>
+                     <canvas id="statusChart" width="300" height="200"></canvas>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="row mb-4">
+               <div class="col-lg-6">
+                  <div class="chart-container">
+                     <div class="chart-title">
+                        <i class="bi bi-clock-history"></i>
+                        Rata-rata Waktu Pengerjaan
+                     </div>
+                     <canvas id="timeChart" width="400" height="200"></canvas>
+                  </div>
+               </div>
+               <div class="col-lg-6">
+                  <div class="chart-container">
+                     <div class="chart-title">
+                        <i class="bi bi-trophy"></i>
+                        Top Performers
+                     </div>
+                     <div id="topPerformers">
+                        <!-- Top performers will be loaded here -->
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Detailed Results Table -->
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h6 class="m-0 font-weight-bold">Daftar Laporan</h6>
-                  <a href="{{ route('admin.reports.create') }}" class="btn btn-primary btn-sm">
-                     <i class="bi bi-file-earmark-plus me-1"></i>
-                     Buat Laporan
-                  </a>
+                  <h6 class="m-0 font-weight-bold">
+                     <i class="bi bi-table me-2"></i>
+                     Detail Hasil Ujian
+                  </h6>
+                  <div class="d-flex gap-2">
+                     <button class="btn btn-outline-primary btn-sm" onclick="exportToPDF()">
+                        <i class="bi bi-file-pdf me-1"></i> Export PDF
+                     </button>
+                     <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
+                        <i class="bi bi-file-excel me-1"></i> Export Excel
+                     </button>
+                     <button class="btn btn-outline-danger btn-sm" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>
+                        <i class="bi bi-trash me-1"></i> Hapus Terpilih
+                     </button>
+                  </div>
                </div>
                <div class="card-body">
                   <div class="table-responsive">
-                     <table class="table table-striped" id="reportsTable">
+                     <table class="table table-striped table-hover" id="reportsTable">
                         <thead>
                            <tr>
+                              <th>
+                                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                              </th>
                               <th>No</th>
-                              <th>Judul Laporan</th>
-                              <th>Tipe</th>
-                              <th>Format</th>
-                              <th>Periode</th>
+                              <th>Nama Peserta</th>
+                              <th>Skor</th>
+                              <th>Jawaban Benar</th>
+                              <th>Jawaban Salah</th>
+                              <th>Waktu Pengerjaan</th>
+                              <th>Status Submit</th>
+                              <th>Tanggal</th>
                               <th>Aksi</th>
                            </tr>
                         </thead>
@@ -241,56 +357,49 @@
       // Display statistics
       function displayStats(stats) {
          const statsHtml = `
-            <div class="col-md-3">
-               <div class="stats-card">
-                  <div class="d-flex align-items-center">
-                     <div class="flex-shrink-0">
-                        <i class="bi bi-file-earmark-text-fill text-white" style="font-size: 2rem;"></i>
-                     </div>
-                     <div class="flex-grow-1 ms-3">
-                        <h5 class="mb-0">${stats.total}</h5>
-                        <p class="text-muted mb-0">Total Laporan</p>
-                     </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+               <div class="stats-card primary">
+                  <div class="icon-wrapper">
+                     <i class="bi bi-file-earmark-text-fill text-white" style="font-size: 1.5rem;"></i>
                   </div>
+                  <h3 class="mb-1">${stats.total}</h3>
+                  <p class="text-muted mb-0">Total Ujian</p>
                </div>
             </div>
-            <div class="col-md-3">
-               <div class="stats-card">
-                  <div class="d-flex align-items-center">
-                     <div class="flex-shrink-0">
-                        <i class="bi bi-check-circle-fill text-white" style="font-size: 2rem;"></i>
-                     </div>
-                     <div class="flex-grow-1 ms-3">
-                        <h5 class="mb-0">${stats.active}</h5>
-                        <p class="text-muted mb-0">Aktif</p>
-                     </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+               <div class="stats-card success">
+                  <div class="icon-wrapper">
+                     <i class="bi bi-check-circle-fill text-white" style="font-size: 1.5rem;"></i>
                   </div>
+                  <h3 class="mb-1">${stats.completed}</h3>
+                  <p class="text-muted mb-0">Selesai</p>
                </div>
             </div>
-            <div class="col-md-3">
-               <div class="stats-card">
-                  <div class="d-flex align-items-center">
-                     <div class="flex-shrink-0">
-                        <i class="bi bi-pencil-square text-white" style="font-size: 2rem;"></i>
-                     </div>
-                     <div class="flex-grow-1 ms-3">
-                        <h5 class="mb-0">${stats.draft}</h5>
-                        <p class="text-muted mb-0">Draft</p>
-                     </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+               <div class="stats-card warning">
+                  <div class="icon-wrapper">
+                     <i class="bi bi-graph-up text-white" style="font-size: 1.5rem;"></i>
                   </div>
+                  <h3 class="mb-1">${stats.average_score}%</h3>
+                  <p class="text-muted mb-0">Rata-rata Skor</p>
                </div>
             </div>
-            <div class="col-md-3">
-               <div class="stats-card">
-                  <div class="d-flex align-items-center">
-                     <div class="flex-shrink-0">
-                        <i class="bi bi-archive-fill text-secondary" style="font-size: 2rem;"></i>
-                     </div>
-                     <div class="flex-grow-1 ms-3">
-                        <h5 class="mb-0">${stats.archived}</h5>
-                        <p class="text-muted mb-0">Arsip</p>
-                     </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+               <div class="stats-card info">
+                  <div class="icon-wrapper">
+                     <i class="bi bi-clock-history text-white" style="font-size: 1.5rem;"></i>
                   </div>
+                  <h3 class="mb-1">${stats.average_time || 0}</h3>
+                  <p class="text-muted mb-0">Rata-rata Waktu (menit)</p>
+               </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+               <div class="stats-card danger">
+                  <div class="icon-wrapper">
+                     <i class="bi bi-people-fill text-white" style="font-size: 1.5rem;"></i>
+                  </div>
+                  <h3 class="mb-1">${stats.participants}</h3>
+                  <p class="text-muted mb-0">Peserta</p>
                </div>
             </div>
          `;
@@ -327,28 +436,71 @@
 
          reports.forEach((report, index) => {
             const row = document.createElement('tr');
+            const scoreClass = report.total_score >= 80 ? 'success' : report.total_score >= 60 ? 'warning' : 'danger';
+            const statusClass = report.status_submit === 'auto_submit' ? 'success' : 'info';
+            
             row.innerHTML = `
+               <td>
+                  <input type="checkbox" class="report-checkbox" value="${report.id_laporan}" onchange="updateDeleteButton()">
+               </td>
                <td>${index + 1}</td>
-               <td>${report.judul_laporan}</td>
-               <td><span class="badge bg-info">${getTipeLaporanText(report.tipe_laporan)}</span></td>
-               <td><span class="badge bg-secondary">${report.format_laporan.toUpperCase()}</span></td>
-               <td>${formatDateRange(report.periode_mulai, report.periode_selesai)}</td>
+               <td>
+                  <div class="d-flex align-items-center">
+                     <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        ${report.nama_peserta ? report.nama_peserta.charAt(0).toUpperCase() : 'U'}
+                     </div>
+                     <div>
+                        <div class="fw-bold">${report.nama_peserta || 'Unknown'}</div>
+                        <small class="text-muted">ID: ${report.id_peserta}</small>
+                     </div>
+                  </div>
+               </td>
+               <td>
+                  <span class="badge bg-${scoreClass} fs-6">${report.total_score}%</span>
+               </td>
+               <td>
+                  <div class="d-flex align-items-center">
+                     <span class="fw-bold me-1 text-success">${report.jumlah_benar}</span>
+                     <small class="text-muted">benar</small>
+                  </div>
+               </td>
+               <td>
+                  <div class="d-flex align-items-center">
+                     <span class="fw-bold me-1 text-danger">${report.jumlah_salah || 0}</span>
+                     <small class="text-muted">salah</small>
+                  </div>
+               </td>
+               <td>
+                  <div class="d-flex align-items-center">
+                     <i class="bi bi-clock me-1"></i>
+                     <span>${report.waktu_pengerjaan} menit</span>
+                  </div>
+               </td>
+               <td>
+                  <span class="badge bg-${statusClass}">${report.status_submit}</span>
+               </td>
+               <td>
+                  <div class="d-flex align-items-center">
+                     <i class="bi bi-calendar me-1"></i>
+                     <span>${formatDate(report.created_at)}</span>
+                  </div>
+               </td>
                <td>
                   <div class="action-buttons">
-                     <a href="/admin/reports/${report.id}/edit" class="btn btn-warning btn-sm" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                     </a>
-                     <button class="btn btn-primary btn-sm" onclick="generateReport(${report.id})" title="Generate">
-                        <i class="bi bi-download"></i>
+                     <button class="btn btn-info btn-sm" onclick="viewDetails(${report.id_laporan})" title="Detail">
+                        <i class="bi bi-eye"></i>
                      </button>
-                     <button class="btn btn-danger btn-sm" onclick="deleteReport(${report.id})" title="Hapus">
-                        <i class="bi bi-trash"></i>
+                     <button class="btn btn-primary btn-sm" onclick="downloadReport(${report.id_laporan})" title="Download">
+                        <i class="bi bi-download"></i>
                      </button>
                   </div>
                </td>
             `;
             tbody.appendChild(row);
          });
+
+         // Initialize charts after data is loaded
+         initializeCharts(reports);
       }
 
       // Get tipe laporan text
@@ -434,6 +586,232 @@
          }
       }
 
+      // Initialize charts
+      function initializeCharts(reports) {
+         // Score Distribution Chart
+         const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+         const scores = reports.map(r => r.total_score);
+         const scoreRanges = {
+            '0-20': scores.filter(s => s >= 0 && s <= 20).length,
+            '21-40': scores.filter(s => s > 20 && s <= 40).length,
+            '41-60': scores.filter(s => s > 40 && s <= 60).length,
+            '61-80': scores.filter(s => s > 60 && s <= 80).length,
+            '81-100': scores.filter(s => s > 80 && s <= 100).length
+         };
+
+         new Chart(scoreCtx, {
+            type: 'bar',
+            data: {
+               labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
+               datasets: [{
+                  label: 'Jumlah Peserta',
+                  data: Object.values(scoreRanges),
+                  backgroundColor: [
+                     'rgba(231, 76, 60, 0.8)',
+                     'rgba(230, 126, 34, 0.8)',
+                     'rgba(241, 196, 15, 0.8)',
+                     'rgba(46, 204, 113, 0.8)',
+                     'rgba(52, 152, 219, 0.8)'
+                  ],
+                  borderColor: [
+                     'rgba(231, 76, 60, 1)',
+                     'rgba(230, 126, 34, 1)',
+                     'rgba(241, 196, 15, 1)',
+                     'rgba(46, 204, 113, 1)',
+                     'rgba(52, 152, 219, 1)'
+                  ],
+                  borderWidth: 2
+               }]
+            },
+            options: {
+               responsive: true,
+               plugins: {
+                  legend: {
+                     display: false
+                  }
+               },
+               scales: {
+                  y: {
+                     beginAtZero: true,
+                     ticks: {
+                        stepSize: 1
+                     }
+                  }
+               }
+            }
+         });
+
+         // Status Chart
+         const statusCtx = document.getElementById('statusChart').getContext('2d');
+         const statusCounts = reports.reduce((acc, r) => {
+            acc[r.status_submit] = (acc[r.status_submit] || 0) + 1;
+            return acc;
+         }, {});
+
+         new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+               labels: Object.keys(statusCounts),
+               datasets: [{
+                  data: Object.values(statusCounts),
+                  backgroundColor: [
+                     'rgba(52, 152, 219, 0.8)',
+                     'rgba(46, 204, 113, 0.8)',
+                     'rgba(241, 196, 15, 0.8)'
+                  ],
+                  borderWidth: 2
+               }]
+            },
+            options: {
+               responsive: true,
+               plugins: {
+                  legend: {
+                     position: 'bottom'
+                  }
+               }
+            }
+         });
+
+         // Time Chart
+         const timeCtx = document.getElementById('timeChart').getContext('2d');
+         const timeData = reports.map(r => ({
+            x: r.nama_peserta,
+            y: r.waktu_pengerjaan
+         }));
+
+         new Chart(timeCtx, {
+            type: 'line',
+            data: {
+               labels: reports.map(r => r.nama_peserta),
+               datasets: [{
+                  label: 'Waktu Pengerjaan (menit)',
+                  data: reports.map(r => r.waktu_pengerjaan),
+                  borderColor: 'rgba(52, 152, 219, 1)',
+                  backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                  tension: 0.4,
+                  fill: true
+               }]
+            },
+            options: {
+               responsive: true,
+               scales: {
+                  y: {
+                     beginAtZero: true,
+                     title: {
+                        display: true,
+                        text: 'Waktu (menit)'
+                     }
+                  }
+               }
+            }
+         });
+
+         // Top Performers
+         const topPerformers = reports
+            .sort((a, b) => b.total_score - a.total_score)
+            .slice(0, 5);
+
+         const topPerformersHtml = topPerformers.map((performer, index) => `
+            <div class="d-flex align-items-center mb-3">
+               <div class="rank-badge me-3" style="width: 30px; height: 30px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                  ${index + 1}
+               </div>
+               <div class="flex-grow-1">
+                  <div class="fw-bold">${performer.nama_peserta}</div>
+                  <small class="text-muted">${performer.total_score}% • ${performer.jumlah_benar} jawaban benar</small>
+               </div>
+               <div class="text-end">
+                  <span class="badge bg-success">${performer.total_score}%</span>
+               </div>
+            </div>
+         `).join('');
+
+         document.getElementById('topPerformers').innerHTML = topPerformersHtml || '<p class="text-muted text-center">Belum ada data</p>';
+      }
+
+      // View details
+      function viewDetails(id) {
+         alert('Fitur detail akan segera tersedia');
+      }
+
+      // Download report
+      function downloadReport(id) {
+         alert('Fitur download akan segera tersedia');
+      }
+
+      // Export functions
+      function exportToPDF() {
+         alert('Fitur export PDF akan segera tersedia');
+      }
+
+      function exportToExcel() {
+         alert('Fitur export Excel akan segera tersedia');
+      }
+
+      // Checkbox functions
+      function toggleSelectAll() {
+         const selectAllCheckbox = document.getElementById('selectAll');
+         const checkboxes = document.querySelectorAll('.report-checkbox');
+         
+         checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+         });
+         
+         updateDeleteButton();
+      }
+
+      function updateDeleteButton() {
+         const checkboxes = document.querySelectorAll('.report-checkbox:checked');
+         const deleteBtn = document.getElementById('deleteSelectedBtn');
+         
+         if (checkboxes.length > 0) {
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = `Hapus Terpilih (${checkboxes.length})`;
+         } else {
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Hapus Terpilih';
+         }
+      }
+
+      // Delete selected reports
+      async function deleteSelected() {
+         const checkboxes = document.querySelectorAll('.report-checkbox:checked');
+         const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+         
+         if (selectedIds.length === 0) {
+            alert('Pilih data yang akan dihapus');
+            return;
+         }
+         
+         if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} data laporan?`)) {
+            return;
+         }
+         
+         try {
+            const response = await fetch('/admin/reports/bulk-delete', {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+               },
+               body: JSON.stringify({ ids: selectedIds })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+               alert(`Berhasil menghapus ${result.deleted_count} data laporan`);
+               loadReports(); // Reload data
+               loadStats(); // Reload stats
+            } else {
+               alert('Gagal menghapus data: ' + result.message);
+            }
+         } catch (error) {
+            console.error('Error deleting reports:', error);
+            alert('Terjadi kesalahan saat menghapus data');
+         }
+      }
+
       // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
@@ -441,6 +819,8 @@
          loadReports();
       });
    </script>
+
+   @include('layouts.logout-script')
 
 </body>
 

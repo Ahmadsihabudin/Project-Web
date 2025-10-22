@@ -554,7 +554,18 @@
 
             // Set start exam button link
             const startBtn = document.getElementById('startExamBtn');
-            startBtn.href = `/student/exam/${examId}/start`;
+            console.log('🔍 Start button element:', startBtn);
+            console.log('🔍 Exam ID for href:', examId);
+            
+            if (startBtn) {
+                const newHref = `/student/exam/${examId}/start`;
+                startBtn.href = newHref;
+                console.log('✅ Setting start exam button href:', newHref);
+                console.log('✅ Button href after setting:', startBtn.href);
+                console.log('✅ Button href attribute:', startBtn.getAttribute('href'));
+            } else {
+                console.error('❌ Start button not found!');
+            }
 
             // Update exam status
             const statusElement = document.getElementById('examStatus');
@@ -570,12 +581,24 @@
 
          } else {
             console.error('Failed to load exam data:', result);
-            showError('Gagal memuat data ujian');
+            if (result.error === 'EXAM_NOT_FOUND') {
+               // Redirect to information page if exam not found
+               alert('Sesi ujian tidak ditemukan. Mungkin sudah dihapus. Anda akan diarahkan ke halaman informasi.');
+               window.location.href = '/student/information';
+            } else {
+               showError('Gagal memuat data ujian: ' + (result.message || 'Unknown error'));
+            }
          }
 
       } catch (error) {
          console.error('Error loading exam data:', error);
-         showError('Terjadi kesalahan saat memuat data ujian');
+         if (error.message.includes('404')) {
+            // Handle 404 error specifically
+            alert('Sesi ujian tidak ditemukan. Mungkin sudah dihapus. Anda akan diarahkan ke halaman informasi.');
+            window.location.href = '/student/information';
+         } else {
+            showError('Terjadi kesalahan saat memuat data ujian');
+         }
       }
    }
 
@@ -642,6 +665,24 @@
    // Initialize on page load
    document.addEventListener('DOMContentLoaded', function() {
       loadExamData();
+      
+      // Add click handler for debugging
+      const startBtn = document.getElementById('startExamBtn');
+      if (startBtn) {
+         startBtn.addEventListener('click', function(e) {
+            console.log('🖱️ Start button clicked!');
+            console.log('🖱️ Current href:', this.href);
+            console.log('🖱️ Event:', e);
+            
+            if (this.href === '#' || this.href === window.location.href) {
+               console.error('❌ Button href is not set properly!');
+               e.preventDefault();
+               alert('Button belum diatur dengan benar. Silakan refresh halaman.');
+            } else {
+               console.log('✅ Button href is valid, proceeding...');
+            }
+         });
+      }
    });
 </script>
 @endsection

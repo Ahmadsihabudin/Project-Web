@@ -75,9 +75,9 @@
                   <hr class="dropdown-divider">
                </li>
                <li>
-                  <a class="dropdown-item d-flex align-items-center text-danger" href="#" onclick="simpleLogout()">
-                     <i class="bi bi-box-arrow-right me-2"></i>
-                     <span>Logout</span>
+                     <a class="dropdown-item d-flex align-items-center text-danger" href="{{ route('auth.logout') }}" onclick="simpleLogout()">
+                        <i class="bi bi-box-arrow-right me-2"></i>
+                        <span>Logout</span>
                   </a>
                </li>
             </ul>

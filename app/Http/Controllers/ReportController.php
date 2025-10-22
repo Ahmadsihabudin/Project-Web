@@ -232,26 +232,20 @@ class ReportController extends Controller
    public function data()
    {
       try {
-         $reports = Laporan::all();
+         $reports = Laporan::with('peserta')->get();
 
          $transformedReports = $reports->map(function ($report) {
             return [
-               'id' => $report->id_laporan,
-               'judul_laporan' => 'Laporan ' . $report->id_laporan,
-               'deskripsi' => 'Laporan hasil ujian',
-               'tipe_laporan' => 'hasil_ujian',
-               'periode_mulai' => $report->created_at->format('Y-m-d'),
-               'periode_selesai' => $report->created_at->format('Y-m-d'),
-               'format_laporan' => 'pdf',
-               'level_detail' => 'lengkap',
-               'include_chart' => true,
-               'include_statistik' => true,
-               'status' => 'aktif',
-               'filter_batch' => null,
-               'filter_sesi' => null,
-               'filter_peserta' => $report->id_peserta,
-               'created_at' => $report->created_at,
-               'updated_at' => $report->updated_at
+               'id_laporan' => $report->id_laporan,
+               'id_peserta' => $report->id_peserta,
+               'nama_peserta' => $report->peserta ? $report->peserta->nama_peserta : 'Unknown',
+               'total_score' => $report->total_score,
+               'jumlah_benar' => $report->jumlah_benar,
+               'jumlah_salah' => $report->jumlah_salah ?? 0,
+               'waktu_pengerjaan' => $report->waktu_pengerjaan,
+               'status_submit' => $report->status_submit,
+               'created_at' => $report->created_at->format('Y-m-d H:i:s'),
+               'updated_at' => $report->updated_at->format('Y-m-d H:i:s'),
             ];
          });
 
@@ -274,24 +268,55 @@ class ReportController extends Controller
    {
       try {
          $totalReports = Laporan::count();
-         $activeReports = $totalReports; // All reports are considered active
-         $draftReports = 0;
-         $archivedReports = 0;
-
-         // Count by status_submit
-         $byType = Laporan::select('status_submit', DB::raw('count(*) as total'))
-            ->groupBy('status_submit')
-            ->get();
+         $completedReports = Laporan::where('status_submit', 'manual')->count();
+         $averageScore = Laporan::avg('total_score') ?? 0;
+         $averageTime = Laporan::avg('waktu_pengerjaan') ?? 0;
+         $uniqueParticipants = Laporan::distinct('id_peserta')->count('id_peserta');
 
          return response()->json([
             'success' => true,
             'data' => [
                'total' => $totalReports,
-               'active' => $activeReports,
-               'draft' => $draftReports,
-               'archived' => $archivedReports,
-               'by_type' => $byType
+               'completed' => $completedReports,
+               'average_score' => round($averageScore, 1),
+               'average_time' => round($averageTime, 1),
+               'participants' => $uniqueParticipants
             ]
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+         ], 500);
+      }
+   }
+
+   /**
+    * Bulk delete reports
+    */
+   public function bulkDelete(Request $request)
+   {
+      try {
+         $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:laporan,id_laporan'
+         ]);
+
+         if ($validator->fails()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Validasi gagal',
+               'errors' => $validator->errors()
+            ], 422);
+         }
+
+         $ids = $request->input('ids');
+         $deletedCount = Laporan::whereIn('id_laporan', $ids)->delete();
+
+         return response()->json([
+            'success' => true,
+            'message' => 'Data berhasil dihapus',
+            'deleted_count' => $deletedCount
          ]);
       } catch (\Exception $e) {
          return response()->json([

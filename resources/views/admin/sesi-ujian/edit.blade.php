@@ -38,22 +38,41 @@
          box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
       }
 
-      /* Datetime input styles */
-      input[type="datetime-local"] {
+      /* DateTime input styles */
+      input[type="date"], input[type="time"] {
          cursor: pointer;
       }
 
-      input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      .btn-outline-primary {
+         transition: all 0.3s ease;
+      }
+
+      .btn-outline-primary:hover {
+         transform: translateY(-1px);
+         box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+      }
+
+      /* Mata Pelajaran Checkbox Styles */
+      .mata-pelajaran-checkbox {
+         transform: scale(1.2);
+         margin-right: 0.5rem;
+      }
+
+      .form-check-label {
+         font-size: 1rem;
          cursor: pointer;
-         background: transparent;
-         bottom: 0;
-         color: transparent;
-         height: auto;
-         left: 0;
-         position: absolute;
-         right: 0;
-         top: 0;
-         width: auto;
+         padding: 0.5rem;
+         border-radius: 0.375rem;
+         transition: background-color 0.2s ease;
+      }
+
+      .form-check-label:hover {
+         background-color: #f8f9fa;
+      }
+
+      .form-check-input:checked + .form-check-label {
+         background-color: #e3f2fd;
+         color: #1976d2;
       }
 
       .page-header {
@@ -104,15 +123,34 @@
                         <div class="col-md-6">
                            <h6 class="mb-3">Informasi Dasar</h6>
                            <div class="mb-3">
-                              <label for="mata_pelajaran" class="form-label fw-bold">Mata Pelajaran <span class="text-danger">*</span></label>
-                              <div class="input-group">
-                                 <select class="form-select" id="mata_pelajaran" name="mata_pelajaran" required>
-                                    <option value="">Pilih Mata Pelajaran</option>
-                                 </select>
-                                 <button class="btn btn-outline-secondary" type="button" id="refreshMataPelajaranBtn" title="Refresh Data Mata Pelajaran">
-                                    <i class="bi bi-arrow-clockwise" id="refreshMataPelajaranIcon"></i>
-                                    <span class="spinner-border spinner-border-sm d-none" id="refreshMataPelajaranSpinner" role="status"></span>
-                                 </button>
+                              <label class="form-label fw-bold">Mata Pelajaran <span class="text-danger">*</span></label>
+                              <div class="card">
+                                 <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">Pilih Mata Pelajaran</span>
+                                    <div>
+                                       <button type="button" class="btn btn-sm btn-outline-primary me-2" id="selectAllMataPelajaran">
+                                          <i class="bi bi-check-square me-1"></i>Pilih Semua
+                                       </button>
+                                       <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllMataPelajaran">
+                                          <i class="bi bi-square me-1"></i>Batal Pilih
+                                       </button>
+                                       <button class="btn btn-sm btn-outline-secondary" type="button" id="refreshMataPelajaranBtn" title="Refresh Data Mata Pelajaran">
+                                          <i class="bi bi-arrow-clockwise" id="refreshMataPelajaranIcon"></i>
+                                          <span class="spinner-border spinner-border-sm d-none" id="refreshMataPelajaranSpinner" role="status"></span>
+                                       </button>
+                                    </div>
+                                 </div>
+                                 <div class="card-body">
+                                    <div id="mataPelajaranList" class="row">
+                                       <!-- Mata pelajaran checkboxes will be loaded here -->
+                                       <div class="col-12 text-center">
+                                          <div class="spinner-border text-primary" role="status">
+                                             <span class="visually-hidden">Loading...</span>
+                                          </div>
+                                          <p class="mt-2 text-muted">Memuat mata pelajaran...</p>
+                                       </div>
+                                    </div>
+                                 </div>
                               </div>
                               <div class="form-text">
                                  <small class="text-muted">Data mata pelajaran diambil dari tabel soal</small>
@@ -143,12 +181,42 @@
                         <div class="col-md-6">
                            <h6 class="mb-3">Jadwal & Waktu</h6>
                            <div class="mb-3">
-                              <label for="tanggal_mulai" class="form-label fw-bold">Tanggal & Jam Mulai <span class="text-danger">*</span></label>
-                              <input type="datetime-local" class="form-control" id="tanggal_mulai" name="tanggal_mulai" required>
+                              <label class="form-label fw-bold">Tanggal & Jam Mulai <span class="text-danger">*</span></label>
+                              <div class="row">
+                                 <div class="col-md-6">
+                                    <label for="tanggal_mulai_date" class="form-label">Tanggal Mulai</label>
+                                    <input type="date" class="form-control" id="tanggal_mulai_date" name="tanggal_mulai_date" required>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <label for="tanggal_mulai_time" class="form-label">Jam Mulai</label>
+                                    <input type="time" class="form-control" id="tanggal_mulai_time" name="tanggal_mulai_time" required>
+                                 </div>
+                              </div>
+                              <div class="mt-2">
+                                 <button type="button" class="btn btn-sm btn-outline-primary" id="setTanggalMulaiBtn">
+                                    <i class="bi bi-check-circle me-1"></i>Set Tanggal & Jam Mulai
+                                 </button>
+                                 <span class="ms-2 text-muted" id="tanggalMulaiDisplay">Belum dipilih</span>
+                              </div>
                            </div>
                            <div class="mb-3">
-                              <label for="tanggal_selesai" class="form-label fw-bold">Tanggal & Jam Selesai <span class="text-danger">*</span></label>
-                              <input type="datetime-local" class="form-control" id="tanggal_selesai" name="tanggal_selesai" required>
+                              <label class="form-label fw-bold">Tanggal & Jam Selesai <span class="text-danger">*</span></label>
+                              <div class="row">
+                                 <div class="col-md-6">
+                                    <label for="tanggal_selesai_date" class="form-label">Tanggal Selesai</label>
+                                    <input type="date" class="form-control" id="tanggal_selesai_date" name="tanggal_selesai_date" required>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <label for="tanggal_selesai_time" class="form-label">Jam Selesai</label>
+                                    <input type="time" class="form-control" id="tanggal_selesai_time" name="tanggal_selesai_time" required>
+                                 </div>
+                              </div>
+                              <div class="mt-2">
+                                 <button type="button" class="btn btn-sm btn-outline-primary" id="setTanggalSelesaiBtn">
+                                    <i class="bi bi-check-circle me-1"></i>Set Tanggal & Jam Selesai
+                                 </button>
+                                 <span class="ms-2 text-muted" id="tanggalSelesaiDisplay">Belum dipilih</span>
+                              </div>
                            </div>
                            <div class="mb-3">
                               <label for="durasi_menit" class="form-label fw-bold">Durasi (Menit)</label>
@@ -158,6 +226,10 @@
                      </div>
 
                      <!-- Additional Settings -->
+                     <!-- Hidden inputs for form submission -->
+                     <input type="hidden" id="tanggal_mulai" name="tanggal_mulai">
+                     <input type="hidden" id="tanggal_selesai" name="tanggal_selesai">
+
                      <div class="row mt-4">
                         <div class="col-12">
                            <h6 class="mb-3">Pengaturan Tambahan</h6>
@@ -222,17 +294,27 @@
                   // Fill form fields (ensure options exist first)
                   document.getElementById('deskripsi').value = sesiUjian.deskripsi || '';
 
-                  // Mata pelajaran: set value if option exists, else prepend option then select
-                  const mpSelect = document.getElementById('mata_pelajaran');
-                  if (mpSelect) {
-                     const exists = Array.from(mpSelect.options).some(o => o.value === sesiUjian.mata_pelajaran);
-                     if (!exists && sesiUjian.mata_pelajaran) {
-                        const opt = document.createElement('option');
-                        opt.value = sesiUjian.mata_pelajaran;
-                        opt.textContent = sesiUjian.mata_pelajaran;
-                        mpSelect.insertBefore(opt, mpSelect.firstChild);
-                     }
-                     mpSelect.value = sesiUjian.mata_pelajaran || '';
+                  // Set mata pelajaran checkboxes
+                  if (sesiUjian.mata_pelajaran) {
+                     // Split mata pelajaran string and set checkboxes
+                     const mataPelajaranArray = sesiUjian.mata_pelajaran.split(',').map(s => s.trim());
+                     selectedMataPelajaran = mataPelajaranArray;
+                     
+                     // Check the corresponding checkboxes
+                     setTimeout(() => {
+                        mataPelajaranArray.forEach(mataPelajaran => {
+                           const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="mata_pelajaran_"]');
+                           checkboxes.forEach(checkbox => {
+                              if (checkbox.value === mataPelajaran) {
+                                 checkbox.checked = true;
+                              }
+                           });
+                        });
+                     }, 100); // Small delay to ensure checkboxes are rendered
+                     
+                     console.log('Mata pelajaran checkboxes will be set:', mataPelajaranArray);
+                  } else {
+                     console.log('No mata pelajaran data to set');
                   }
 
                   // Batch: set by id; if current id not in list yet, inject option with current value
@@ -257,42 +339,38 @@
                      jam_selesai: sesiUjian.jam_selesai
                   });
 
+                  // Set tanggal mulai
                   if (sesiUjian.tanggal_mulai && sesiUjian.jam_mulai) {
-                     // Extract date part (YYYY-MM-DD) from tanggal_mulai
-                     const tanggalMulai = sesiUjian.tanggal_mulai.split(' ')[0]; // Get date part only
-                     // Extract time part (HH:MM) from jam_mulai (format: HH:MM:SS)
-                     const jamMulai = sesiUjian.jam_mulai.substring(0, 5); // Get HH:MM from HH:MM:SS
-                     const startDateTime = tanggalMulai + 'T' + jamMulai;
-                     console.log('Setting tanggal_mulai:', startDateTime);
-
-                     const tanggalMulaiElement = document.getElementById('tanggal_mulai');
-                     if (tanggalMulaiElement) {
-                        tanggalMulaiElement.value = startDateTime;
-                        console.log('Tanggal mulai element value set to:', tanggalMulaiElement.value);
-                     } else {
-                        console.error('Tanggal mulai element not found!');
-                     }
-                  } else {
-                     console.log('Missing data for tanggal_mulai or jam_mulai');
+                     const tanggalMulai = sesiUjian.tanggal_mulai.split(' ')[0];
+                     const jamMulai = sesiUjian.jam_mulai.substring(0, 5);
+                     
+                     document.getElementById('tanggal_mulai_date').value = tanggalMulai;
+                     document.getElementById('tanggal_mulai_time').value = jamMulai;
+                     
+                     // Set combined value
+                     const combinedDateTime = tanggalMulai + ' ' + jamMulai;
+                     document.getElementById('tanggal_mulai').value = combinedDateTime;
+                     document.getElementById('tanggalMulaiDisplay').textContent = combinedDateTime;
+                     tanggalMulaiValue = combinedDateTime;
+                     
+                     console.log('Tanggal mulai set:', combinedDateTime);
                   }
 
+                  // Set tanggal selesai
                   if (sesiUjian.tanggal_selesai && sesiUjian.jam_selesai) {
-                     // Extract date part (YYYY-MM-DD) from tanggal_selesai
-                     const tanggalSelesai = sesiUjian.tanggal_selesai.split(' ')[0]; // Get date part only
-                     // Extract time part (HH:MM) from jam_selesai (format: HH:MM:SS)
-                     const jamSelesai = sesiUjian.jam_selesai.substring(0, 5); // Get HH:MM from HH:MM:SS
-                     const endDateTime = tanggalSelesai + 'T' + jamSelesai;
-                     console.log('Setting tanggal_selesai:', endDateTime);
-
-                     const tanggalSelesaiElement = document.getElementById('tanggal_selesai');
-                     if (tanggalSelesaiElement) {
-                        tanggalSelesaiElement.value = endDateTime;
-                        console.log('Tanggal selesai element value set to:', tanggalSelesaiElement.value);
-                     } else {
-                        console.error('Tanggal selesai element not found!');
-                     }
-                  } else {
-                     console.log('Missing data for tanggal_selesai or jam_selesai');
+                     const tanggalSelesai = sesiUjian.tanggal_selesai.split(' ')[0];
+                     const jamSelesai = sesiUjian.jam_selesai.substring(0, 5);
+                     
+                     document.getElementById('tanggal_selesai_date').value = tanggalSelesai;
+                     document.getElementById('tanggal_selesai_time').value = jamSelesai;
+                     
+                     // Set combined value
+                     const combinedDateTime = tanggalSelesai + ' ' + jamSelesai;
+                     document.getElementById('tanggal_selesai').value = combinedDateTime;
+                     document.getElementById('tanggalSelesaiDisplay').textContent = combinedDateTime;
+                     tanggalSelesaiValue = combinedDateTime;
+                     
+                     console.log('Tanggal selesai set:', combinedDateTime);
                   }
                   document.getElementById('durasi_menit').value = sesiUjian.durasi_menit || '';
                }
@@ -302,6 +380,13 @@
             alertSystem.error('Gagal memuat data', 'Terjadi kesalahan saat memuat data');
          }
       }
+
+      // Global variable to store selected mata pelajaran
+      let selectedMataPelajaran = [];
+      
+      // Global variables for datetime
+      let tanggalMulaiValue = '';
+      let tanggalSelesaiValue = '';
 
       // Load mata pelajaran for form
       async function loadMataPelajaran() {
@@ -315,10 +400,10 @@
             refreshSpinner.classList.remove('d-none');
          }
 
-         // Check if mata pelajaran element exists
-         const mataPelajaranElement = document.getElementById('mata_pelajaran');
-         if (!mataPelajaranElement) {
-            console.error('Mata pelajaran element not found!');
+         // Check if mata pelajaran list element exists
+         const mataPelajaranList = document.getElementById('mataPelajaranList');
+         if (!mataPelajaranList) {
+            console.error('Mata pelajaran list element not found!');
             if (refreshIcon && refreshSpinner) {
                refreshIcon.classList.remove('d-none');
                refreshSpinner.classList.add('d-none');
@@ -340,18 +425,8 @@
                console.log('Mata pelajaran loaded:', result);
 
                if (result.success && result.data) {
-                  // Clear existing options except first
-                  mataPelajaranElement.innerHTML = '<option value="">Pilih Mata Pelajaran</option>';
-
-                  // Add options
-                  result.data.forEach(mataPelajaran => {
-                     const option = document.createElement('option');
-                     option.value = mataPelajaran;
-                     option.textContent = mataPelajaran;
-                     mataPelajaranElement.appendChild(option);
-                  });
-
-                  console.log('Mata pelajaran options added successfully');
+                  renderMataPelajaranList(result.data);
+                  console.log('Mata pelajaran checkboxes rendered successfully');
                } else {
                   console.error('Failed to load mata pelajaran:', result.message);
                   alertSystem.error('Gagal memuat mata pelajaran', result.message || 'Terjadi kesalahan');
@@ -370,6 +445,99 @@
                refreshSpinner.classList.add('d-none');
             }
             console.log('=== LOAD MATA PELAJARAN END ===');
+         }
+      }
+
+      // Render mata pelajaran checkboxes
+      function renderMataPelajaranList(mataPelajaranData) {
+         const mataPelajaranList = document.getElementById('mataPelajaranList');
+         mataPelajaranList.innerHTML = '';
+
+         if (!mataPelajaranData || mataPelajaranData.length === 0) {
+            mataPelajaranList.innerHTML = '<div class="col-12 text-center text-muted">Tidak ada mata pelajaran tersedia</div>';
+            return;
+         }
+
+         mataPelajaranData.forEach((mataPelajaran, index) => {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 mb-2';
+            
+            col.innerHTML = `
+               <div class="form-check">
+                  <input class="form-check-input" type="checkbox" 
+                         value="${mataPelajaran}" 
+                         id="mata_pelajaran_${index}"
+                         onchange="updateMataPelajaranSelection()">
+                  <label class="form-check-label" for="mata_pelajaran_${index}">
+                     ${mataPelajaran}
+                  </label>
+               </div>
+            `;
+            
+            mataPelajaranList.appendChild(col);
+         });
+      }
+
+      // Update selected mata pelajaran
+      function updateMataPelajaranSelection() {
+         const checkboxes = document.querySelectorAll('input[name="mata_pelajaran[]"]:checked, input[type="checkbox"][id^="mata_pelajaran_"]:checked');
+         selectedMataPelajaran = Array.from(checkboxes).map(cb => cb.value);
+         console.log('Selected mata pelajaran:', selectedMataPelajaran);
+      }
+
+      // Select all mata pelajaran
+      function selectAllMataPelajaran() {
+         const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="mata_pelajaran_"]');
+         checkboxes.forEach(cb => {
+            cb.checked = true;
+         });
+         updateMataPelajaranSelection();
+      }
+
+      // Deselect all mata pelajaran
+      function deselectAllMataPelajaran() {
+         const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="mata_pelajaran_"]');
+         checkboxes.forEach(cb => {
+            cb.checked = false;
+         });
+         selectedMataPelajaran = [];
+         console.log('Selected mata pelajaran:', selectedMataPelajaran);
+      }
+
+      // Set tanggal mulai
+      function setTanggalMulai() {
+         const date = document.getElementById('tanggal_mulai_date').value;
+         const time = document.getElementById('tanggal_mulai_time').value;
+         
+         if (date && time) {
+            const datetime = date + ' ' + time;
+            tanggalMulaiValue = datetime;
+            document.getElementById('tanggal_mulai').value = datetime;
+            document.getElementById('tanggalMulaiDisplay').textContent = datetime;
+            
+            // Auto-fill end date/time
+            document.getElementById('tanggal_selesai_date').value = date;
+            
+            console.log('Tanggal mulai set:', datetime);
+         } else {
+            alert('Pilih tanggal dan jam mulai terlebih dahulu!');
+         }
+      }
+
+      // Set tanggal selesai
+      function setTanggalSelesai() {
+         const date = document.getElementById('tanggal_selesai_date').value;
+         const time = document.getElementById('tanggal_selesai_time').value;
+         
+         if (date && time) {
+            const datetime = date + ' ' + time;
+            tanggalSelesaiValue = datetime;
+            document.getElementById('tanggal_selesai').value = datetime;
+            document.getElementById('tanggalSelesaiDisplay').textContent = datetime;
+            
+            console.log('Tanggal selesai set:', datetime);
+         } else {
+            alert('Pilih tanggal dan jam selesai terlebih dahulu!');
          }
       }
 
@@ -456,13 +624,12 @@
 
          // Validasi manual untuk field yang diperlukan
          const idBatch = form.querySelector('#id_batch').value;
-         const mataPelajaran = form.querySelector('#mata_pelajaran').value;
          const tanggalMulai = form.querySelector('#tanggal_mulai').value;
          const tanggalSelesai = form.querySelector('#tanggal_selesai').value;
 
          console.log('Form validation check:', {
             idBatch: idBatch,
-            mataPelajaran: mataPelajaran,
+            selectedMataPelajaran: selectedMataPelajaran,
             tanggalMulai: tanggalMulai,
             tanggalSelesai: tanggalSelesai
          });
@@ -473,21 +640,18 @@
             return;
          }
 
-         if (!mataPelajaran) {
-            alert('Mata Pelajaran harus dipilih!');
-            form.querySelector('#mata_pelajaran').focus();
+         if (selectedMataPelajaran.length === 0) {
+            alert('Minimal satu Mata Pelajaran harus dipilih!');
             return;
          }
 
          if (!tanggalMulai) {
-            alert('Tanggal & Jam Mulai harus diisi!');
-            form.querySelector('#tanggal_mulai').focus();
+            alert('Tanggal & Jam Mulai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.');
             return;
          }
 
          if (!tanggalSelesai) {
-            alert('Tanggal & Jam Selesai harus diisi!');
-            form.querySelector('#tanggal_selesai').focus();
+            alert('Tanggal & Jam Selesai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.');
             return;
          }
 
@@ -508,16 +672,20 @@
          try {
             const formData = new FormData(event.target);
 
+            // Update selected mata pelajaran before sending
+            updateMataPelajaranSelection();
+            
             const sesiUjianData = {
                deskripsi: formData.get('deskripsi'),
                id_batch: parseInt(formData.get('id_batch')),
-               mata_pelajaran: formData.get('mata_pelajaran'),
+               mata_pelajaran: selectedMataPelajaran,
                tanggal_mulai: formData.get('tanggal_mulai'),
                tanggal_selesai: formData.get('tanggal_selesai'),
                durasi_menit: formData.get('durasi_menit') ? parseInt(formData.get('durasi_menit')) : null
             };
 
             // Debug log untuk melihat data yang dikirim
+            console.log('Selected mata pelajaran before send:', selectedMataPelajaran);
             console.log('SesiUjian Data to be sent:', sesiUjianData);
 
             const response = await fetch(`/admin/sesi-ujian/${sesiUjianId}`, {
@@ -627,16 +795,37 @@
             });
          }
 
-         // Set minimum datetime to now for datetime-local
-         const now = new Date();
-         const nowString = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+         // Add event listeners for mata pelajaran buttons
+         const selectAllBtn = document.getElementById('selectAllMataPelajaran');
+         const deselectAllBtn = document.getElementById('deselectAllMataPelajaran');
+         
+         if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', selectAllMataPelajaran);
+         }
+         
+         if (deselectAllBtn) {
+            deselectAllBtn.addEventListener('click', deselectAllMataPelajaran);
+         }
 
-         if (tanggalMulai) {
-            tanggalMulai.min = nowString;
+         // Add event listeners for datetime buttons
+         const setTanggalMulaiBtn = document.getElementById('setTanggalMulaiBtn');
+         const setTanggalSelesaiBtn = document.getElementById('setTanggalSelesaiBtn');
+         
+         if (setTanggalMulaiBtn) {
+            setTanggalMulaiBtn.addEventListener('click', setTanggalMulai);
          }
-         if (tanggalSelesai) {
-            tanggalSelesai.min = nowString;
+         
+         if (setTanggalSelesaiBtn) {
+            setTanggalSelesaiBtn.addEventListener('click', setTanggalSelesai);
          }
+
+         // Set minimum date to today
+         const today = new Date().toISOString().split('T')[0];
+         const dateInputs = document.querySelectorAll('input[type="date"]');
+         dateInputs.forEach(input => {
+            input.min = today;
+         });
+
 
          // Add real-time validation for form fields
          const idBatchSelect = document.getElementById('id_batch');
@@ -655,6 +844,8 @@
          }
       });
    </script>
+
+   @include('layouts.logout-script')
 
 </body>
 

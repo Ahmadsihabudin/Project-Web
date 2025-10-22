@@ -14,8 +14,10 @@ class Laporan extends Model
 
     protected $fillable = [
         'id_peserta',
+        'batch_saat_ujian',
         'total_score',
         'jumlah_benar',
+        'jumlah_salah',
         'waktu_pengerjaan',
         'status_submit'
     ];

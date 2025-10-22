@@ -803,6 +803,8 @@
       });
    </script>
 
+   @include('layouts.logout-script')
+
 </body>
 
 </html>

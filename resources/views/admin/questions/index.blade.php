@@ -737,6 +737,8 @@
       </div>
    </div>
 
+   @include('layouts.logout-script')
+
 </body>
 
 </html>

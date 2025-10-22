@@ -40,6 +40,16 @@
          margin-bottom: 20px;
          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
          border-left: 4px solid #667eea;
+         transition: all 0.3s ease;
+      }
+
+      .question-card.answered {
+         border-left: 4px solid #28a745;
+         background: #f8fff9;
+      }
+
+      .question-card.answered .question-number {
+         background: #28a745;
       }
 
       .question-number {
@@ -142,6 +152,12 @@
       <!-- Questions -->
       <form id="examForm">
          @csrf
+         <!-- Hidden inputs for backend compatibility -->
+         @foreach($soal as $item)
+         @if($item->tipe_soal === 'pilihan_ganda')
+         <input type="hidden" name="jawaban[{{ $item->id_soal }}]" id="hidden_jawaban_{{ $item->id_soal }}">
+         @endif
+         @endforeach
          @foreach($soal as $index => $item)
          <div class="question-card">
             <div class="d-flex align-items-start mb-3">
@@ -153,21 +169,22 @@
                   <div class="options">
                      @php
                      $options = [
-                     'A' => $item->jawaban_a,
-                     'B' => $item->jawaban_b,
-                     'C' => $item->jawaban_c,
-                     'D' => $item->jawaban_d
+                     'A' => $item->opsi_a,
+                     'B' => $item->opsi_b,
+                     'C' => $item->opsi_c,
+                     'D' => $item->opsi_d
                      ];
                      @endphp
 
                      @foreach($options as $key => $option)
                      @if($option)
                      <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio"
-                           name="jawaban[{{ $item->id }}]"
+                        <input class="form-check-input jawaban-radio" type="radio"
+                           name="jawaban_{{ $item->id_soal }}"
                            value="{{ $key }}"
-                           id="soal{{ $item->id }}_{{ $key }}">
-                        <label class="form-check-label fw-bold" for="soal{{ $item->id }}_{{ $key }}">
+                           data-id="{{ $item->id_soal }}"
+                           id="soal{{ $item->id_soal }}_{{ $key }}">
+                        <label class="form-check-label fw-bold" for="soal{{ $item->id_soal }}_{{ $key }}">
                            {{ $key }}. {{ $option }}
                         </label>
                      </div>
@@ -177,7 +194,7 @@
                   @elseif($item->tipe_soal === 'essay')
                   <div class="form-group">
                      <textarea class="form-control"
-                        name="jawaban[{{ $item->id }}]"
+                        name="jawaban[{{ $item->id_soal }}]"
                         rows="4"
                         placeholder="Tulis jawaban Anda di sini..."></textarea>
                   </div>
@@ -196,8 +213,12 @@
          </div>
          @endforeach
 
-         <!-- Submit Button -->
+         <!-- Debug and Submit Buttons -->
          <div class="text-center mt-4">
+            <button type="button" class="btn btn-info me-3" onclick="checkFormState()">
+               <i class="bi bi-bug me-2"></i>
+               DEBUG FORM
+            </button>
             <button type="submit" class="submit-btn" id="submitBtn">
                <i class="bi bi-check-circle me-2"></i>
                SELESAIKAN UJIAN
@@ -212,6 +233,8 @@
       let timerInterval;
       let isSubmitting = false;
       let hasNetworkIssue = false;
+      let answerPersistence = {}; // Store answers to prevent loss
+      let startTime = Date.now(); // Track when exam started
 
       // Start timer on page load
       document.addEventListener('DOMContentLoaded', function() {
@@ -223,6 +246,15 @@
          
          // Monitor koneksi jaringan
          monitorNetworkConnection();
+         
+         // Debug: Monitor radio button changes
+         monitorRadioButtons();
+         
+         // Load answers from localStorage on page load
+         loadAnswersFromLocalStorage();
+         
+         // Auto-restore answers every 2 seconds
+         setInterval(restoreAnswers, 2000);
       });
 
       function startTimer() {
@@ -349,7 +381,7 @@
             Object.keys(backupData.data.jawaban).forEach(soalId => {
                const value = backupData.data.jawaban[soalId];
                
-               // Untuk pilihan ganda
+               // Untuk pilihan ganda (radio button)
                const radioInput = document.querySelector(`input[name="jawaban[${soalId}]"][value="${value}"]`);
                if (radioInput) {
                   radioInput.checked = true;
@@ -373,9 +405,12 @@
          const data = {};
          for (let [key, value] of formData.entries()) {
             if (key.startsWith('jawaban[')) {
-               const soalId = key.match(/\[(\d+)\]/)[1];
-               if (!data.jawaban) data.jawaban = {};
-               data.jawaban[soalId] = value;
+               const match = key.match(/\[(\d+)\]/);
+               if (match && match[1]) {
+                  const soalId = match[1];
+                  if (!data.jawaban) data.jawaban = {};
+                  data.jawaban[soalId] = value;
+               }
             }
          }
 
@@ -398,13 +433,24 @@
          const form = document.getElementById('examForm');
          const formData = new FormData(form);
 
+         // Calculate actual time spent (in minutes)
+         const endTime = Date.now();
+         const timeSpentMs = endTime - startTime;
+         const timeSpentMinutes = Math.round(timeSpentMs / (1000 * 60)); // Convert to minutes
+
          // Convert FormData to JSON
-         const data = {};
+         const data = {
+            jawaban: {},
+            waktu_pengerjaan: timeSpentMinutes
+         };
+         
          for (let [key, value] of formData.entries()) {
             if (key.startsWith('jawaban[')) {
-               const soalId = key.match(/\[(\d+)\]/)[1];
-               if (!data.jawaban) data.jawaban = {};
-               data.jawaban[soalId] = value;
+               const match = key.match(/\[(\d+)\]/);
+               if (match && match[1]) {
+                  const soalId = match[1];
+                  data.jawaban[soalId] = value;
+               }
             }
          }
 
@@ -429,8 +475,13 @@
                if (result.success) {
                   // Hapus backup setelah berhasil
                   localStorage.removeItem('exam_backup_{{ $sesiUjian->id_sesi }}');
-                  alert('Ujian berhasil diselesaikan!');
-                  window.location.href = '/student/dashboard';
+                  
+                  // Redirect langsung ke halaman selesai tanpa menampilkan hasil
+                  if (result.redirect_url) {
+                     window.location.href = result.redirect_url;
+                  } else {
+                     window.location.href = '/student/selesai';
+                  }
                } else {
                   alert('Terjadi kesalahan: ' + result.message);
                   isSubmitting = false;
@@ -498,14 +549,246 @@
          }, 5000);
       }
 
+      function monitorRadioButtons() {
+         console.log('🔍 Setting up radio button monitoring...');
+         
+         // Monitor all radio buttons with jawaban-radio class
+         const radioButtons = document.querySelectorAll('.jawaban-radio');
+         console.log('🔍 Found radio buttons:', radioButtons.length);
+         
+         radioButtons.forEach((radio, index) => {
+            radio.addEventListener('change', function() {
+               // Extract soal ID from name attribute (jawaban_1 -> 1)
+               const nameMatch = this.name.match(/jawaban_(\d+)/);
+               const soalId = nameMatch ? nameMatch[1] : null;
+               
+               if (!soalId) {
+                  console.error('❌ Could not extract soal ID from radio button:', this);
+                  return;
+               }
+               
+               const key = `jawaban_${soalId}`;
+               
+               console.log('📻 Radio button changed:', {
+                  soalId: soalId,
+                  key: key,
+                  value: this.value,
+                  checked: this.checked
+               });
+               
+               // Store answer in persistence system with soal ID
+               if (this.checked) {
+                  answerPersistence[key] = this.value;
+                  // Also store in localStorage for backup
+                  localStorage.setItem(key, this.value);
+                  console.log('💾 Answer stored:', key, '=', this.value);
+                  
+                  // Sync with hidden input for backend
+                  const hiddenInput = document.getElementById(`hidden_jawaban_${soalId}`);
+                  if (hiddenInput) {
+                     hiddenInput.value = this.value;
+                     console.log('🔄 Synced hidden input:', `jawaban[${soalId}]`, '=', this.value);
+                  }
+                  
+                  // Add visual feedback
+                  const questionCard = this.closest('.question-card');
+                  if (questionCard) {
+                     questionCard.classList.add('answered');
+                  }
+               }
+               
+               // Check all radio buttons in the same group
+               const sameGroup = document.querySelectorAll(`input[name="${this.name}"]`);
+               const checkedInGroup = Array.from(sameGroup).filter(r => r.checked);
+               console.log('📻 Same group radios:', sameGroup.length, 'Checked:', checkedInGroup.length);
+            });
+         });
+         
+         // Monitor form changes
+         const form = document.getElementById('examForm');
+         if (form) {
+            form.addEventListener('change', function(e) {
+               if (e.target.type === 'radio') {
+                  console.log('📝 Form change detected:', {
+                     target: e.target.name,
+                     value: e.target.value,
+                     checked: e.target.checked
+                  });
+               }
+            });
+         }
+      }
+
+      // Function to load answers from localStorage on page load
+      function loadAnswersFromLocalStorage() {
+         console.log('🔄 Loading answers from localStorage...');
+         
+         // Get all radio buttons
+         const radioButtons = document.querySelectorAll('.jawaban-radio');
+         console.log('🔍 Found radio buttons:', radioButtons.length);
+         
+         radioButtons.forEach(radio => {
+            // Extract soal ID from name attribute (jawaban_1 -> 1)
+            const nameMatch = radio.name.match(/jawaban_(\d+)/);
+            const soalId = nameMatch ? nameMatch[1] : null;
+            
+            if (!soalId) {
+               console.error('❌ Could not extract soal ID from radio:', radio);
+               return;
+            }
+            
+            const key = `jawaban_${soalId}`;
+            const savedAnswer = localStorage.getItem(key);
+            
+            console.log('🔍 Loading from localStorage:', key, '=', savedAnswer);
+            
+            if (savedAnswer && savedAnswer === radio.value) {
+               radio.checked = true;
+               answerPersistence[key] = savedAnswer;
+               
+               // Sync with hidden input
+               const hiddenInput = document.getElementById(`hidden_jawaban_${soalId}`);
+               if (hiddenInput) {
+                  hiddenInput.value = savedAnswer;
+               }
+               
+               // Add visual feedback
+               const questionCard = radio.closest('.question-card');
+               if (questionCard) {
+                  questionCard.classList.add('answered');
+               }
+               
+               console.log('✅ Loaded from localStorage:', key, '=', savedAnswer);
+            }
+         });
+         
+         console.log('💾 Loaded persistence data:', answerPersistence);
+      }
+
+      // Function to restore answers from persistence
+      function restoreAnswers() {
+         console.log('🔄 Restoring answers from persistence...');
+         console.log('💾 Stored answers:', answerPersistence);
+         
+         Object.keys(answerPersistence).forEach(key => {
+            const answer = answerPersistence[key];
+            const soalId = key.replace('jawaban_', '');
+            
+            // Find radio button by name attribute
+            const radioInput = document.querySelector(`input[name="jawaban_${soalId}"][value="${answer}"]`);
+            
+            if (radioInput) {
+               radioInput.checked = true;
+               console.log('✅ Restored:', key, '=', answer);
+               
+               // Sync with hidden input
+               const hiddenInput = document.getElementById(`hidden_jawaban_${soalId}`);
+               if (hiddenInput) {
+                  hiddenInput.value = answer;
+                  console.log('🔄 Synced hidden input:', `jawaban[${soalId}]`, '=', answer);
+               }
+               
+               // Add visual feedback
+               const questionCard = radioInput.closest('.question-card');
+               if (questionCard) {
+                  questionCard.classList.add('answered');
+               }
+            } else {
+               console.log('❌ Could not find radio for:', key, '=', answer);
+            }
+         });
+      }
+
+      // Function to check current form state
+      function checkFormState() {
+         console.log('🔍 Checking form state...');
+         const form = document.getElementById('examForm');
+         const formData = new FormData(form);
+         
+         const answers = {};
+         for (let [key, value] of formData.entries()) {
+            if (key.startsWith('jawaban[')) {
+               const match = key.match(/\[(\d+)\]/);
+               if (match && match[1]) {
+                  const soalId = match[1];
+                  if (!answers[soalId]) answers[soalId] = {};
+                  answers[soalId][key] = value;
+               }
+            }
+         }
+         
+         console.log('📝 Current answers (form data):', answers);
+         console.log('💾 Persistence answers (jawaban_soalId):', answerPersistence);
+         
+         // Check hidden inputs for backend format
+         const hiddenInputs = document.querySelectorAll('input[type="hidden"][name^="jawaban["]');
+         console.log('🔗 Hidden inputs for backend:', hiddenInputs.length);
+         hiddenInputs.forEach(input => {
+            if (input.value) {
+               console.log('🔗 Hidden:', input.name, '=', input.value);
+            }
+         });
+         
+         // Check radio buttons specifically
+         const radioButtons = document.querySelectorAll('input[type="radio"]:checked');
+         console.log('📻 Checked radio buttons:', radioButtons.length);
+         radioButtons.forEach(radio => {
+            console.log('📻 Checked:', radio.name, '=', radio.value);
+         });
+         
+         return answers;
+      }
+
       // Handle form submission
       document.getElementById('examForm').addEventListener('submit', function(e) {
          e.preventDefault();
-
-         if (confirm('Apakah Anda yakin ingin menyelesaikan ujian? Pastikan semua jawaban sudah diisi.')) {
-            submitExam();
-         }
+         showConfirmationDialog();
       });
+
+      function showConfirmationDialog() {
+         const confirmationDialog = document.createElement('div');
+         confirmationDialog.className = 'modal fade show';
+         confirmationDialog.style.display = 'block';
+         confirmationDialog.style.backgroundColor = 'rgba(0,0,0,0.5)';
+         confirmationDialog.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+               <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                  <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0; border: none;">
+                     <h5 class="modal-title fw-bold">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Konfirmasi Penyelesaian Ujian
+                     </h5>
+                  </div>
+                  <div class="modal-body text-center py-4">
+                     <div class="mb-3">
+                        <i class="bi bi-question-circle text-warning" style="font-size: 3rem;"></i>
+                     </div>
+                     <h6 class="fw-bold mb-3">Apakah Anda yakin ingin menyelesaikan ujian?</h6>
+                     <p class="text-muted mb-0">Pastikan semua jawaban sudah diisi dengan benar. Setelah mengirim, Anda tidak dapat mengubah jawaban lagi.</p>
+                  </div>
+                  <div class="modal-footer border-0 justify-content-center">
+                     <button type="button" class="btn btn-outline-secondary me-3" onclick="closeConfirmationDialog()">
+                        <i class="bi bi-arrow-left me-2"></i>Kembali
+                     </button>
+                     <button type="button" class="btn btn-success px-4" onclick="confirmSubmit()">
+                        <i class="bi bi-check-circle me-2"></i>Ya, Selesaikan Ujian
+                     </button>
+                  </div>
+               </div>
+            </div>
+         `;
+         
+         document.body.appendChild(confirmationDialog);
+         
+         window.closeConfirmationDialog = function() {
+            confirmationDialog.remove();
+         };
+         
+         window.confirmSubmit = function() {
+            confirmationDialog.remove();
+            submitExam();
+         };
+      }
 
       // Auto-save HANYA saat keluar dari halaman dengan jaringan jelek
       window.addEventListener('beforeunload', function(e) {

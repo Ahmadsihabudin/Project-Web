@@ -314,9 +314,10 @@
 
             if (result.success) {
                alertSystem.updateSuccess('Peserta');
-
-               // Redirect to index page
-               window.location.href = '{{ route("admin.participants.index") }}';
+               alert(`Peserta berhasil diperbarui!\n\nKode Peserta: ${result.data.kode_peserta}\n\nData telah disimpan.`);
+               setTimeout(() => {
+                  window.location.href = '{{ route("admin.participants.index") }}';
+               }, 2000);
             } else {
                alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
             }
