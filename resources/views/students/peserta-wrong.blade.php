@@ -4,25 +4,31 @@
 
 @section('content')
 <style>
+   body {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   }
+
    .no-exam-container {
       min-height: 80vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
       padding: 2rem;
    }
 
    .no-exam-card {
       background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       padding: 3rem;
       text-align: center;
       max-width: 600px;
       width: 100%;
       animation: slideUp 0.6s ease-out;
+      border-left: 4px solid #991B1B;
    }
 
    @keyframes slideUp {
@@ -39,7 +45,7 @@
 
    .no-exam-icon {
       font-size: 4rem;
-      color: #ff6b6b;
+      color: #991B1B;
       margin-bottom: 1.5rem;
       animation: pulse 2s infinite;
    }
@@ -78,11 +84,11 @@
       border-radius: 15px;
       padding: 2rem;
       margin: 2rem 0;
-      border-left: 5px solid #3498db;
+      border-left: 4px solid #991B1B;
    }
 
    .contact-info h4 {
-      color: #2c3e50;
+      color: #333;
       margin-bottom: 1rem;
       font-size: 1.3rem;
    }
@@ -94,7 +100,7 @@
    }
 
    .contact-info .highlight {
-      color: #e74c3c;
+      color: #991B1B;
       font-weight: 600;
    }
 
@@ -103,7 +109,7 @@
    }
 
    .btn-contact {
-      background: linear-gradient(45deg, #3498db, #2980b9);
+      background: linear-gradient(135deg, #991B1B, #B91C1C);
       border: none;
       color: white;
       padding: 12px 30px;
@@ -114,12 +120,12 @@
       display: inline-block;
       margin: 0 10px;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 6px 20px rgba(153, 27, 27, 0.3);
    }
 
    .btn-contact:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+      box-shadow: 0 8px 25px rgba(153, 27, 27, 0.4);
       color: white;
       text-decoration: none;
    }
@@ -155,7 +161,7 @@
    }
 
    .participant-info h5 {
-      color: #2c3e50;
+      color: #333;
       margin-bottom: 1rem;
       font-size: 1.1rem;
    }

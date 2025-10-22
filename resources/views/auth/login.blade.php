@@ -666,6 +666,33 @@
    <script>
       // CSRF Token
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      
+      // Test CSRF token validity
+      async function testCSRFToken() {
+         try {
+            const response = await fetch('/debug/csrf-test', {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken,
+                  'Accept': 'application/json'
+               },
+               body: JSON.stringify({})
+            });
+            
+            if (!response.ok) {
+               console.error('CSRF test failed:', response.status);
+               return false;
+            }
+            
+            const result = await response.json();
+            console.log('CSRF test result:', result);
+            return result.success;
+         } catch (error) {
+            console.error('CSRF test error:', error);
+            return false;
+         }
+      }
 
       // Auto-detect user type based on input
       function detectUserType(username) {
@@ -750,6 +777,14 @@
 
          showLoading(true);
 
+         // Test CSRF token first
+         const csrfValid = await testCSRFToken();
+         if (!csrfValid) {
+            showAlert('Session expired. Silakan refresh halaman dan coba lagi.');
+            showLoading(false);
+            return;
+         }
+
          try {
             let endpoint, data;
 
@@ -773,12 +808,28 @@
                method: 'POST',
                headers: {
                   'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': csrfToken
+                  'X-CSRF-TOKEN': csrfToken,
+                  'Accept': 'application/json'
                },
                body: JSON.stringify(data)
             });
 
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+               const text = await response.text();
+               console.error('Non-JSON response:', text);
+               throw new Error('Server returned non-JSON response');
+            }
+
             const result = await response.json();
+
+            if (response.status === 419) {
+               showAlert('Session expired. Silakan refresh halaman dan coba lagi.');
+               // Refresh CSRF token
+               location.reload();
+               return;
+            }
 
             if (result.success) {
                showAlert('Login berhasil! Mengalihkan ke dashboard...', 'success');

@@ -63,6 +63,72 @@ Route::get('/debug/reports-staff', function () {
     return view('admin.reports.index');
 });
 
+// Debug CSRF token
+Route::get('/debug/csrf', function () {
+    return response()->json([
+        'csrf_token' => csrf_token(),
+        'session_id' => session()->getId(),
+        'session_status' => session()->status(),
+        'app_key' => config('app.key'),
+        'session_driver' => config('session.driver'),
+        'session_lifetime' => config('session.lifetime'),
+        'sessions_table_exists' => \Illuminate\Support\Facades\Schema::hasTable('sessions')
+    ]);
+});
+
+// Test CSRF endpoint
+Route::post('/debug/csrf-test', function (Request $request) {
+    return response()->json([
+        'success' => true,
+        'message' => 'CSRF token valid',
+        'received_token' => $request->header('X-CSRF-TOKEN'),
+        'expected_token' => csrf_token()
+    ]);
+});
+
+// Test peserta login endpoint
+Route::post('/debug/peserta-login-test', function (Request $request) {
+    $kode_peserta = $request->input('kode_peserta');
+    $kode_akses = $request->input('kode_akses');
+    
+    $peserta = \App\Models\Peserta::where('kode_peserta', $kode_peserta)->first();
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Test endpoint working',
+        'peserta_found' => $peserta ? true : false,
+        'peserta_data' => $peserta ? [
+            'id' => $peserta->id_peserta,
+            'nama' => $peserta->nama_peserta,
+            'kode_peserta' => $peserta->kode_peserta,
+            'status' => $peserta->status
+        ] : null,
+        'csrf_token' => csrf_token()
+    ]);
+});
+
+// Fix session and CSRF
+Route::get('/debug/fix-session', function () {
+    // Clear all caches
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    
+    // Clear sessions
+    \Illuminate\Support\Facades\DB::table('sessions')->truncate();
+    
+    // Generate new CSRF token
+    $newToken = csrf_token();
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Session and CSRF fixed',
+        'new_csrf_token' => $newToken,
+        'session_id' => session()->getId(),
+        'timestamp' => now()
+    ]);
+});
+
 // Debug participants API
 Route::get('/debug/participants', function () {
     $controller = new App\Http\Controllers\ParticipantController();
