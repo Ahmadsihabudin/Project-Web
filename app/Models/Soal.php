@@ -41,7 +41,7 @@ class Soal extends Model
 {
     protected $table = 'soal';
     protected $primaryKey = 'id_soal';
-
+    public $timestamps = false;
     protected $fillable = [
         'batch',
         'pertanyaan',

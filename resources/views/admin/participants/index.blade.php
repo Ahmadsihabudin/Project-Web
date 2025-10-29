@@ -19,25 +19,25 @@
 
    <style>
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
       }
 
       .stats-card {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
-         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
          margin-bottom: 1.5rem;
          border: none;
       }
 
       .stats-card .text-muted {
-         color: rgba(255, 255, 255, 0.8) !important;
+         color: #6c757d !important;
       }
 
       .action-buttons {
@@ -184,6 +184,101 @@
             height: 24px;
          }
       }
+
+      /* Disable Bootstrap Button Styles */
+      .btn-primary {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      .btn-primary:hover {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      /* Theme Button Style */
+      .theme-btn {
+         padding: 0.5rem 1rem;
+         /* Padding lebih kecil */
+         border: 2px solid #74292a;
+         /* Border maroon 2px */
+         color: #292929;
+         /* Warna teks hitam (--heading-color) */
+         text-transform: capitalize;
+         /* Huruf kapital */
+         font-weight: 400;
+         /* Font weight normal */
+         border-radius: 0.375rem;
+         /* Border radius normal */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         position: relative;
+         /* Untuk pseudo-element */
+         z-index: 1;
+         /* Layer di atas */
+         background: white;
+         /* Background putih */
+         font-size: 0.875rem;
+         /* Font size lebih kecil */
+      }
+
+      .theme-btn i {
+         margin-left: 7px;
+         /* Jarak 7px dari teks */
+      }
+
+      .theme-btn:hover {
+         color: #fff;
+         /* Warna teks putih saat hover */
+         border-color: white;
+         /* Border putih saat hover */
+      }
+
+      .theme-btn::before {
+         position: absolute;
+         /* Posisi absolut */
+         z-index: -1;
+         /* Di belakang teks */
+         content: "";
+         /* Elemen kosong */
+         background-color: #74292a;
+         /* Background maroon */
+         height: 0%;
+         /* Tinggi 0% (tidak terlihat) */
+         width: 0%;
+         /* Lebar 0% (tidak terlihat) */
+         top: 50%;
+         /* Posisi tengah vertikal */
+         left: 50%;
+         /* Posisi tengah horizontal */
+         transform: translate(-50%, -50%);
+         /* Posisi tepat di tengah */
+         opacity: 0;
+         /* Tidak terlihat */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         border-radius: 0.375rem;
+         /* Border radius sama dengan button */
+      }
+
+      .theme-btn:hover::before {
+         opacity: 1;
+         /* Terlihat */
+         width: 98%;
+         /* Lebar hampir penuh */
+         height: 96%;
+         /* Tinggi hampir penuh */
+      }
+
+      .theme-btn {
+         text-decoration: none !important;
+      }
+
+      .theme-btn:hover {
+         text-decoration: none !important;
+      }
    </style>
 </head>
 
@@ -200,10 +295,7 @@
          <!-- Content -->
          <div class="p-4">
             <!-- Page Header -->
-            <div class="page-header">
-               <h2><i class="bi bi-people me-2"></i> Manajemen Peserta</h2>
-               <p class="mb-0">Kelola data peserta ujian online</p>
-            </div>
+          
 
             <!-- Statistics Cards -->
             <div class="row mb-4" id="statsCards">
@@ -216,11 +308,11 @@
                   <div class="d-flex justify-content-between align-items-center mb-3">
                      <h6 class="m-0 font-weight-bold">Daftar Peserta</h6>
                      <div class="d-flex gap-2">
-                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+                        <button class="theme-btn" data-bs-toggle="modal" data-bs-target="#importModal">
                            <i class="bi bi-upload me-1"></i>
                            Import Excel
                         </button>
-                        <a href="{{ route('admin.participants.create') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('admin.participants.create') }}" class="theme-btn">
                            <i class="bi bi-person-plus me-1"></i>
                            Tambah Peserta
                         </a>
@@ -265,7 +357,7 @@
                      <div class="col-md-2">
                         <label class="form-label small fw-semibold">&nbsp;</label>
                         <div class="d-grid">
-                           <button class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                           <button class="theme-btn" id="clearFilters">
                               <i class="bi bi-x-circle me-1"></i>
                               Reset
                            </button>
@@ -322,7 +414,7 @@
                <div class="alert alert-info">
                   <h6><i class="bi bi-info-circle me-2"></i>Panduan Import</h6>
                   <p class="mb-2">Download template Excel terlebih dahulu, isi data peserta sesuai format, kemudian upload file tersebut.</p>
-                  <a href="/admin/participants/template" class="btn btn-outline-primary btn-sm">
+                  <a href="/admin/participants/template" class="theme-btn">
                      <i class="bi bi-download me-1"></i>Download Template Excel
                   </a>
                </div>
@@ -387,8 +479,8 @@
                </form>
             </div>
             <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-               <button type="button" class="btn btn-success" onclick="importParticipants()">
+               <button type="button" class="theme-btn" data-bs-dismiss="modal">Batal</button>
+               <button type="button" class="theme-btn" onclick="importParticipants()">
                   <i class="bi bi-upload me-1"></i>Import Data
                </button>
             </div>
@@ -429,7 +521,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-people-fill text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-people-fill" style="font-size: 2rem; color: #007bff;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.total}</h5>
@@ -442,7 +534,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-building-fill text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-building-fill" style="font-size: 2rem; color: #6c757d;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.schools || 0}</h5>
@@ -455,7 +547,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-book text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-book" style="font-size: 2rem; color: #17a2b8;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.majors || 0}</h5>
@@ -468,7 +560,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-collection text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-collection" style="font-size: 2rem; color: #ffc107;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.batches || 0}</h5>

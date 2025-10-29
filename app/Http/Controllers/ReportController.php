@@ -244,8 +244,8 @@ class ReportController extends Controller
                'jumlah_salah' => $report->jumlah_salah ?? 0,
                'waktu_pengerjaan' => $report->waktu_pengerjaan,
                'status_submit' => $report->status_submit,
-               'created_at' => $report->created_at->format('Y-m-d H:i:s'),
-               'updated_at' => $report->updated_at->format('Y-m-d H:i:s'),
+               'created_at' => 'N/A',
+               'updated_at' => 'N/A',
             ];
          });
 

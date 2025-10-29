@@ -36,8 +36,8 @@ class ParticipantController extends Controller
    public function index()
    {
       try {
-         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'asal_smk', 'jurusan', 'batch', 'status', 'created_at')
-            ->orderBy('created_at', 'desc')
+         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'asal_smk', 'jurusan', 'batch', 'status')
+            ->orderBy('id_peserta', 'desc')
             ->get();
 
          // Transform data to match frontend expectations
@@ -54,7 +54,7 @@ class ParticipantController extends Controller
                'avatar' => strtoupper(substr($participant->nama_peserta, 0, 1)),
                'asal_smk' => $participant->asal_smk,
                'jurusan' => $participant->jurusan,
-               'created_at' => $participant->created_at
+               'created_at' => 'N/A'
             ];
          });
 
@@ -97,7 +97,7 @@ class ParticipantController extends Controller
          'all_data' => $request->all(),
          'headers' => $request->headers->all()
       ]);
-      
+
       $validator = Validator::make($request->all(), [
          'nama' => 'required|string|max:255|min:1',
          'email' => 'nullable|email|max:255', // Email optional for peserta
@@ -113,7 +113,7 @@ class ParticipantController extends Controller
             'errors' => $validator->errors(),
             'request_data' => $request->all()
          ]);
-         
+
          return response()->json([
             'success' => false,
             'message' => 'Validasi gagal',
@@ -125,7 +125,7 @@ class ParticipantController extends Controller
       try {
          // Use kode_peserta from request (user input)
          $kodePeserta = $request->kode_peserta;
-         
+
          // Generate nomor_urut automatically
          $nextNomor = (Peserta::max('nomor_urut') ?? 0) + 1;
 
@@ -133,8 +133,7 @@ class ParticipantController extends Controller
          $batch = Batch::firstOrCreate(
             ['nama_batch' => $request->batch],
             [
-               'keterangan' => 'Batch untuk ' . $request->batch,
-               'created_at' => now()
+               'keterangan' => 'Batch untuk ' . $request->batch
             ]
          );
 
@@ -217,8 +216,7 @@ class ParticipantController extends Controller
          $batch = Batch::firstOrCreate(
             ['nama_batch' => $request->batch],
             [
-               'keterangan' => 'Batch untuk ' . $request->batch,
-               'created_at' => now()
+               'keterangan' => 'Batch untuk ' . $request->batch
             ]
          );
 

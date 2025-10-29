@@ -67,21 +67,15 @@ class Peserta extends Authenticatable
         'batch',
         'status',
         'email',
-        'last_login_at',
-        'login_attempts',
-        'locked_until',
-        'remember_token'
+        'last_login_at'
     ];
 
     protected $hidden = [
-        'password_hash',
-        'remember_token'
+        'password_hash'
     ];
 
     protected $casts = [
-        'last_login_at' => 'datetime',
-        'locked_until' => 'datetime',
-        'login_attempts' => 'integer'
+        'last_login_at' => 'datetime'
     ];
 
     /**
@@ -122,26 +116,5 @@ class Peserta extends Authenticatable
     public function soalRandomization(): HasMany
     {
         return $this->hasMany(SoalRandomization::class, 'id_peserta', 'id_peserta');
-    }
-
-    /**
-     * Check if account is locked
-     */
-    public function isLocked(): bool
-    {
-        return $this->login_attempts >= 5 &&
-            $this->locked_until &&
-            now()->lt($this->locked_until);
-    }
-
-    /**
-     * Reset login attempts
-     */
-    public function resetLoginAttempts(): void
-    {
-        $this->update([
-            'login_attempts' => 0,
-            'locked_until' => null
-        ]);
     }
 }

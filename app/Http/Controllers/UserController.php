@@ -18,8 +18,8 @@ class UserController extends Controller
    public function index()
    {
       try {
-         $users = User::select('id', 'name', 'email', 'role', 'last_login_at', 'created_at')
-            ->orderBy('created_at', 'desc')
+         $users = User::select('id', 'name', 'email', 'role', 'last_login_at')
+            ->orderBy('id', 'desc')
             ->get();
 
          // Add is_active status (simplified - you can add is_active column later)
@@ -63,7 +63,7 @@ class UserController extends Controller
       }
 
       $validator = Validator::make($request->all(), [
-         'nama' => 'required|string|max:255',
+         'name' => 'required|string|max:255',
          'email' => 'required|email|unique:users,email',
          'password' => 'required|string|min:6',
          'role' => 'required|in:admin,staff'
@@ -79,7 +79,7 @@ class UserController extends Controller
 
       try {
          $user = User::create([
-            'nama' => $request->nama,
+            'name' => $request->name,
             'email' => $request->email,
             'password' => SecurityHelper::hashPassword($request->password),
             'role' => $request->role,
@@ -92,7 +92,7 @@ class UserController extends Controller
             'user_type' => 'admin',
             'user_id' => session('user_id'),
             'action' => 'create_user',
-            'description' => "Created new {$request->role}: {$user->nama}",
+            'description' => "Created new {$request->role}: {$user->name}",
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'metadata' => SecurityHelper::getDeviceInfo($request->userAgent())
@@ -112,12 +112,30 @@ class UserController extends Controller
    }
 
    /**
+    * Show the form for editing the specified user
+    */
+   public function edit($id)
+   {
+      try {
+         $user = User::select('id', 'name', 'email', 'role', 'last_login_at')
+            ->findOrFail($id);
+
+         $user->is_active = true; // For now, all users are considered active
+
+         return view('admin.users.edit', compact('user'));
+      } catch (\Exception $e) {
+         return redirect()->route('admin.users.index')
+            ->with('error', 'User tidak ditemukan');
+      }
+   }
+
+   /**
     * Display the specified user
     */
    public function show($id)
    {
       try {
-         $user = User::select('id', 'nama', 'email', 'role', 'last_login_at', 'created_at')
+         $user = User::select('id', 'name', 'email', 'role', 'last_login_at')
             ->findOrFail($id);
 
          $user->is_active = true; // For now, all users are considered active
@@ -148,7 +166,7 @@ class UserController extends Controller
       }
 
       $validator = Validator::make($request->all(), [
-         'nama' => 'required|string|max:255',
+         'name' => 'required|string|max:255',
          'email' => 'required|email|unique:users,email,' . $id,
          'password' => 'nullable|string|min:6',
          'role' => 'required|in:admin,staff'
@@ -167,7 +185,7 @@ class UserController extends Controller
          $oldData = $user->toArray();
 
          $updateData = [
-            'nama' => $request->nama,
+            'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role
          ];
@@ -184,7 +202,7 @@ class UserController extends Controller
             'user_type' => 'admin',
             'user_id' => session('user_id'),
             'action' => 'update_user',
-            'description' => "Updated user: {$user->nama}",
+            'description' => "Updated user: {$user->name}",
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'metadata' => SecurityHelper::getDeviceInfo($request->userAgent())
@@ -218,7 +236,7 @@ class UserController extends Controller
 
       try {
          $user = User::findOrFail($id);
-         $userName = $user->nama;
+         $userName = $user->name;
 
          // Prevent deleting the last admin
          if ($user->role === 'admin') {
@@ -262,5 +280,41 @@ class UserController extends Controller
    public function data()
    {
       return $this->index();
+   }
+
+   /**
+    * Get user statistics for API
+    */
+   public function stats()
+   {
+      try {
+         $users = User::select('id', 'name', 'email', 'role', 'last_login_at')
+            ->orderBy('id', 'desc')
+            ->get();
+
+         // Add is_active status (simplified - you can add is_active column later)
+         $users = $users->map(function ($user) {
+            $user->is_active = true; // For now, all users are considered active
+            return $user;
+         });
+
+         // Calculate statistics
+         $stats = [
+            'total' => $users->count(),
+            'active' => $users->where('is_active', true)->count(),
+            'admin' => $users->where('role', 'admin')->count(),
+            'staff' => $users->where('role', 'staff')->count(),
+         ];
+
+         return response()->json([
+            'success' => true,
+            'stats' => $stats
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Gagal memuat statistik user: ' . $e->getMessage()
+         ], 500);
+      }
    }
 }

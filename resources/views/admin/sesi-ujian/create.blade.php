@@ -39,7 +39,8 @@
       }
 
       /* DateTime input styles */
-      input[type="date"], input[type="time"] {
+      input[type="date"],
+      input[type="time"] {
          cursor: pointer;
       }
 
@@ -53,8 +54,8 @@
       }
 
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
@@ -78,7 +79,7 @@
          background-color: #f8f9fa;
       }
 
-      .form-check-input:checked + .form-check-label {
+      .form-check-input:checked+.form-check-label {
          background-color: #e3f2fd;
          color: #1976d2;
       }
@@ -101,7 +102,7 @@
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
-                     <h4 class="mb-2"><i class="bi bi-calendar-plus me-2"></i>Tambah Sesi Ujian</h4>
+                     <h4 class="mb-2"><i class="bi bi-calendar-plus me-2" style="color: #991B1B;"></i>Tambah Sesi Ujian</h4>
                      <p class="mb-0">Buat sesi ujian baru untuk peserta</p>
                   </div>
                   <div class="col-md-4 text-end">
@@ -120,7 +121,7 @@
                      <!-- Hidden inputs for datetime values -->
                      <input type="hidden" id="tanggal_mulai" name="tanggal_mulai">
                      <input type="hidden" id="tanggal_selesai" name="tanggal_selesai">
-                     
+
                      <div class="row">
                         <!-- Basic Information -->
                         <div class="col-md-6">
@@ -253,11 +254,11 @@
 
                      <div class="row mt-4">
                         <div class="col-12 text-end">
-                           <button type="button" class="btn btn-secondary me-2" onclick="window.history.back()">
+                           <button type="button" class="btn btn-secondary me-2 theme-btn" onclick="window.history.back()">
                               <i class="bi bi-x-circle me-1"></i>
                               Batal
                            </button>
-                           <button type="submit" class="btn btn-success">
+                           <button type="submit" class="btn btn-success theme-btn">
                               <i class="bi bi-calendar-plus me-1"></i>
                               Buat Sesi Ujian
                            </button>
@@ -276,7 +277,7 @@
       // Global variables for mata pelajaran selection
       let selectedMataPelajaran = [];
       let mataPelajaranData = [];
-      
+
       // Global variables for datetime
       let tanggalMulaiValue = '';
       let tanggalSelesaiValue = '';
@@ -583,7 +584,7 @@
          const today = new Date().toISOString().split('T')[0];
          const tanggalMulaiDate = document.getElementById('tanggal_mulai_date');
          const tanggalSelesaiDate = document.getElementById('tanggal_selesai_date');
-         
+
          if (tanggalMulaiDate) {
             tanggalMulaiDate.setAttribute('min', today);
          }
@@ -614,19 +615,19 @@
       document.getElementById('setTanggalMulaiBtn').addEventListener('click', function() {
          const date = document.getElementById('tanggal_mulai_date').value;
          const time = document.getElementById('tanggal_mulai_time').value;
-         
+
          if (!date || !time) {
             alert('Pilih tanggal dan jam mulai terlebih dahulu!');
             return;
          }
-         
+
          // Combine date and time
          const datetime = date + 'T' + time;
          tanggalMulaiValue = datetime;
-         
+
          // Update hidden input
          document.getElementById('tanggal_mulai').value = datetime;
-         
+
          // Update display
          const display = new Date(datetime).toLocaleString('id-ID', {
             weekday: 'long',
@@ -638,19 +639,19 @@
          });
          document.getElementById('tanggalMulaiDisplay').textContent = display;
          document.getElementById('tanggalMulaiDisplay').className = 'ms-2 text-success fw-bold';
-         
+
          // Auto-fill tanggal selesai if not set
          if (!tanggalSelesaiValue) {
             const endDate = new Date(datetime);
             endDate.setHours(endDate.getHours() + 1); // Add 1 hour by default
-            
+
             const endDateStr = endDate.toISOString().split('T')[0];
             const endTimeStr = endDate.toTimeString().split(' ')[0].substring(0, 5);
-            
+
             document.getElementById('tanggal_selesai_date').value = endDateStr;
             document.getElementById('tanggal_selesai_time').value = endTimeStr;
          }
-         
+
          console.log('Tanggal mulai set:', datetime);
       });
 
@@ -658,19 +659,19 @@
       document.getElementById('setTanggalSelesaiBtn').addEventListener('click', function() {
          const date = document.getElementById('tanggal_selesai_date').value;
          const time = document.getElementById('tanggal_selesai_time').value;
-         
+
          if (!date || !time) {
             alert('Pilih tanggal dan jam selesai terlebih dahulu!');
             return;
          }
-         
+
          // Combine date and time
          const datetime = date + 'T' + time;
          tanggalSelesaiValue = datetime;
-         
+
          // Update hidden input
          document.getElementById('tanggal_selesai').value = datetime;
-         
+
          // Update display
          const display = new Date(datetime).toLocaleString('id-ID', {
             weekday: 'long',
@@ -682,7 +683,7 @@
          });
          document.getElementById('tanggalSelesaiDisplay').textContent = display;
          document.getElementById('tanggalSelesaiDisplay').className = 'ms-2 text-success fw-bold';
-         
+
          // Validate that end time is after start time
          if (tanggalMulaiValue && new Date(datetime) <= new Date(tanggalMulaiValue)) {
             alert('Waktu selesai harus setelah waktu mulai!');
@@ -690,7 +691,7 @@
             document.getElementById('tanggalSelesaiDisplay').className = 'ms-2 text-danger fw-bold';
             return;
          }
-         
+
          console.log('Tanggal selesai set:', datetime);
       });
 
@@ -699,7 +700,7 @@
       // Render mata pelajaran list with checkboxes
       function renderMataPelajaranList(mataPelajaranList) {
          const container = document.getElementById('mataPelajaranListContainer');
-         
+
          if (mataPelajaranList.length === 0) {
             container.innerHTML = `
                <div class="text-center text-muted py-4">
@@ -709,7 +710,7 @@
             `;
             return;
          }
-         
+
          const mataPelajaranHtml = mataPelajaranList.map((mataPelajaran, index) => `
             <div class="form-check mb-2">
                <input class="form-check-input mata-pelajaran-checkbox" type="checkbox" 
@@ -722,9 +723,9 @@
                </label>
             </div>
          `).join('');
-         
+
          container.innerHTML = mataPelajaranHtml;
-         
+
          // Initialize selectedMataPelajaran after rendering
          updateMataPelajaranSelection();
       }
@@ -733,9 +734,9 @@
       function updateMataPelajaranSelection() {
          const checkboxes = document.querySelectorAll('.mata-pelajaran-checkbox:checked');
          selectedMataPelajaran = Array.from(checkboxes).map(cb => cb.value);
-         
+
          console.log('Selected mata pelajaran:', selectedMataPelajaran);
-         
+
          // Ensure selectedMataPelajaran is always an array
          if (!Array.isArray(selectedMataPelajaran)) {
             selectedMataPelajaran = [];
@@ -757,7 +758,6 @@
          });
          updateMataPelajaranSelection();
       });
-
    </script>
 
    @include('layouts.logout-script')

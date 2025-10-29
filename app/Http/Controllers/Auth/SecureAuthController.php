@@ -239,19 +239,21 @@ class SecureAuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $userType = session('user_type', $request->input('user_type'));
-        $userId = session('user_id', $request->input('user_id'));
+        $userType = session('user_type', $request->input('user_type', 'unknown'));
+        $userId = session('user_id', $request->input('user_id', 0));
 
-        // Log logout
-        ActivityLog::create([
-            'user_type' => $userType,
-            'user_id' => $userId,
-            'action' => 'logout',
-            'description' => 'User logout',
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'metadata' => SecurityHelper::getDeviceInfo($request->userAgent())
-        ]);
+        // Log logout only if we have valid user data
+        if ($userType && $userType !== 'unknown' && $userId && $userId > 0) {
+            ActivityLog::create([
+                'user_type' => $userType,
+                'user_id' => $userId,
+                'action' => 'logout',
+                'description' => 'User logout',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'metadata' => SecurityHelper::getDeviceInfo($request->userAgent())
+            ]);
+        }
 
         // Clear session
         session()->flush();

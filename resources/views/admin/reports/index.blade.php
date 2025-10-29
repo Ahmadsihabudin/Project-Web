@@ -21,8 +21,8 @@
 
    <style>
       .page-header {
-         background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 15px;
          padding: 2rem;
          margin-bottom: 2rem;
@@ -66,11 +66,25 @@
          margin-bottom: 1rem;
       }
 
-      .stats-card.primary .icon-wrapper { background: linear-gradient(135deg, #3498db, #2980b9); }
-      .stats-card.success .icon-wrapper { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-      .stats-card.warning .icon-wrapper { background: linear-gradient(135deg, #f39c12, #e67e22); }
-      .stats-card.info .icon-wrapper { background: linear-gradient(135deg, #17a2b8, #138496); }
-      .stats-card.danger .icon-wrapper { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+      .stats-card.primary .icon-wrapper {
+         background: linear-gradient(135deg, #3498db, #2980b9);
+      }
+
+      .stats-card.success .icon-wrapper {
+         background: linear-gradient(135deg, #2ecc71, #27ae60);
+      }
+
+      .stats-card.warning .icon-wrapper {
+         background: linear-gradient(135deg, #f39c12, #e67e22);
+      }
+
+      .stats-card.info .icon-wrapper {
+         background: linear-gradient(135deg, #17a2b8, #138496);
+      }
+
+      .stats-card.danger .icon-wrapper {
+         background: linear-gradient(135deg, #e74c3c, #c0392b);
+      }
 
       .chart-container {
          background: white;
@@ -208,6 +222,101 @@
             height: 24px;
          }
       }
+
+      /* Disable Bootstrap Button Styles */
+      .btn-primary {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      .btn-primary:hover {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      /* Theme Button Style */
+      .theme-btn {
+         padding: 0.5rem 1rem;
+         /* Padding lebih kecil */
+         border: 2px solid #74292a;
+         /* Border maroon 2px */
+         color: #292929;
+         /* Warna teks hitam (--heading-color) */
+         text-transform: capitalize;
+         /* Huruf kapital */
+         font-weight: 400;
+         /* Font weight normal */
+         border-radius: 0.375rem;
+         /* Border radius normal */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         position: relative;
+         /* Untuk pseudo-element */
+         z-index: 1;
+         /* Layer di atas */
+         background: white;
+         /* Background putih */
+         font-size: 0.875rem;
+         /* Font size lebih kecil */
+      }
+
+      .theme-btn i {
+         margin-left: 7px;
+         /* Jarak 7px dari teks */
+      }
+
+      .theme-btn:hover {
+         color: #fff;
+         /* Warna teks putih saat hover */
+         border-color: white;
+         /* Border putih saat hover */
+      }
+
+      .theme-btn::before {
+         position: absolute;
+         /* Posisi absolut */
+         z-index: -1;
+         /* Di belakang teks */
+         content: "";
+         /* Elemen kosong */
+         background-color: #74292a;
+         /* Background maroon */
+         height: 0%;
+         /* Tinggi 0% (tidak terlihat) */
+         width: 0%;
+         /* Lebar 0% (tidak terlihat) */
+         top: 50%;
+         /* Posisi tengah vertikal */
+         left: 50%;
+         /* Posisi tengah horizontal */
+         transform: translate(-50%, -50%);
+         /* Posisi tepat di tengah */
+         opacity: 0;
+         /* Tidak terlihat */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         border-radius: 0.375rem;
+         /* Border radius sama dengan button */
+      }
+
+      .theme-btn:hover::before {
+         opacity: 1;
+         /* Terlihat */
+         width: 98%;
+         /* Lebar hampir penuh */
+         height: 96%;
+         /* Tinggi hampir penuh */
+      }
+
+      .theme-btn {
+         text-decoration: none !important;
+      }
+
+      .theme-btn:hover {
+         text-decoration: none !important;
+      }
    </style>
 </head>
 
@@ -225,7 +334,7 @@
          <div class="p-4">
             <!-- Page Header -->
             <div class="page-header">
-               <h2><i class="bi bi-file-earmark-text me-2"></i> Laporan Hasil Ujian</h2>
+               <h2><i class="bi bi-file-earmark-text me-2" style="color: #991B1B;"></i> Laporan Hasil Ujian</h2>
                <p class="mb-0">Data hasil ujian peserta yang telah diselesaikan</p>
             </div>
 
@@ -288,13 +397,13 @@
                      Detail Hasil Ujian
                   </h6>
                   <div class="d-flex gap-2">
-                     <button class="btn btn-outline-primary btn-sm" onclick="exportToPDF()">
+                     <button class="theme-btn" onclick="exportToPDF()">
                         <i class="bi bi-file-pdf me-1"></i> Export PDF
                      </button>
-                     <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
+                     <button class="theme-btn" onclick="exportToExcel()">
                         <i class="bi bi-file-excel me-1"></i> Export Excel
                      </button>
-                     <button class="btn btn-outline-danger btn-sm" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>
+                     <button class="theme-btn" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>
                         <i class="bi bi-trash me-1"></i> Hapus Terpilih
                      </button>
                   </div>
@@ -360,7 +469,7 @@
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card primary">
                   <div class="icon-wrapper">
-                     <i class="bi bi-file-earmark-text-fill text-white" style="font-size: 1.5rem;"></i>
+                     <i class="bi bi-file-earmark-text-fill" style="font-size: 1.5rem; color: #007bff;"></i>
                   </div>
                   <h3 class="mb-1">${stats.total}</h3>
                   <p class="text-muted mb-0">Total Ujian</p>
@@ -369,7 +478,7 @@
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card success">
                   <div class="icon-wrapper">
-                     <i class="bi bi-check-circle-fill text-white" style="font-size: 1.5rem;"></i>
+                     <i class="bi bi-check-circle-fill" style="font-size: 1.5rem; color: #28a745;"></i>
                   </div>
                   <h3 class="mb-1">${stats.completed}</h3>
                   <p class="text-muted mb-0">Selesai</p>
@@ -378,7 +487,7 @@
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card warning">
                   <div class="icon-wrapper">
-                     <i class="bi bi-graph-up text-white" style="font-size: 1.5rem;"></i>
+                     <i class="bi bi-graph-up" style="font-size: 1.5rem; color: #ffc107;"></i>
                   </div>
                   <h3 class="mb-1">${stats.average_score}%</h3>
                   <p class="text-muted mb-0">Rata-rata Skor</p>
@@ -387,7 +496,7 @@
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card info">
                   <div class="icon-wrapper">
-                     <i class="bi bi-clock-history text-white" style="font-size: 1.5rem;"></i>
+                     <i class="bi bi-clock-history" style="font-size: 1.5rem; color: #17a2b8;"></i>
                   </div>
                   <h3 class="mb-1">${stats.average_time || 0}</h3>
                   <p class="text-muted mb-0">Rata-rata Waktu (menit)</p>
@@ -396,7 +505,7 @@
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card danger">
                   <div class="icon-wrapper">
-                     <i class="bi bi-people-fill text-white" style="font-size: 1.5rem;"></i>
+                     <i class="bi bi-people-fill" style="font-size: 1.5rem; color: #007bff;"></i>
                   </div>
                   <h3 class="mb-1">${stats.participants}</h3>
                   <p class="text-muted mb-0">Peserta</p>
@@ -438,7 +547,7 @@
             const row = document.createElement('tr');
             const scoreClass = report.total_score >= 80 ? 'success' : report.total_score >= 60 ? 'warning' : 'danger';
             const statusClass = report.status_submit === 'auto_submit' ? 'success' : 'info';
-            
+
             row.innerHTML = `
                <td>
                   <input type="checkbox" class="report-checkbox" value="${report.id_laporan}" onchange="updateDeleteButton()">
@@ -752,18 +861,18 @@
       function toggleSelectAll() {
          const selectAllCheckbox = document.getElementById('selectAll');
          const checkboxes = document.querySelectorAll('.report-checkbox');
-         
+
          checkboxes.forEach(checkbox => {
             checkbox.checked = selectAllCheckbox.checked;
          });
-         
+
          updateDeleteButton();
       }
 
       function updateDeleteButton() {
          const checkboxes = document.querySelectorAll('.report-checkbox:checked');
          const deleteBtn = document.getElementById('deleteSelectedBtn');
-         
+
          if (checkboxes.length > 0) {
             deleteBtn.disabled = false;
             deleteBtn.textContent = `Hapus Terpilih (${checkboxes.length})`;
@@ -777,16 +886,16 @@
       async function deleteSelected() {
          const checkboxes = document.querySelectorAll('.report-checkbox:checked');
          const selectedIds = Array.from(checkboxes).map(cb => cb.value);
-         
+
          if (selectedIds.length === 0) {
             alert('Pilih data yang akan dihapus');
             return;
          }
-         
+
          if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} data laporan?`)) {
             return;
          }
-         
+
          try {
             const response = await fetch('/admin/reports/bulk-delete', {
                method: 'POST',
@@ -794,11 +903,13 @@
                   'Content-Type': 'application/json',
                   'X-CSRF-TOKEN': csrfToken
                },
-               body: JSON.stringify({ ids: selectedIds })
+               body: JSON.stringify({
+                  ids: selectedIds
+               })
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                alert(`Berhasil menghapus ${result.deleted_count} data laporan`);
                loadReports(); // Reload data

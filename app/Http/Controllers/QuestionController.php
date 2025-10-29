@@ -46,7 +46,7 @@ class QuestionController extends Controller
    {
       try {
          $questions = Soal::with(['batch'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id_soal', 'desc')
             ->get();
 
          // Transform data for frontend
@@ -67,8 +67,8 @@ class QuestionController extends Controller
                'id_ujian' => null, // No longer available
                'ujian' => 'Tidak ada ujian', // No longer available
                'batch' => $question->batch ?: 'Tidak ada batch', // Use batch string field directly
-               'created_at' => $question->created_at ? $question->created_at->format('d/m/Y H:i') : '-',
-               'updated_at' => $question->updated_at ? $question->updated_at->format('d/m/Y H:i') : '-'
+               'created_at' => 'N/A',
+               'updated_at' => 'N/A'
             ];
          });
 
@@ -151,9 +151,7 @@ class QuestionController extends Controller
          $batch = Batch::firstOrCreate(
             ['nama_batch' => $request->id_batch],
             [
-               'deskripsi' => 'Batch untuk ' . $request->id_batch,
-               'created_at' => now(),
-               'updated_at' => now()
+               'deskripsi' => 'Batch untuk ' . $request->id_batch
             ]
          );
 
@@ -240,9 +238,7 @@ class QuestionController extends Controller
          $batch = Batch::firstOrCreate(
             ['nama_batch' => $request->id_batch],
             [
-               'deskripsi' => 'Batch untuk ' . $request->id_batch,
-               'created_at' => now(),
-               'updated_at' => now()
+               'deskripsi' => 'Batch untuk ' . $request->id_batch
             ]
          );
 

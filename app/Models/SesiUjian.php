@@ -13,6 +13,7 @@ class SesiUjian extends Model
     protected $table = 'sesi_ujian';
     protected $primaryKey = 'id_sesi';
     public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'id_ujian',
@@ -32,8 +33,6 @@ class SesiUjian extends Model
         'tanggal_selesai' => 'date:Y-m-d',
         'jam_mulai' => 'string',
         'jam_selesai' => 'string',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public function ujian(): BelongsTo

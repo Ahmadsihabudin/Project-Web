@@ -15,6 +15,158 @@
    <!-- Custom Sidebar CSS -->
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+
+   <style>
+      .stats-card {
+         background: white !important;
+         color: #333;
+         border: 3px solid #991B1B;
+         box-shadow: 0 2px 10px rgba(153, 27, 27, 0.1);
+         position: relative;
+         overflow: hidden;
+      }
+
+      .stats-card .card-body {
+         margin: 2px;
+         border-radius: 8px;
+      }
+
+      .stats-card::before {
+         content: '';
+         position: absolute;
+         left: 0;
+         top: 0;
+         bottom: 0;
+         width: 4px;
+         border-radius: 4px 0 0 4px;
+         z-index: 1;
+      }
+
+      .stats-card .text-white-60 {
+         color: #666 !important;
+      }
+
+      .stats-card .text-white {
+         color: #333 !important;
+      }
+
+      .stats-card .text-white-60.small {
+         color: #999 !important;
+      }
+
+      .card-header {
+         background-color: white !important;
+         color: #333;
+         position: relative;
+         overflow: hidden;
+
+      }
+
+      .card-header::before {
+         content: '';
+         position: absolute;
+         left: 0;
+         top: 0;
+         bottom: 0;
+         width: 4px;
+         border-radius: 4px 0 0 4px;
+         z-index: 1;
+      }
+
+      .btn-primary {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      .btn-primary:hover {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      /* Theme Button Style */
+      .theme-btn {
+         padding: 0.5rem 1rem;
+         /* Padding lebih kecil */
+         border: 2px solid #74292a;
+         /* Border maroon 2px */
+         color: #292929;
+         /* Warna teks hitam (--heading-color) */
+         text-transform: capitalize;
+         /* Huruf kapital */
+         font-weight: 400;
+         /* Font weight normal */
+         border-radius: 0.375rem;
+         /* Border radius normal */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         position: relative;
+         /* Untuk pseudo-element */
+         z-index: 1;
+         /* Layer di atas */
+         background: white;
+         /* Background putih */
+         font-size: 0.875rem;
+         /* Font size lebih kecil */
+      }
+
+      .theme-btn i {
+         margin-left: 7px;
+         /* Jarak 7px dari teks */
+      }
+
+      .theme-btn:hover {
+         color: #fff;
+         /* Warna teks putih saat hover */
+         border-color: white;
+         /* Border putih saat hover */
+      }
+
+      .theme-btn::before {
+         position: absolute;
+         /* Posisi absolut */
+         z-index: -1;
+         /* Di belakang teks */
+         content: "";
+         /* Elemen kosong */
+         background-color: #74292a;
+         /* Background maroon */
+         height: 0%;
+         /* Tinggi 0% (tidak terlihat) */
+         width: 0%;
+         /* Lebar 0% (tidak terlihat) */
+         top: 50%;
+         /* Posisi tengah vertikal */
+         left: 50%;
+         /* Posisi tengah horizontal */
+         transform: translate(-50%, -50%);
+         /* Posisi tepat di tengah */
+         opacity: 0;
+         /* Tidak terlihat */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         border-radius: 0.375rem;
+         /* Border radius sama dengan button */
+      }
+
+      .theme-btn:hover::before {
+         opacity: 1;
+         /* Terlihat */
+         width: 98%;
+         /* Lebar hampir penuh */
+         height: 96%;
+         /* Tinggi hampir penuh */
+      }
+
+      .theme-btn {
+         text-decoration: none !important;
+      }
+
+      .theme-btn:hover {
+         text-decoration: none !important;
+      }
+   </style>
 </head>
 
 <body>
@@ -36,12 +188,12 @@
                      <div class="card-body">
                         <div class="d-flex align-items-center">
                            <div class="flex-grow-1">
-                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Total Ujian</div>
+                              <div class="text-uppercase small fw-semibold mb-2">Total Ujian</div>
                               <div class="h2 mb-0 fw-bold text-white" id="totalUjian">0</div>
                               <div class="small text-white-60 mt-1">Semua ujian</div>
                            </div>
                            <div class="flex-shrink-0">
-                              <i class="bi bi-file-text fs-1 text-white-60"></i>
+                              <i class="bi bi-file-text fs-1" style="color: #007bff;"></i>
                            </div>
                         </div>
                      </div>
@@ -53,12 +205,12 @@
                      <div class="card-body">
                         <div class="d-flex align-items-center">
                            <div class="flex-grow-1">
-                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Peserta Aktif</div>
+                              <div class="text-uppercase small fw-semibold mb-2">Peserta Aktif</div>
                               <div class="h2 mb-0 fw-bold text-white" id="pesertaAktif">0</div>
                               <div class="small text-white-60 mt-1">Sedang aktif</div>
                            </div>
                            <div class="flex-shrink-0">
-                              <i class="bi bi-people fs-1 text-white-60"></i>
+                              <i class="bi bi-people fs-1" style="color: #991B1B;"></i>
                            </div>
                         </div>
                      </div>
@@ -70,12 +222,12 @@
                      <div class="card-body">
                         <div class="d-flex align-items-center">
                            <div class="flex-grow-1">
-                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Ujian Hari Ini</div>
+                              <div class="text-uppercase small fw-semibold mb-2">Ujian Hari Ini</div>
                               <div class="h2 mb-0 fw-bold text-white" id="ujianHariIni">0</div>
                               <div class="small text-white-60 mt-1">Hari ini</div>
                            </div>
                            <div class="flex-shrink-0">
-                              <i class="bi bi-calendar-check fs-1 text-white-60"></i>
+                              <i class="bi bi-calendar-check fs-1" style="color: #ffc107;"></i>
                            </div>
                         </div>
                      </div>
@@ -87,12 +239,12 @@
                      <div class="card-body">
                         <div class="d-flex align-items-center">
                            <div class="flex-grow-1">
-                              <div class="text-uppercase text-white-60 small fw-semibold mb-2">Selesai</div>
+                              <div class="text-uppercase small fw-semibold mb-2">Selesai</div>
                               <div class="h2 mb-0 fw-bold text-white" id="ujianSelesai">0</div>
                               <div class="small text-white-60 mt-1">Ujian selesai</div>
                            </div>
                            <div class="flex-shrink-0">
-                              <i class="bi bi-check-circle fs-1 text-white-60"></i>
+                              <i class="bi bi-check-circle fs-1" style="color: #28a745;"></i>
                            </div>
                         </div>
                      </div>
@@ -124,7 +276,7 @@
                               <td>25</td>
                               <td><span class="badge bg-success">Selesai</span></td>
                               <td>
-                                 <button class="btn btn-sm btn-outline-primary">Lihat</button>
+                                 <button class="theme-btn">Lihat</button>
                               </td>
                            </tr>
                            <tr>
@@ -133,7 +285,7 @@
                               <td>30</td>
                               <td><span class="badge bg-warning">Berlangsung</span></td>
                               <td>
-                                 <button class="btn btn-sm btn-outline-primary">Lihat</button>
+                                 <button class="theme-btn">Lihat</button>
                               </td>
                            </tr>
                         </tbody>

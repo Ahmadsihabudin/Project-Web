@@ -43,12 +43,9 @@ class Ujian extends Model
 {
     protected $table = 'ujian';
     protected $primaryKey = 'id_ujian';
-    
-    // Disable timestamps since table only has created_at
+
+    // Disable timestamps
     public $timestamps = false;
-    
-    // Manually set created_at
-    protected $dates = ['created_at'];
 
     protected $fillable = [
         'id_batch',
@@ -61,8 +58,7 @@ class Ujian extends Model
         'tanggal_selesai',
         'durasi_menit',
         'durasi',
-        'status',
-        'created_at'
+        'status'
     ];
 
     protected $casts = [

@@ -36,6 +36,7 @@ class Jawaban extends Model
 {
     protected $table = 'jawaban';
     protected $primaryKey = 'id_jawaban';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_peserta',

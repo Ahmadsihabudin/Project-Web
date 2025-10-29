@@ -45,6 +45,8 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public $timestamps = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -55,9 +57,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'last_login_at',
-        'login_attempts',
-        'locked_until'
+        'last_login_at'
     ];
 
     /**
@@ -80,30 +80,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'last_login_at' => 'datetime',
-            'locked_until' => 'datetime',
-            'login_attempts' => 'integer'
+            'last_login_at' => 'datetime'
         ];
-    }
-
-    /**
-     * Check if account is locked
-     */
-    public function isLocked(): bool
-    {
-        return $this->login_attempts >= 5 &&
-            $this->locked_until &&
-            now()->lt($this->locked_until);
-    }
-
-    /**
-     * Reset login attempts
-     */
-    public function resetLoginAttempts(): void
-    {
-        $this->update([
-            'login_attempts' => 0,
-            'locked_until' => null
-        ]);
     }
 }

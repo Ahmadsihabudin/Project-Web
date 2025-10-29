@@ -19,25 +19,25 @@
 
    <style>
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
       }
 
       .stats-card {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
-         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
          margin-bottom: 1.5rem;
          border: none;
       }
 
       .stats-card .text-muted {
-         color: rgba(255, 255, 255, 0.8) !important;
+         color: #6c757d !important;
       }
 
       .action-buttons {
@@ -198,7 +198,102 @@
 
       .clickable-subject:hover {
          transform: scale(1.05);
-         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Disable Bootstrap Button Styles */
+      .btn-primary {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      .btn-primary:hover {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      /* Theme Button Style */
+      .theme-btn {
+         padding: 0.5rem 1rem;
+         /* Padding lebih kecil */
+         border: 2px solid #74292a;
+         /* Border maroon 2px */
+         color: #292929;
+         /* Warna teks hitam (--heading-color) */
+         text-transform: capitalize;
+         /* Huruf kapital */
+         font-weight: 400;
+         /* Font weight normal */
+         border-radius: 0.375rem;
+         /* Border radius normal */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         position: relative;
+         /* Untuk pseudo-element */
+         z-index: 1;
+         /* Layer di atas */
+         background: white;
+         /* Background putih */
+         font-size: 0.875rem;
+         /* Font size lebih kecil */
+      }
+
+      .theme-btn i {
+         margin-left: 7px;
+         /* Jarak 7px dari teks */
+      }
+
+      .theme-btn:hover {
+         color: #fff;
+         /* Warna teks putih saat hover */
+         border-color: white;
+         /* Border putih saat hover */
+      }
+
+      .theme-btn::before {
+         position: absolute;
+         /* Posisi absolut */
+         z-index: -1;
+         /* Di belakang teks */
+         content: "";
+         /* Elemen kosong */
+         background-color: #74292a;
+         /* Background maroon */
+         height: 0%;
+         /* Tinggi 0% (tidak terlihat) */
+         width: 0%;
+         /* Lebar 0% (tidak terlihat) */
+         top: 50%;
+         /* Posisi tengah vertikal */
+         left: 50%;
+         /* Posisi tengah horizontal */
+         transform: translate(-50%, -50%);
+         /* Posisi tepat di tengah */
+         opacity: 0;
+         /* Tidak terlihat */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         border-radius: 0.375rem;
+         /* Border radius sama dengan button */
+      }
+
+      .theme-btn:hover::before {
+         opacity: 1;
+         /* Terlihat */
+         width: 98%;
+         /* Lebar hampir penuh */
+         height: 96%;
+         /* Tinggi hampir penuh */
+      }
+
+      .theme-btn {
+         text-decoration: none !important;
+      }
+
+      .theme-btn:hover {
+         text-decoration: none !important;
       }
    </style>
 </head>
@@ -221,7 +316,7 @@
                   <div class="stats-card">
                      <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <i class="bi bi-calendar-event-fill text-white" style="font-size: 2rem;"></i>
+                           <i class="bi bi-calendar-event-fill" style="font-size: 2rem; color: #007bff;"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
                            <h5 class="mb-0" id="totalSesiUjian">0</h5>
@@ -234,7 +329,7 @@
                   <div class="stats-card">
                      <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <i class="bi bi-play-circle-fill text-white" style="font-size: 2rem;"></i>
+                           <i class="bi bi-play-circle-fill" style="font-size: 2rem; color: #28a745;"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
                            <h5 class="mb-0" id="activeSesiUjian">0</h5>
@@ -247,7 +342,7 @@
                   <div class="stats-card">
                      <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <i class="bi bi-pause-circle-fill text-white" style="font-size: 2rem;"></i>
+                           <i class="bi bi-pause-circle-fill" style="font-size: 2rem; color: #ffc107;"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
                            <h5 class="mb-0" id="scheduledSesiUjian">0</h5>
@@ -260,7 +355,7 @@
                   <div class="stats-card">
                      <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                           <i class="bi bi-check-circle-fill text-white" style="font-size: 2rem;"></i>
+                           <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: #28a745;"></i>
                         </div>
                         <div class="flex-grow-1 ms-3">
                            <h5 class="mb-0" id="completedSesiUjian">0</h5>
@@ -275,7 +370,7 @@
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">Daftar Sesi Ujian</h6>
-                  <a href="{{ route('admin.sesi-ujian.create') }}" class="btn btn-primary btn-sm">
+                  <a href="{{ route('admin.sesi-ujian.create') }}" class="theme-btn">
                      <i class="bi bi-plus-circle me-1"></i>
                      Buat Sesi Ujian
                   </a>
@@ -387,12 +482,12 @@
       // Create nama ujian display with preview functionality
       function createNamaUjianDisplay(namaUjian, mataPelajaranString) {
          if (!namaUjian) return '<span class="text-muted">Tidak ada nama ujian</span>';
-         
+
          // If there are multiple subjects, show preview functionality
          if (mataPelajaranString && mataPelajaranString.includes(',')) {
             const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
             const maxDisplay = 2; // Show max 2 subjects, then "..."
-            
+
             if (subjects.length <= maxDisplay) {
                // Show all subjects if 2 or less
                return `
@@ -407,7 +502,7 @@
                // Show first 2 subjects + "..."
                const displaySubjects = subjects.slice(0, maxDisplay);
                const remainingCount = subjects.length - maxDisplay;
-               
+
                return `
                   <div class="nama-ujian-title">${namaUjian}</div>
                   <div class="mata-pelajaran-badges">
@@ -445,7 +540,7 @@
          sesiUjian.forEach((sesiUjianItem, index) => {
             const row = document.createElement('tr');
             const namaUjianDisplay = createNamaUjianDisplay(sesiUjianItem.nama_ujian, sesiUjianItem.mata_pelajaran);
-            
+
             row.innerHTML = `
                <td>${index + 1}</td>
                <td>
@@ -477,11 +572,11 @@
             `;
             tbody.appendChild(row);
          });
-         
+
          // Add click event listeners for preview functionality
          addPreviewEventListeners();
       }
-      
+
       // Add preview event listeners
       function addPreviewEventListeners() {
          const clickableSubjects = document.querySelectorAll('.clickable-subject');
@@ -491,14 +586,14 @@
                const cell = this.closest('.nama-ujian-cell');
                const namaUjian = cell.getAttribute('data-full-text');
                const mataPelajaranString = cell.getAttribute('data-mata-pelajaran');
-               
+
                if (this.textContent.includes('lainnya')) {
                   // Show all subjects
                   const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
-                  const allSubjectsHtml = subjects.map(subject => 
+                  const allSubjectsHtml = subjects.map(subject =>
                      `<span class="badge bg-primary me-1 mb-1">${subject}</span>`
                   ).join('');
-                  
+
                   cell.innerHTML = `
                      <div class="nama-ujian-title">${namaUjian}</div>
                      <div class="mata-pelajaran-badges">
@@ -510,7 +605,7 @@
                         </span>
                      </div>
                   `;
-                  
+
                   // Re-add event listeners
                   addPreviewEventListeners();
                } else {
@@ -519,7 +614,7 @@
                   const maxDisplay = 2;
                   const displaySubjects = subjects.slice(0, maxDisplay);
                   const remainingCount = subjects.length - maxDisplay;
-                  
+
                   cell.innerHTML = `
                      <div class="nama-ujian-title">${namaUjian}</div>
                      <div class="mata-pelajaran-badges">
@@ -533,7 +628,7 @@
                         </span>
                      </div>
                   `;
-                  
+
                   // Re-add event listeners
                   addPreviewEventListeners();
                }

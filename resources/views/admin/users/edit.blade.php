@@ -39,8 +39,8 @@
       }
 
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
@@ -66,12 +66,12 @@
          @include('layouts.navbar')
 
          <!-- Content -->
-         <div class="p-4" data-user-id="{{ $id ?? '' }}">
+         <div class="p-4" data-user-id="{{ $user->id ?? '' }}">
             <!-- Page Header -->
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
-                     <h4 class="mb-2"><i class="bi bi-pencil-square me-2"></i>Edit User</h4>
+                     <h4 class="mb-2"><i class="bi bi-pencil-square me-2" style="color: #991B1B;"></i>Edit User</h4>
                      <p class="mb-0">Ubah informasi user</p>
                   </div>
                   <div class="col-md-4 text-end">
@@ -94,15 +94,11 @@
                               <h6 class="mb-3"><i class="bi bi-person me-2"></i>Informasi User</h6>
                               <div class="mb-3">
                                  <label for="name" class="form-label fw-bold">Nama Lengkap <span class="text-danger">*</span></label>
-                                 <input type="text" class="form-control" id="name" name="name" required>
+                                 <input type="text" class="form-control" id="name" name="name" value="{{ $user->name ?? '' }}" required>
                               </div>
                               <div class="mb-3">
                                  <label for="email" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
-                                 <input type="email" class="form-control" id="email" name="email" required>
-                              </div>
-                              <div class="mb-3">
-                                 <label for="username" class="form-label fw-bold">Username <span class="text-danger">*</span></label>
-                                 <input type="text" class="form-control" id="username" name="username" required>
+                                 <input type="email" class="form-control" id="email" name="email" value="{{ $user->email ?? '' }}" required>
                               </div>
                               <div class="mb-3">
                                  <label for="password" class="form-label fw-bold">Password Baru</label>
@@ -123,29 +119,9 @@
                                  <label for="role" class="form-label fw-bold">Role <span class="text-danger">*</span></label>
                                  <select class="form-select" id="role" name="role" required>
                                     <option value="">Pilih Role</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="staff">Staff</option>
-                                    <option value="supervisor">Supervisor</option>
+                                    <option value="admin" {{ ($user->role ?? '') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                    <option value="staff" {{ ($user->role ?? '') == 'staff' ? 'selected' : '' }}>Staff</option>
                                  </select>
-                              </div>
-                              <div class="mb-3">
-                                 <label for="status" class="form-label fw-bold">Status</label>
-                                 <select class="form-select" id="status" name="status">
-                                    <option value="aktif">Aktif</option>
-                                    <option value="tidak_aktif">Tidak Aktif</option>
-                                 </select>
-                              </div>
-                              <div class="mb-3">
-                                 <label for="phone" class="form-label fw-bold">No. Handphone</label>
-                                 <input type="text" class="form-control" id="phone" name="phone">
-                              </div>
-                              <div class="mb-3">
-                                 <label for="address" class="form-label fw-bold">Alamat</label>
-                                 <textarea class="form-control" id="address" name="address" rows="3"></textarea>
-                              </div>
-                              <div class="mb-3">
-                                 <label for="notes" class="form-label fw-bold">Catatan</label>
-                                 <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Catatan tambahan"></textarea>
                               </div>
                            </div>
                         </div>
@@ -153,7 +129,7 @@
 
                      <div class="row mt-4">
                         <div class="col-12 text-end">
-                           <button type="button" class="btn btn-secondary me-2" onclick="window.history.back()">
+                           <button type="button" class="btn btn-secondary me-2 theme-btn" onclick="window.history.back()">
                               <i class="bi bi-x-circle me-1"></i>
                               Batal
                            </button>
@@ -174,38 +150,7 @@
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       const userId = document.querySelector('[data-user-id]').getAttribute('data-user-id');
 
-      // Load user data for editing
-      async function loadUserData(id) {
-         try {
-            const response = await fetch(`/admin/users/${id}`, {
-               method: 'GET',
-               headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': csrfToken
-               }
-            });
-
-            if (response.ok) {
-               const result = await response.json();
-               if (result.success) {
-                  const user = result.data;
-
-                  // Fill form fields
-                  document.getElementById('name').value = user.name || '';
-                  document.getElementById('email').value = user.email || '';
-                  document.getElementById('username').value = user.username || '';
-                  document.getElementById('role').value = user.role || '';
-                  document.getElementById('status').value = user.status || 'aktif';
-                  document.getElementById('phone').value = user.phone || '';
-                  document.getElementById('address').value = user.address || '';
-                  document.getElementById('notes').value = user.notes || '';
-               }
-            }
-         } catch (error) {
-            console.error('Error loading user data:', error);
-            alertSystem.error('Gagal memuat data', 'Terjadi kesalahan saat memuat data');
-         }
-      }
+      // Data sudah di-load dari controller, tidak perlu fetch lagi
 
       // Handle form submission
       async function handleEditForm(event) {
@@ -222,7 +167,6 @@
          // Validasi manual untuk field yang diperlukan
          const name = form.querySelector('#name').value.trim();
          const email = form.querySelector('#email').value.trim();
-         const username = form.querySelector('#username').value.trim();
          const password = form.querySelector('#password').value;
          const passwordConfirmation = form.querySelector('#password_confirmation').value;
          const role = form.querySelector('#role').value;
@@ -239,11 +183,6 @@
             return;
          }
 
-         if (!username) {
-            alert('Username harus diisi!');
-            form.querySelector('#username').focus();
-            return;
-         }
 
          if (!role) {
             alert('Role harus dipilih!');
@@ -268,12 +207,7 @@
             const userData = {
                name: formData.get('name'),
                email: formData.get('email'),
-               username: formData.get('username'),
-               role: formData.get('role'),
-               status: formData.get('status'),
-               phone: formData.get('phone'),
-               address: formData.get('address'),
-               notes: formData.get('notes')
+               role: formData.get('role')
             };
 
             // Only include password if provided
@@ -315,10 +249,7 @@
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
 
-         // Load user data if ID is provided
-         if (userId) {
-            loadUserData(userId);
-         }
+         // Data sudah di-load dari controller
 
          // Add form listeners
          const editForm = document.getElementById('editUserForm');
@@ -328,7 +259,7 @@
          }
 
          // Add real-time validation for form fields
-         const requiredFields = ['name', 'email', 'username', 'role'];
+         const requiredFields = ['name', 'email', 'role'];
 
          requiredFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);

@@ -51,7 +51,7 @@ class SesiUjianController extends Controller
       try {
          \Log::info('Loading sesi ujian data...');
          $sesiUjian = SesiUjian::with(['ujian', 'batch'])
-            ->select('id_sesi', 'id_ujian', 'id_batch', 'mata_pelajaran', 'deskripsi', 'tanggal_mulai', 'jam_mulai', 'jam_selesai', 'tanggal_selesai', 'durasi_menit', 'status', 'created_at', 'updated_at')
+            ->select('id_sesi', 'id_ujian', 'id_batch', 'mata_pelajaran', 'deskripsi', 'tanggal_mulai', 'jam_mulai', 'jam_selesai', 'tanggal_selesai', 'durasi_menit', 'status')
             ->orderBy('tanggal_mulai', 'desc')
             ->orderBy('jam_mulai', 'desc')
             ->get();
@@ -126,8 +126,8 @@ class SesiUjianController extends Controller
                   'id_batch' => $sesiUjianItem->id_batch,
                   'batch_name' => $batchName,
                   'participant_count' => $participantCount,
-                  'created_at' => $sesiUjianItem->created_at,
-                  'updated_at' => $sesiUjianItem->updated_at
+                  'created_at' => 'N/A',
+                  'updated_at' => 'N/A'
                ];
             } catch (\Exception $e) {
                \Log::error('Error transforming sesi ujian data:', [
@@ -151,8 +151,8 @@ class SesiUjianController extends Controller
                   'id_batch' => $sesiUjianItem->id_batch,
                   'batch_name' => 'Error',
                   'participant_count' => 0,
-                  'created_at' => $sesiUjianItem->created_at,
-                  'updated_at' => $sesiUjianItem->updated_at
+                  'created_at' => 'N/A',
+                  'updated_at' => 'N/A'
                ];
             }
          });
@@ -250,7 +250,7 @@ class SesiUjianController extends Controller
          $jamMulai = date('H:i:s', strtotime($request->tanggal_mulai));
          $tanggalSelesai = date('Y-m-d', strtotime($request->tanggal_selesai));
          $jamSelesai = date('H:i:s', strtotime($request->tanggal_selesai));
-         
+
          // Debug log untuk melihat data yang diterima
          \Log::info('Parsed datetime values:', [
             'tanggal_mulai' => $tanggalMulai,
@@ -261,17 +261,16 @@ class SesiUjianController extends Controller
 
          // Create single sesi ujian with all selected mata pelajaran
          $mataPelajaranString = implode(', ', $request->mata_pelajaran);
-         
+
          // Create nama ujian based on all selected mata pelajaran
          $namaUjian = 'Ujian ' . $mataPelajaranString;
-         
+
          // Create or get ujian first (using nama_ujian as key)
          $ujian = \App\Models\Ujian::firstOrCreate(
             ['nama_ujian' => $namaUjian],
             [
                'mata_pelajaran' => $mataPelajaranString,
                'deskripsi' => '', // Deskripsi sekarang di sesi_ujian
-               'created_at' => now()
             ]
          );
 
@@ -298,7 +297,7 @@ class SesiUjianController extends Controller
          ]);
       } catch (\Exception $e) {
          DB::rollBack();
-         
+
          // Log detailed error
          \Log::error('Error creating sesi ujian:', [
             'message' => $e->getMessage(),
@@ -307,7 +306,7 @@ class SesiUjianController extends Controller
             'trace' => $e->getTraceAsString(),
             'request_data' => $request->all()
          ]);
-         
+
          return response()->json([
             'success' => false,
             'message' => 'Gagal membuat sesi ujian: ' . $e->getMessage(),
@@ -336,8 +335,8 @@ class SesiUjianController extends Controller
             'durasi_menit' => $sesiUjian->durasi_menit,
             'status' => $sesiUjian->status,
             'id_batch' => $sesiUjian->id_batch,
-            'created_at' => $sesiUjian->created_at,
-            'updated_at' => $sesiUjian->updated_at
+            'created_at' => 'N/A',
+            'updated_at' => 'N/A'
          ];
 
          // Debug log untuk melihat data yang dikirim
@@ -400,17 +399,17 @@ class SesiUjianController extends Controller
             'tanggal_mulai_type' => gettype($request->tanggal_mulai),
             'tanggal_selesai_type' => gettype($request->tanggal_selesai)
          ]);
-         
+
          // Validate datetime values before parsing
          if (empty($request->tanggal_mulai) || empty($request->tanggal_selesai)) {
             throw new \Exception('Tanggal mulai atau tanggal selesai tidak boleh kosong');
          }
-         
+
          $tanggalMulai = date('Y-m-d', strtotime($request->tanggal_mulai));
          $jamMulai = date('H:i:s', strtotime($request->tanggal_mulai));
          $tanggalSelesai = date('Y-m-d', strtotime($request->tanggal_selesai));
          $jamSelesai = date('H:i:s', strtotime($request->tanggal_selesai));
-         
+
          \Log::info('DateTime parsing - Parsed values:', [
             'tanggal_mulai' => $tanggalMulai,
             'jam_mulai' => $jamMulai,
@@ -422,32 +421,31 @@ class SesiUjianController extends Controller
 
          // Handle mata pelajaran array
          \Log::info('Mata pelajaran data type:', ['type' => gettype($request->mata_pelajaran), 'value' => $request->mata_pelajaran]);
-         
-         $mataPelajaranString = is_array($request->mata_pelajaran) 
-            ? implode(', ', $request->mata_pelajaran) 
+
+         $mataPelajaranString = is_array($request->mata_pelajaran)
+            ? implode(', ', $request->mata_pelajaran)
             : $request->mata_pelajaran;
-         
+
          \Log::info('Mata pelajaran string:', ['string' => $mataPelajaranString]);
-         
+
          // Create nama ujian based on all selected mata pelajaran
          $namaUjian = 'Ujian ' . $mataPelajaranString;
-         
+
          // Update or create ujian
          try {
             \Log::info('Creating/updating ujian with data:', [
                'nama_ujian' => $namaUjian,
                'mata_pelajaran' => $mataPelajaranString
             ]);
-            
+
             $ujian = \App\Models\Ujian::firstOrCreate(
                ['nama_ujian' => $namaUjian],
                [
                   'mata_pelajaran' => $mataPelajaranString,
-                  'deskripsi' => '', 
-                  'created_at' => now()
+                  'deskripsi' => '',
                ]
             );
-            
+
             \Log::info('Ujian created/updated successfully:', ['ujian_id' => $ujian->id_ujian]);
          } catch (\Exception $e) {
             \Log::error('Error creating/updating ujian:', [
@@ -466,7 +464,7 @@ class SesiUjianController extends Controller
                'tanggal_mulai' => $tanggalMulai,
                'tanggal_selesai' => $tanggalSelesai
             ]);
-            
+
             $sesiUjian->update([
                'id_ujian' => $ujian->id_ujian,
                'id_batch' => $request->id_batch,
@@ -478,7 +476,7 @@ class SesiUjianController extends Controller
                'jam_selesai' => $jamSelesai,
                'durasi_menit' => $request->durasi_menit,
             ]);
-            
+
             \Log::info('Sesi ujian updated successfully');
          } catch (\Exception $e) {
             \Log::error('Error updating sesi ujian:', [
@@ -493,7 +491,7 @@ class SesiUjianController extends Controller
             'id' => $sesiUjian->id_sesi,
             'jam_mulai' => $sesiUjian->jam_mulai,
             'jam_selesai' => $sesiUjian->jam_selesai,
-            'updated_at' => $sesiUjian->updated_at
+            'updated_at' => 'N/A'
          ]);
 
          DB::commit();
@@ -505,7 +503,7 @@ class SesiUjianController extends Controller
          ]);
       } catch (\Exception $e) {
          DB::rollBack();
-         
+
          // Log detailed error with stack trace
          \Log::error('Error updating sesi ujian:', [
             'id' => $id,
@@ -515,7 +513,7 @@ class SesiUjianController extends Controller
             'error_line' => $e->getLine(),
             'error_trace' => $e->getTraceAsString()
          ]);
-         
+
          // Check if it's the specific "Undefined array key" error
          if (strpos($e->getMessage(), 'Undefined array key') !== false) {
             \Log::error('UNDEFINED ARRAY KEY ERROR DETECTED:', [
@@ -526,7 +524,7 @@ class SesiUjianController extends Controller
                'request_mata_pelajaran_type' => gettype($request->mata_pelajaran ?? 'NOT_SET')
             ]);
          }
-         
+
          return response()->json([
             'success' => false,
             'message' => 'Gagal memperbarui sesi ujian: ' . $e->getMessage()
@@ -540,7 +538,7 @@ class SesiUjianController extends Controller
    public function destroy($id)
    {
       \Log::info('Destroy method called:', ['id' => $id]);
-      
+
       try {
          $sesiUjian = SesiUjian::findOrFail($id);
          \Log::info('SesiUjian found:', ['id' => $sesiUjian->id_sesi, 'mata_pelajaran' => $sesiUjian->mata_pelajaran]);
@@ -614,7 +612,7 @@ class SesiUjianController extends Controller
       try {
          $questions = Soal::where('status', 'aktif')
             ->orderBy('mata_pelajaran')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id_soal', 'desc')
             ->get();
 
          return response()->json([

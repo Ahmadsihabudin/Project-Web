@@ -39,8 +39,8 @@
       }
 
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
@@ -71,7 +71,7 @@
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
-                     <h4 class="mb-2"><i class="bi bi-person-plus me-2"></i>Tambah User</h4>
+                     <h4 class="mb-2"><i class="bi bi-person-plus me-2" style="color: #991B1B;"></i>Tambah User</h4>
                      <p class="mb-0">Tambah user baru untuk sistem</p>
                   </div>
                   <div class="col-md-4 text-end">
@@ -153,11 +153,11 @@
 
                      <div class="row mt-4">
                         <div class="col-12 text-end">
-                           <button type="button" class="btn btn-secondary me-2" onclick="window.history.back()">
+                           <button type="button" class="btn btn-secondary me-2 theme-btn" onclick="window.history.back()">
                               <i class="bi bi-x-circle me-1"></i>
                               Batal
                            </button>
-                           <button type="submit" class="btn btn-success">
+                           <button type="submit" class="btn btn-success theme-btn">
                               <i class="bi bi-person-plus me-1"></i>
                               Tambah User
                            </button>

@@ -39,7 +39,8 @@
       }
 
       /* DateTime input styles */
-      input[type="date"], input[type="time"] {
+      input[type="date"],
+      input[type="time"] {
          cursor: pointer;
       }
 
@@ -70,14 +71,14 @@
          background-color: #f8f9fa;
       }
 
-      .form-check-input:checked + .form-check-label {
+      .form-check-input:checked+.form-check-label {
          background-color: #e3f2fd;
          color: #1976d2;
       }
 
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
@@ -102,7 +103,7 @@
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
-                     <h4 class="mb-2"><i class="bi bi-pencil-square me-2"></i>Edit Sesi Ujian</h4>
+                     <h4 class="mb-2"><i class="bi bi-pencil-square me-2" style="color: #991B1B;"></i>Edit Sesi Ujian</h4>
                      <p class="mb-0">Ubah informasi sesi ujian</p>
                   </div>
                   <div class="col-md-4 text-end">
@@ -250,7 +251,7 @@
 
                      <div class="row mt-4">
                         <div class="col-12 text-end">
-                           <button type="button" class="btn btn-secondary me-2" onclick="window.history.back()">
+                           <button type="button" class="btn btn-secondary me-2 theme-btn" onclick="window.history.back()">
                               <i class="bi bi-x-circle me-1"></i>
                               Batal
                            </button>
@@ -299,7 +300,7 @@
                      // Split mata pelajaran string and set checkboxes
                      const mataPelajaranArray = sesiUjian.mata_pelajaran.split(',').map(s => s.trim());
                      selectedMataPelajaran = mataPelajaranArray;
-                     
+
                      // Check the corresponding checkboxes
                      setTimeout(() => {
                         mataPelajaranArray.forEach(mataPelajaran => {
@@ -311,7 +312,7 @@
                            });
                         });
                      }, 100); // Small delay to ensure checkboxes are rendered
-                     
+
                      console.log('Mata pelajaran checkboxes will be set:', mataPelajaranArray);
                   } else {
                      console.log('No mata pelajaran data to set');
@@ -343,16 +344,16 @@
                   if (sesiUjian.tanggal_mulai && sesiUjian.jam_mulai) {
                      const tanggalMulai = sesiUjian.tanggal_mulai.split(' ')[0];
                      const jamMulai = sesiUjian.jam_mulai.substring(0, 5);
-                     
+
                      document.getElementById('tanggal_mulai_date').value = tanggalMulai;
                      document.getElementById('tanggal_mulai_time').value = jamMulai;
-                     
+
                      // Set combined value
                      const combinedDateTime = tanggalMulai + ' ' + jamMulai;
                      document.getElementById('tanggal_mulai').value = combinedDateTime;
                      document.getElementById('tanggalMulaiDisplay').textContent = combinedDateTime;
                      tanggalMulaiValue = combinedDateTime;
-                     
+
                      console.log('Tanggal mulai set:', combinedDateTime);
                   }
 
@@ -360,16 +361,16 @@
                   if (sesiUjian.tanggal_selesai && sesiUjian.jam_selesai) {
                      const tanggalSelesai = sesiUjian.tanggal_selesai.split(' ')[0];
                      const jamSelesai = sesiUjian.jam_selesai.substring(0, 5);
-                     
+
                      document.getElementById('tanggal_selesai_date').value = tanggalSelesai;
                      document.getElementById('tanggal_selesai_time').value = jamSelesai;
-                     
+
                      // Set combined value
                      const combinedDateTime = tanggalSelesai + ' ' + jamSelesai;
                      document.getElementById('tanggal_selesai').value = combinedDateTime;
                      document.getElementById('tanggalSelesaiDisplay').textContent = combinedDateTime;
                      tanggalSelesaiValue = combinedDateTime;
-                     
+
                      console.log('Tanggal selesai set:', combinedDateTime);
                   }
                   document.getElementById('durasi_menit').value = sesiUjian.durasi_menit || '';
@@ -383,7 +384,7 @@
 
       // Global variable to store selected mata pelajaran
       let selectedMataPelajaran = [];
-      
+
       // Global variables for datetime
       let tanggalMulaiValue = '';
       let tanggalSelesaiValue = '';
@@ -461,7 +462,7 @@
          mataPelajaranData.forEach((mataPelajaran, index) => {
             const col = document.createElement('div');
             col.className = 'col-md-6 col-lg-4 mb-2';
-            
+
             col.innerHTML = `
                <div class="form-check">
                   <input class="form-check-input" type="checkbox" 
@@ -473,7 +474,7 @@
                   </label>
                </div>
             `;
-            
+
             mataPelajaranList.appendChild(col);
          });
       }
@@ -508,16 +509,16 @@
       function setTanggalMulai() {
          const date = document.getElementById('tanggal_mulai_date').value;
          const time = document.getElementById('tanggal_mulai_time').value;
-         
+
          if (date && time) {
             const datetime = date + ' ' + time;
             tanggalMulaiValue = datetime;
             document.getElementById('tanggal_mulai').value = datetime;
             document.getElementById('tanggalMulaiDisplay').textContent = datetime;
-            
+
             // Auto-fill end date/time
             document.getElementById('tanggal_selesai_date').value = date;
-            
+
             console.log('Tanggal mulai set:', datetime);
          } else {
             alert('Pilih tanggal dan jam mulai terlebih dahulu!');
@@ -528,13 +529,13 @@
       function setTanggalSelesai() {
          const date = document.getElementById('tanggal_selesai_date').value;
          const time = document.getElementById('tanggal_selesai_time').value;
-         
+
          if (date && time) {
             const datetime = date + ' ' + time;
             tanggalSelesaiValue = datetime;
             document.getElementById('tanggal_selesai').value = datetime;
             document.getElementById('tanggalSelesaiDisplay').textContent = datetime;
-            
+
             console.log('Tanggal selesai set:', datetime);
          } else {
             alert('Pilih tanggal dan jam selesai terlebih dahulu!');
@@ -674,7 +675,7 @@
 
             // Update selected mata pelajaran before sending
             updateMataPelajaranSelection();
-            
+
             const sesiUjianData = {
                deskripsi: formData.get('deskripsi'),
                id_batch: parseInt(formData.get('id_batch')),
@@ -798,11 +799,11 @@
          // Add event listeners for mata pelajaran buttons
          const selectAllBtn = document.getElementById('selectAllMataPelajaran');
          const deselectAllBtn = document.getElementById('deselectAllMataPelajaran');
-         
+
          if (selectAllBtn) {
             selectAllBtn.addEventListener('click', selectAllMataPelajaran);
          }
-         
+
          if (deselectAllBtn) {
             deselectAllBtn.addEventListener('click', deselectAllMataPelajaran);
          }
@@ -810,11 +811,11 @@
          // Add event listeners for datetime buttons
          const setTanggalMulaiBtn = document.getElementById('setTanggalMulaiBtn');
          const setTanggalSelesaiBtn = document.getElementById('setTanggalSelesaiBtn');
-         
+
          if (setTanggalMulaiBtn) {
             setTanggalMulaiBtn.addEventListener('click', setTanggalMulai);
          }
-         
+
          if (setTanggalSelesaiBtn) {
             setTanggalSelesaiBtn.addEventListener('click', setTanggalSelesai);
          }

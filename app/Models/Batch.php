@@ -19,9 +19,7 @@ class Batch extends Model
         'keterangan'
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime'
-    ];
+    protected $casts = [];
 
     /**
      * Get the peserta for the batch.

@@ -19,25 +19,25 @@
 
    <style>
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
          margin-bottom: 2rem;
       }
 
       .stats-card {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-         color: white;
+         background: #f8f9fa;
+         color: #333;
          border-radius: 10px;
          padding: 1.5rem;
-         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
          margin-bottom: 1.5rem;
          border: none;
       }
 
       .stats-card .text-muted {
-         color: rgba(255, 255, 255, 0.8) !important;
+         color: #6c757d !important;
       }
 
       .action-buttons {
@@ -282,6 +282,101 @@
             height: 24px;
          }
       }
+
+      /* Disable Bootstrap Button Styles */
+      .btn-primary {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      .btn-primary:hover {
+         background-color: transparent !important;
+         border-color: transparent !important;
+         color: inherit !important;
+      }
+
+      /* Theme Button Style */
+      .theme-btn {
+         padding: 0.5rem 1rem;
+         /* Padding lebih kecil */
+         border: 2px solid #74292a;
+         /* Border maroon 2px */
+         color: #292929;
+         /* Warna teks hitam (--heading-color) */
+         text-transform: capitalize;
+         /* Huruf kapital */
+         font-weight: 400;
+         /* Font weight normal */
+         border-radius: 0.375rem;
+         /* Border radius normal */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         position: relative;
+         /* Untuk pseudo-element */
+         z-index: 1;
+         /* Layer di atas */
+         background: white;
+         /* Background putih */
+         font-size: 0.875rem;
+         /* Font size lebih kecil */
+      }
+
+      .theme-btn i {
+         margin-left: 7px;
+         /* Jarak 7px dari teks */
+      }
+
+      .theme-btn:hover {
+         color: #fff;
+         /* Warna teks putih saat hover */
+         border-color: white;
+         /* Border putih saat hover */
+      }
+
+      .theme-btn::before {
+         position: absolute;
+         /* Posisi absolut */
+         z-index: -1;
+         /* Di belakang teks */
+         content: "";
+         /* Elemen kosong */
+         background-color: #74292a;
+         /* Background maroon */
+         height: 0%;
+         /* Tinggi 0% (tidak terlihat) */
+         width: 0%;
+         /* Lebar 0% (tidak terlihat) */
+         top: 50%;
+         /* Posisi tengah vertikal */
+         left: 50%;
+         /* Posisi tengah horizontal */
+         transform: translate(-50%, -50%);
+         /* Posisi tepat di tengah */
+         opacity: 0;
+         /* Tidak terlihat */
+         transition: 0.4s cubic-bezier(0, 0, 1, 1);
+         /* Transisi smooth */
+         border-radius: 0.375rem;
+         /* Border radius sama dengan button */
+      }
+
+      .theme-btn:hover::before {
+         opacity: 1;
+         /* Terlihat */
+         width: 98%;
+         /* Lebar hampir penuh */
+         height: 96%;
+         /* Tinggi hampir penuh */
+      }
+
+      .theme-btn {
+         text-decoration: none !important;
+      }
+
+      .theme-btn:hover {
+         text-decoration: none !important;
+      }
    </style>
 </head>
 
@@ -298,10 +393,7 @@
          <!-- Content -->
          <div class="p-4">
             <!-- Page Header -->
-            <div class="page-header">
-               <h2><i class="bi bi-question-circle me-2"></i> Bank Soal</h2>
-               <p class="mb-0">Kelola bank soal ujian online</p>
-            </div>
+
 
             <!-- Statistics Cards -->
             <div class="row mb-4" id="statsCards">
@@ -313,11 +405,11 @@
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">Daftar Soal</h6>
                   <div class="btn-group" role="group" style="gap: 0.5rem;">
-                     <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+                     <button type="button" class="theme-btn" data-bs-toggle="modal" data-bs-target="#importModal">
                         <i class="bi bi-upload me-1"></i>
                         Import Soal
                      </button>
-                     <a href="{{ route('admin.questions.create') }}" class="btn btn-primary btn-sm">
+                     <a href="{{ route('admin.questions.create') }}" class="theme-btn">
                         <i class="bi bi-plus-circle me-1"></i>
                         Tambah Soal
                      </a>
@@ -367,7 +459,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-question-circle-fill text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-question-circle-fill" style="font-size: 2rem; color: #007bff;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.total}</h5>
@@ -380,7 +472,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-check-circle-fill text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: #28a745;"></i>
                         </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.active}</h5>
@@ -393,7 +485,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-tags-fill text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-tags-fill" style="font-size: 2rem; color: #ffc107;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.by_category ? stats.by_category.length : 0}</h5>
@@ -406,7 +498,7 @@
                <div class="stats-card">
                   <div class="d-flex align-items-center">
                      <div class="flex-shrink-0">
-                        <i class="bi bi-bar-chart-fill text-white" style="font-size: 2rem;"></i>
+                        <i class="bi bi-bar-chart-fill" style="font-size: 2rem; color: #17a2b8;"></i>
                      </div>
                      <div class="flex-grow-1 ms-3">
                         <h5 class="mb-0">${stats.by_difficulty ? stats.by_difficulty.length : 0}</h5>
@@ -725,11 +817,11 @@
                </form>
             </div>
             <div class="modal-footer">
-               <button type="button" class="btn btn-success" onclick="downloadTemplate()">
+               <button type="button" class="theme-btn" onclick="downloadTemplate()">
                   <i class="bi bi-download me-1"></i>Download Template
                </button>
-               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-               <button type="button" class="btn btn-primary" onclick="importSoal()">
+               <button type="button" class="theme-btn" data-bs-dismiss="modal">Batal</button>
+               <button type="button" class="theme-btn" onclick="importSoal()">
                   <i class="bi bi-upload me-1"></i>Import Soal
                </button>
             </div>

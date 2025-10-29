@@ -5,7 +5,7 @@
     left: 0;
     height: 100vh;
     width: 250px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);
     z-index: 1000;
     overflow-y: auto;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -153,14 +153,14 @@
 }
 
 .stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);
     color: white;
     border: none;
 }
 
 .btn-primary {
-    background-color: #667eea;
-    border-color: #667eea;
+    background-color: #991b1b;
+    border-color: #991b1b;
 }
 
 .btn-primary:hover {
@@ -179,23 +179,23 @@
 }
 
 .table th {
-    background-color: #667eea;
+    background-color: #991b1b;
     color: white;
     border: none;
 }
 
 .modal-header {
-    background-color: #667eea;
+    background-color: #991b1b;
     color: white;
 }
 
 .form-control:focus {
-    border-color: #667eea;
+    border-color: #991b1b;
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
 .navbar-brand {
-    color: #667eea !important;
+    color: #991b1b !important;
     font-weight: bold;
 }
 

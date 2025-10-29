@@ -39,7 +39,7 @@
       }
 
       .page-header {
-         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         background: #f8f9fa;
          color: white;
          border-radius: 10px;
          padding: 1.5rem;
@@ -71,7 +71,7 @@
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
-                     <h4 class="mb-2"><i class="bi bi-gear me-2"></i>Tambah Pengaturan</h4>
+                     <h4 class="mb-2"><i class="bi bi-gear me-2" style="color: #991B1B;"></i>Tambah Pengaturan</h4>
                      <p class="mb-0">Tambah pengaturan baru untuk sistem</p>
                   </div>
                   <div class="col-md-4 text-end">
@@ -166,11 +166,11 @@
 
                      <div class="row mt-4">
                         <div class="col-12 text-end">
-                           <button type="button" class="btn btn-secondary me-2" onclick="window.history.back()">
+                           <button type="button" class="btn btn-secondary me-2 theme-btn" onclick="window.history.back()">
                               <i class="bi bi-x-circle me-1"></i>
                               Batal
                            </button>
-                           <button type="submit" class="btn btn-success">
+                           <button type="submit" class="btn btn-success theme-btn">
                               <i class="bi bi-gear me-1"></i>
                               Tambah Pengaturan
                            </button>

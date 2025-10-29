@@ -24,7 +24,7 @@ class DashboardController extends Controller
          $pesertaAktif = Peserta::count();
 
          // Get ujian hari ini (ujian yang dibuat hari ini)
-         $ujianHariIni = Ujian::whereDate('created_at', Carbon::today())->count();
+         $ujianHariIni = Ujian::whereDate('tanggal_mulai', Carbon::today())->count();
 
          // Get ujian selesai (ujian yang sudah selesai)
          // Since ujian table doesn't have status column, we'll use a different approach
@@ -35,7 +35,7 @@ class DashboardController extends Controller
          $totalJawaban = Jawaban::count();
 
          // Get peserta yang sedang ujian (peserta yang ada jawaban hari ini)
-         $pesertaSedangUjian = Jawaban::whereDate('created_at', Carbon::today())
+         $pesertaSedangUjian = Jawaban::whereDate('tanggal_jawab', Carbon::today())
             ->distinct('id_peserta')
             ->count('id_peserta');
 

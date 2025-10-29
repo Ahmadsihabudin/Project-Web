@@ -1,6 +1,8 @@
 <script>
-   // CSRF Token
-   var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+   // CSRF Token - check if already declared
+   if (typeof csrfToken === 'undefined') {
+      var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+   }
 
    // Enhanced logout function
    async function logout() {
