@@ -110,8 +110,6 @@ class BatchController extends Controller
    {
       try {
          $batch = Batch::findOrFail($id);
-
-         // Check if batch has participants or questions
          if ($batch->soal()->count() > 0 || $batch->ujian()->count() > 0) {
             return response()->json([
                'success' => false,

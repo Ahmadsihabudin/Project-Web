@@ -16,7 +16,7 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
-
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
    <style>
       .page-header {
          background: #f8f9fa;
@@ -295,7 +295,7 @@
          <!-- Content -->
          <div class="p-4">
             <!-- Page Header -->
-          
+
 
             <!-- Statistics Cards -->
             <div class="row mb-4" id="statsCards">
@@ -489,7 +489,10 @@
    </div>
 
    <script>
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      // Use existing csrfToken from layout or create new one
+      if (typeof csrfToken === 'undefined') {
+         var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      }
       console.log('CSRF Token loaded:', csrfToken);
 
       // Load statistics
@@ -671,28 +674,51 @@
 
       // Delete participant
       async function deleteParticipant(id) {
-         if (confirm('Apakah Anda yakin ingin menghapus peserta ini?')) {
-            try {
-               const response = await fetch(`/admin/participants/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  }
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.deleteSuccess('Peserta');
-                  loadParticipants(); // loadParticipants sudah menghitung ulang statistik
-               } else {
-                  alertSystem.error('Gagal menghapus peserta', result.message);
+         const confirmed = await Swal.fire({
+            title: 'Hapus Peserta?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/participants/${id}`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
                }
-            } catch (error) {
-               console.error('Error deleting participant:', error);
-               alertSystem.error('Gagal menghapus peserta', 'Terjadi kesalahan jaringan');
+            });
+            const result = await response.json();
+            if (result.success) {
+               await Swal.fire({
+                  title: 'Berhasil',
+                  text: 'Peserta telah dihapus.',
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#0d6efd'
+               });
+               loadParticipants();
+            } else {
+               Swal.fire({
+                  title: 'Gagal menghapus',
+                  text: result.message || 'Terjadi kesalahan.',
+                  icon: 'error',
+                  confirmButtonText: 'Tutup'
+               });
             }
+         } catch (_) {
+            Swal.fire({
+               title: 'Gagal menghapus',
+               text: 'Terjadi kesalahan jaringan.',
+               icon: 'error',
+               confirmButtonText: 'Tutup'
+            });
          }
       }
 
@@ -894,6 +920,7 @@
          loadParticipants(); // loadParticipants sudah menghitung statistik dari data tabel
       });
    </script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    @include('layouts.logout-script')
 

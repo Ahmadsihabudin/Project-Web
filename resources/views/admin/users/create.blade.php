@@ -131,8 +131,8 @@
                               <div class="mb-3">
                                  <label for="status" class="form-label fw-bold">Status</label>
                                  <select class="form-select" id="status" name="status">
-                                    <option value="aktif" selected>Aktif</option>
-                                    <option value="tidak_aktif">Tidak Aktif</option>
+                                    <option value="active" selected>Active</option>
+                                    <option value="inactive">Inactive</option>
                                  </select>
                               </div>
                               <div class="mb-3">
@@ -174,7 +174,7 @@
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
       // Handle form submission
-      async function handleCreateForm(event) {
+      async function handleCreateForm(event, createForm) {
          event.preventDefault();
 
          // Validasi form sebelum submit
@@ -254,10 +254,9 @@
             const response = await fetch('/admin/users', {
                method: 'POST',
                headers: {
-                  'Content-Type': 'application/json',
                   'X-CSRF-TOKEN': csrfToken
                },
-               body: JSON.stringify(userData)
+               body: formData
             });
 
             const result = await response.json();
@@ -286,7 +285,9 @@
          const createForm = document.getElementById('createUserForm');
 
          if (createForm) {
-            createForm.addEventListener('submit', handleCreateForm);
+            createForm.addEventListener('submit', function(event) {
+               handleCreateForm(event, createForm);
+            });
          }
 
          // Add real-time validation for form fields

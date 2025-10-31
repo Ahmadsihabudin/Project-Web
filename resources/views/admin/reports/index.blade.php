@@ -19,6 +19,8 @@
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
 
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
+
    <style>
       .page-header {
          background: #f8f9fa;
@@ -669,29 +671,52 @@
 
       // Delete report
       async function deleteReport(id) {
-         if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
-            try {
-               const response = await fetch(`/admin/reports/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  }
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.deleteSuccess('Laporan');
-                  loadReports();
-                  loadStats();
-               } else {
-                  alertSystem.error('Gagal menghapus laporan', result.message);
+         const confirmed = await Swal.fire({
+            title: 'Hapus Laporan?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/reports/${id}`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
                }
-            } catch (error) {
-               console.error('Error deleting report:', error);
-               alertSystem.error('Gagal menghapus laporan', 'Terjadi kesalahan jaringan');
+            });
+            const result = await response.json();
+            if (result.success) {
+               await Swal.fire({
+                  title: 'Berhasil',
+                  text: 'Laporan telah dihapus.',
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#0d6efd'
+               });
+               loadReports();
+               loadStats();
+            } else {
+               Swal.fire({
+                  title: 'Gagal menghapus',
+                  text: result.message || 'Terjadi kesalahan.',
+                  icon: 'error',
+                  confirmButtonText: 'Tutup'
+               });
             }
+         } catch (_) {
+            Swal.fire({
+               title: 'Gagal menghapus',
+               text: 'Terjadi kesalahan jaringan.',
+               icon: 'error',
+               confirmButtonText: 'Tutup'
+            });
          }
       }
 
@@ -888,13 +913,27 @@
          const selectedIds = Array.from(checkboxes).map(cb => cb.value);
 
          if (selectedIds.length === 0) {
-            alert('Pilih data yang akan dihapus');
+            await Swal.fire({
+               title: 'Tidak ada data',
+               text: 'Pilih data yang akan dihapus.',
+               icon: 'info',
+               confirmButtonText: 'OK'
+            });
             return;
          }
 
-         if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} data laporan?`)) {
-            return;
-         }
+         const confirmed = await Swal.fire({
+            title: 'Hapus Laporan Terpilih?',
+            text: `Anda akan menghapus ${selectedIds.length} data. Tindakan ini tidak dapat dibatalkan.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
 
          try {
             const response = await fetch('/admin/reports/bulk-delete', {
@@ -911,9 +950,15 @@
             const result = await response.json();
 
             if (result.success) {
-               alert(`Berhasil menghapus ${result.deleted_count} data laporan`);
-               loadReports(); // Reload data
-               loadStats(); // Reload stats
+               await Swal.fire({
+                  title: 'Berhasil',
+                  text: `Berhasil menghapus ${result.deleted_count} data laporan.`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#0d6efd'
+               });
+               loadReports();
+               loadStats();
             } else {
                alert('Gagal menghapus data: ' + result.message);
             }
@@ -930,6 +975,7 @@
          loadReports();
       });
    </script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    @include('layouts.logout-script')
 

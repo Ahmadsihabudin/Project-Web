@@ -11,9 +11,7 @@ use Carbon\Carbon;
 
 class ExamScheduleController extends Controller
 {
-    /**
-     * Display a listing of exam schedules.
-     */
+    
     public function index()
     {
         return view('exam.schedules');
@@ -26,8 +24,6 @@ class ExamScheduleController extends Controller
     {
         try {
             $query = ExamSchedule::with(['batch', 'soal']);
-
-            // Apply filters if any
             if ($request->has('search') && $request->search != '') {
                 $query->where('nama_ujian', 'like', '%' . $request->search . '%')
                     ->orWhere('deskripsi', 'like', '%' . $request->search . '%');
@@ -44,8 +40,6 @@ class ExamScheduleController extends Controller
             $schedules = $query->orderBy('tanggal_ujian', 'desc')
                 ->orderBy('jam_mulai', 'desc')
                 ->get();
-
-            // Transform data for frontend
             $transformedSchedules = $schedules->map(function ($schedule) {
                 $soalCount = $schedule->soal_ids ? count($schedule->soal_ids) : 0;
 
@@ -71,8 +65,6 @@ class ExamScheduleController extends Controller
                     'updated_at' => $schedule->updated_at ? $schedule->updated_at->format('d/m/Y H:i') : '-'
                 ];
             });
-
-            // Calculate statistics
             $stats = [
                 'total' => $schedules->count(),
                 'aktif' => $schedules->where('status', 'aktif')->count(),
@@ -190,7 +182,7 @@ class ExamScheduleController extends Controller
             'tanggal_ujian' => 'required|date|after_or_equal:today',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'durasi_menit' => 'required|integer|min:1|max:480', // Max 8 hours
+            'durasi_menit' => 'required|integer|min:1|max:480',  
             'status' => 'required|in:aktif,tidak_aktif',
             'soal_ids' => 'required|array|min:1',
             'soal_ids.*' => 'exists:soal,id_soal',
@@ -210,7 +202,6 @@ class ExamScheduleController extends Controller
         }
 
         try {
-            // Validate that jam_selesai is after jam_mulai
             $startTime = Carbon::createFromFormat('H:i', $request->jam_mulai);
             $endTime = Carbon::createFromFormat('H:i', $request->jam_selesai);
 
@@ -220,14 +211,9 @@ class ExamScheduleController extends Controller
                     'message' => 'Jam selesai harus setelah jam mulai'
                 ], 400);
             }
-
-            // Calculate duration from start and end time
             $calculatedDuration = $startTime->diffInMinutes($endTime);
-
-            // Use the provided duration or calculated duration
             $duration = $request->durasi_menit;
             if ($calculatedDuration > 0 && $calculatedDuration != $duration) {
-                // If calculated duration is different, use calculated duration
                 $duration = $calculatedDuration;
             }
 
@@ -246,8 +232,6 @@ class ExamScheduleController extends Controller
                 'randomize_questions' => $request->randomize_questions ?? false,
                 'show_results_immediately' => $request->show_results_immediately ?? true
             ]);
-
-            // Sync questions to pivot table
             if ($request->soal_ids) {
                 $syncData = [];
                 foreach ($request->soal_ids as $index => $soalId) {
@@ -322,8 +306,6 @@ class ExamScheduleController extends Controller
 
         try {
             $schedule = ExamSchedule::findOrFail($id);
-
-            // Validate that jam_selesai is after jam_mulai
             $startTime = Carbon::createFromFormat('H:i', $request->jam_mulai);
             $endTime = Carbon::createFromFormat('H:i', $request->jam_selesai);
 
@@ -333,8 +315,6 @@ class ExamScheduleController extends Controller
                     'message' => 'Jam selesai harus setelah jam mulai'
                 ], 400);
             }
-
-            // Calculate duration from start and end time
             $calculatedDuration = $startTime->diffInMinutes($endTime);
             $duration = $request->durasi_menit;
             if ($calculatedDuration > 0 && $calculatedDuration != $duration) {
@@ -356,8 +336,6 @@ class ExamScheduleController extends Controller
                 'randomize_questions' => $request->randomize_questions ?? false,
                 'show_results_immediately' => $request->show_results_immediately ?? true
             ]);
-
-            // Sync questions to pivot table
             if ($request->soal_ids) {
                 $syncData = [];
                 foreach ($request->soal_ids as $index => $soalId) {

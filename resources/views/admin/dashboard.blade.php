@@ -15,7 +15,8 @@
    <!-- Custom Sidebar CSS -->
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
-
+   <!-- Favicon -->
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png?v=2') }}">
    <style>
       .stats-card {
          background: white !important;
@@ -166,6 +167,42 @@
       .theme-btn:hover {
          text-decoration: none !important;
       }
+
+      /* Action buttons styling */
+      .action-buttons {
+         display: flex;
+         gap: 0.25rem;
+         flex-wrap: nowrap;
+         justify-content: center;
+      }
+
+      .action-buttons .btn {
+         padding: 0.25rem 0.5rem;
+         font-size: 0.75rem;
+         border-radius: 0.25rem;
+         min-width: 32px;
+         height: 32px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+      }
+
+      .table th {
+         background-color: #f8f9fa;
+         border-bottom: 2px solid #dee2e6;
+         font-weight: 600;
+         color: #495057;
+         padding: 1rem 0.75rem;
+         font-size: 0.875rem;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+      }
+
+      .table td {
+         vertical-align: middle;
+         padding: 0.875rem 0.75rem;
+         border-top: 1px solid #dee2e6;
+      }
    </style>
 </head>
 
@@ -259,34 +296,22 @@
                </div>
                <div class="card-body">
                   <div class="table-responsive">
-                     <table class="table table-bordered">
+                     <table class="table table-bordered" id="ujianTerbaruTable">
                         <thead>
                            <tr>
-                              <th>Nama Ujian</th>
-                              <th>Tanggal</th>
-                              <th>Peserta</th>
-                              <th>Status</th>
-                              <th>Aksi</th>
+                              <th width="5%">No</th>
+                              <th width="28%">Nama Ujian</th>
+                              <th width="12%">Batch</th>
+                              <th width="13%">Tanggal Mulai</th>
+                              <th width="10%">Jam Mulai</th>
+                              <th width="13%">Tanggal Selesai</th>
+                              <th width="10%">Jam Selesai</th>
+                              <th width="11%">Durasi</th>
                            </tr>
                         </thead>
                         <tbody>
                            <tr>
-                              <td>Ujian Matematika Dasar</td>
-                              <td>2024-01-15</td>
-                              <td>25</td>
-                              <td><span class="badge bg-success">Selesai</span></td>
-                              <td>
-                                 <button class="theme-btn">Lihat</button>
-                              </td>
-                           </tr>
-                           <tr>
-                              <td>Ujian Bahasa Indonesia</td>
-                              <td>2024-01-16</td>
-                              <td>30</td>
-                              <td><span class="badge bg-warning">Berlangsung</span></td>
-                              <td>
-                                 <button class="theme-btn">Lihat</button>
-                              </td>
+                              <td colspan="9" class="text-center">Memuat data...</td>
                            </tr>
                         </tbody>
                      </table>
@@ -303,8 +328,6 @@
    @include('layouts.logout-script')
 
    <script>
-      // CSRF Token is already declared in logout-script.blade.php
-
       // Load dashboard data from API
       async function loadDashboardData() {
          console.log('Loading dashboard data from API...');
@@ -322,8 +345,11 @@
                console.log('Dashboard API response:', result);
 
                if (result.success && result.data) {
+                  console.log('Updating dashboard with data:', result.data);
                   updateDashboardStats(result.data);
                   return;
+               } else {
+                  console.log('No data received or success is false');
                }
             }
 
@@ -357,7 +383,65 @@
          if (ujianHariIniEl) ujianHariIniEl.textContent = stats.ujian_hari_ini || 0;
          if (ujianSelesaiEl) ujianSelesaiEl.textContent = stats.ujian_selesai || 0;
 
+         // Update ujian terbaru table
+         if (stats.ujian_terbaru && Array.isArray(stats.ujian_terbaru)) {
+            updateUjianTerbaruTable(stats.ujian_terbaru);
+         }
+
          console.log('Dashboard stats updated:', stats);
+      }
+
+      // Format time helper function
+      function formatTime(timeString) {
+         if (!timeString || timeString === '-') return '-';
+         try {
+            let cleanTimeString = timeString.toString().trim();
+            // If it's in HH:MM:SS format, return HH:MM
+            if (cleanTimeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+               return cleanTimeString.substring(0, 5);
+            }
+            // If it already in HH:MM format
+            if (cleanTimeString.match(/^\d{2}:\d{2}$/)) {
+               return cleanTimeString;
+            }
+            return cleanTimeString;
+         } catch (error) {
+            return timeString || '-';
+         }
+      }
+
+      // Update ujian terbaru table
+      function updateUjianTerbaruTable(ujianList) {
+         const tbody = document.querySelector('#ujianTerbaruTable tbody') || document.querySelector('table tbody');
+         if (!tbody) return;
+
+         // Clear existing rows
+         tbody.innerHTML = '';
+
+         if (!ujianList || ujianList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center">Tidak ada data ujian</td></tr>';
+            return;
+         }
+
+         // Add new rows
+         ujianList.forEach((ujian, index) => {
+            const row = document.createElement('tr');
+
+
+
+            row.innerHTML = `
+               <td>${index + 1}</td>
+               <td>${ujian.nama_ujian || '-'}</td>
+               <td><span class="badge bg-secondary">${ujian.batch || '-'}</span></td>
+               <td>${ujian.tanggal_mulai || '-'}</td>
+               <td>${formatTime(ujian.jam_mulai)}</td>
+               <td>${ujian.tanggal_selesai || '-'}</td>
+               <td>${formatTime(ujian.jam_selesai)}</td>
+               <td><span class="badge bg-info">${ujian.durasi || '-'}</span></td>
+            `;
+
+            tbody.appendChild(row);
+         });
       }
 
       // Initialize user info

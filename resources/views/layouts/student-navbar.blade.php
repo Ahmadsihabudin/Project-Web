@@ -183,8 +183,8 @@
                <i class="bi bi-person"></i>
             </div>
             <div class="user-details">
-               <p class="user-name" id="userName">Loading...</p>
-               <p class="user-batch" id="userBatch">Loading...</p>
+               <p class="user-name" id="userName">Peserta</p>
+               <p class="user-batch" id="userBatch">-</p>
             </div>
             <a href="{{ route('auth.logout') }}" class="logout-btn" onclick="return confirm('Apakah Anda yakin ingin keluar?')">
                <i class="bi bi-box-arrow-right me-1"></i>
@@ -210,23 +210,54 @@
 
       async function loadUserInfo() {
          try {
-            const response = await fetch('/student/exam/data');
+            // First, check if peserta data is available from peserta-wrong page
+            const pesertaDataElement = document.getElementById('peserta-data');
+            if (pesertaDataElement) {
+               const pesertaData = JSON.parse(pesertaDataElement.textContent);
+               if (pesertaData) {
+                  updateNavbarInfo(pesertaData);
+                  return;
+               }
+            }
+
+            // Otherwise, try to fetch from exam data endpoint
+            const response = await fetch('/student/exam/data', {
+               headers: {
+                  'Accept': 'application/json'
+               }
+            });
+
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+               // Not authenticated or got HTML redirect
+               console.log('User not authenticated, skipping navbar data load');
+               return;
+            }
+
             const result = await response.json();
 
             if (result.success && result.peserta) {
-               const user = result.peserta;
-
-               // Update user info
-               document.getElementById('userName').textContent = user.nama || 'Peserta';
-               document.getElementById('userBatch').textContent = user.batch || 'N/A';
-
-               // Update avatar with first letter of name
-               const avatar = document.getElementById('userAvatar');
-               const firstName = (user.nama || 'P').charAt(0).toUpperCase();
-               avatar.innerHTML = firstName;
+               updateNavbarInfo(result.peserta);
             }
          } catch (error) {
-            console.error('Error loading user info:', error);
+            // Silently fail if user is not authenticated
+            console.log('Could not load user info, user may not be authenticated');
+         }
+      }
+
+      function updateNavbarInfo(user) {
+         const userNameEl = document.getElementById('userName');
+         const userBatchEl = document.getElementById('userBatch');
+         const avatarEl = document.getElementById('userAvatar');
+
+         if (userNameEl) userNameEl.textContent = user.nama || 'Peserta';
+         if (userBatchEl) userBatchEl.textContent = user.batch || '-';
+
+         // Update avatar with first letter of name
+         if (avatarEl) {
+            const firstName = (user.nama || 'P').charAt(0).toUpperCase();
+            avatarEl.innerHTML = firstName;
          }
       }
 

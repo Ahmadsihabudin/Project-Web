@@ -55,6 +55,7 @@ class Peserta extends Authenticatable
 
     protected $table = 'peserta';
     protected $primaryKey = 'id_peserta';
+    public $timestamps = true;
 
     protected $fillable = [
         'nomor_urut',
@@ -67,7 +68,9 @@ class Peserta extends Authenticatable
         'batch',
         'status',
         'email',
-        'last_login_at'
+        'current_session_id',
+        'is_logged_in',
+        'last_activity_at'
     ];
 
     protected $hidden = [

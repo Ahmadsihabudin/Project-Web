@@ -17,6 +17,8 @@
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
 
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
+
    <style>
       .page-header {
          background: #f8f9fa;
@@ -591,30 +593,37 @@
 
       // Delete setting
       async function deleteSetting(id) {
-         if (confirm('Apakah Anda yakin ingin menghapus pengaturan ini?')) {
-            try {
-               const response = await fetch(`/admin/settings/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  },
-                  credentials: 'same-origin'
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.deleteSuccess('Pengaturan');
-                  loadSettings();
-                  loadStats();
-               } else {
-                  alertSystem.error('Gagal menghapus pengaturan', result.message);
-               }
-            } catch (error) {
-               console.error('Error deleting setting:', error);
-               alertSystem.error('Gagal menghapus pengaturan', 'Terjadi kesalahan jaringan');
+         const confirmed = await Swal.fire({
+            title: 'Hapus Pengaturan?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/settings/${id}`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+               },
+               credentials: 'same-origin'
+            });
+            const result = await response.json();
+            if (result.success) {
+               await Swal.fire({ title: 'Berhasil', text: 'Pengaturan telah dihapus.', icon: 'success', confirmButtonText: 'OK', confirmButtonColor: '#0d6efd' });
+               loadSettings();
+               loadStats();
+            } else {
+               Swal.fire({ title: 'Gagal menghapus', text: result.message || 'Terjadi kesalahan.', icon: 'error', confirmButtonText: 'Tutup' });
             }
+         } catch (_) {
+            Swal.fire({ title: 'Gagal menghapus', text: 'Terjadi kesalahan jaringan.', icon: 'error', confirmButtonText: 'Tutup' });
          }
       }
 
@@ -625,6 +634,7 @@
          loadSettings();
       });
    </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    @include('layouts.logout-script')
 

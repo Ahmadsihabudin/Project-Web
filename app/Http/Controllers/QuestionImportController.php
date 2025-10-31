@@ -20,8 +20,6 @@ class QuestionImportController extends Controller
         try {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-
-            // Set header
             $headers = [
                 'A1' => 'Batch',
                 'B1' => 'Poin',
@@ -41,8 +39,6 @@ class QuestionImportController extends Controller
             foreach ($headers as $cell => $value) {
                 $sheet->setCellValue($cell, $value);
             }
-
-            // Set sample data
             $sampleData = [
                 ['Batch 1', 10, 'Apa ibukota Indonesia?', 'Geografi', 'Ibukota Indonesia adalah Jakarta', 'pilihan_ganda', 'Jakarta', 'Bandung', 'Surabaya', 'Medan', 'Semarang', 'Yogyakarta', 'a'],
                 ['Batch 1', 10, '2 + 2 = ?', 'Matematika', 'Hasil penjumlahan 2 + 2 adalah 4', 'pilihan_ganda', '3', '4', '5', '6', '', '', 'b'],
@@ -60,8 +56,6 @@ class QuestionImportController extends Controller
                 }
                 $row++;
             }
-
-            // Set column widths
             $sheet->getColumnDimension('A')->setWidth(15);
             $sheet->getColumnDimension('B')->setWidth(10);
             $sheet->getColumnDimension('C')->setWidth(50);
@@ -75,8 +69,6 @@ class QuestionImportController extends Controller
             $sheet->getColumnDimension('K')->setWidth(30);
             $sheet->getColumnDimension('L')->setWidth(30);
             $sheet->getColumnDimension('M')->setWidth(15);
-
-            // Style header
             $headerStyle = [
                 'font' => ['bold' => true],
                 'fill' => [
@@ -85,8 +77,6 @@ class QuestionImportController extends Controller
                 ]
             ];
             $sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
-
-            // Tambahkan komentar tentang validasi duplikasi
             $sheet->setCellValue('A' . ($row + 1), 'CATATAN:');
             $sheet->setCellValue('A' . ($row + 2), '- Pertanyaan tidak boleh sama (duplikasi)');
             $sheet->setCellValue('A' . ($row + 3), '- Sistem akan mengecek duplikasi dalam file dan database');
@@ -117,7 +107,7 @@ class QuestionImportController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240' // 10MB max
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240'
             ]);
 
             if ($validator->fails()) {
@@ -129,13 +119,11 @@ class QuestionImportController extends Controller
             }
 
             $file = $request->file('file');
-
-            // Validasi MIME type manual untuk fleksibilitas
             $allowedMimes = [
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-                'application/vnd.ms-excel', // .xls
-                'text/csv', // .csv
-                'application/csv' // .csv alternative
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+                'text/csv',
+                'application/csv'
             ];
 
             if (!in_array($file->getMimeType(), $allowedMimes)) {
@@ -155,19 +143,15 @@ class QuestionImportController extends Controller
                     'message' => 'File kosong atau tidak memiliki data.'
                 ], 422);
             }
-
-            // Skip header row
             $dataRows = array_slice($rows, 1);
             $errors = [];
             $successCount = 0;
-            $processedQuestions = []; // Array untuk menyimpan pertanyaan yang sudah diproses
+            $processedQuestions = [];
 
             DB::beginTransaction();
 
             foreach ($dataRows as $index => $row) {
-                $rowNumber = $index + 2; // +2 karena skip header dan array dimulai dari 0
-
-                // Cek apakah baris kosong atau tidak memiliki data yang valid
+                $rowNumber = $index + 2;
                 $isEmptyRow = true;
                 for ($i = 0; $i < count($row); $i++) {
                     if (!empty(trim($row[$i] ?? ''))) {
@@ -175,14 +159,11 @@ class QuestionImportController extends Controller
                         break;
                     }
                 }
-
-                // Skip baris kosong
                 if ($isEmptyRow) {
                     continue;
                 }
 
                 try {
-                    // Validasi data per baris
                     $rowData = [
                         'batch' => $row[0] ?? '',
                         'poin' => $row[1] ?? '',
@@ -198,14 +179,11 @@ class QuestionImportController extends Controller
                         'opsi_f' => $row[11] ?? '',
                         'jawaban_benar' => $row[12] ?? ''
                     ];
-
-                    // Validasi required fields - cek minimal data yang diperlukan
                     $hasMinimalData = !empty(trim($rowData['pertanyaan'])) ||
                         !empty(trim($rowData['mata_pelajaran'])) ||
                         !empty(trim($rowData['tipe_soal']));
 
                     if (!$hasMinimalData) {
-                        // Baris ini tidak memiliki data yang cukup, skip tanpa error
                         continue;
                     }
 
@@ -262,8 +240,6 @@ class QuestionImportController extends Controller
                         ];
                         continue;
                     }
-
-                    // Validasi duplikasi pertanyaan dalam file yang sama
                     $pertanyaanKey = strtolower(trim($rowData['pertanyaan']));
                     if (in_array($pertanyaanKey, $processedQuestions)) {
                         $errors[] = [
@@ -273,8 +249,6 @@ class QuestionImportController extends Controller
                         ];
                         continue;
                     }
-
-                    // Validasi duplikasi pertanyaan dengan database
                     $existingQuestion = Soal::whereRaw('LOWER(TRIM(pertanyaan)) = ?', [$pertanyaanKey])->first();
                     if ($existingQuestion) {
                         $errors[] = [
@@ -284,8 +258,6 @@ class QuestionImportController extends Controller
                         ];
                         continue;
                     }
-
-                    // Validasi khusus untuk pilihan ganda
                     if ($rowData['tipe_soal'] === 'pilihan_ganda') {
                         if (
                             empty($rowData['opsi_a']) || empty($rowData['opsi_b']) ||
@@ -308,9 +280,6 @@ class QuestionImportController extends Controller
                             continue;
                         }
                     }
-
-
-                    // Simpan data
                     $soalData = [
                         'batch' => $rowData['batch'] ?: null,
                         'pertanyaan' => $rowData['pertanyaan'],
@@ -329,8 +298,6 @@ class QuestionImportController extends Controller
 
                     Soal::create($soalData);
                     $successCount++;
-
-                    // Tambahkan pertanyaan ke array processed untuk mencegah duplikasi dalam file
                     $processedQuestions[] = $pertanyaanKey;
                 } catch (\Exception $e) {
                     $errors[] = [

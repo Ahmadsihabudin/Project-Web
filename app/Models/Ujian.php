@@ -43,8 +43,6 @@ class Ujian extends Model
 {
     protected $table = 'ujian';
     protected $primaryKey = 'id_ujian';
-
-    // Disable timestamps
     public $timestamps = false;
 
     protected $fillable = [

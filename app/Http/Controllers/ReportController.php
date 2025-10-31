@@ -208,9 +208,6 @@ class ReportController extends Controller
    {
       try {
          $report = Laporan::findOrFail($id);
-
-         // Here you would implement the actual report generation logic
-         // For now, we'll just return a success response
          $downloadUrl = '/reports/download/' . $id . '.' . $report->format_laporan;
 
          return response()->json([

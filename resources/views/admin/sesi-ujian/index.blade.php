@@ -17,6 +17,8 @@
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
 
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
+
    <style>
       .page-header {
          background: #f8f9fa;
@@ -404,9 +406,10 @@
    </div>
 
    <script>
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      if (typeof csrfToken === 'undefined') {
+         var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      }
 
-      // Load statistics
       async function loadStats() {
          try {
             console.log('Loading stats...');
@@ -436,7 +439,6 @@
          }
       }
 
-      // Display statistics
       function displayStats(stats) {
          document.getElementById('totalSesiUjian').textContent = stats.total || 0;
          document.getElementById('activeSesiUjian').textContent = stats.active || 0;
@@ -444,7 +446,6 @@
          document.getElementById('completedSesiUjian').textContent = stats.completed || 0;
       }
 
-      // Load sesi ujian data
       async function loadSesiUjian() {
          try {
             console.log('Loading sesi ujian...');
@@ -479,14 +480,12 @@
          }
       }
 
-      // Create nama ujian display with preview functionality
       function createNamaUjianDisplay(namaUjian, mataPelajaranString) {
          if (!namaUjian) return '<span class="text-muted">Tidak ada nama ujian</span>';
 
-         // If there are multiple subjects, show preview functionality
          if (mataPelajaranString && mataPelajaranString.includes(',')) {
             const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
-            const maxDisplay = 2; // Show max 2 subjects, then "..."
+            const maxDisplay = 2;
 
             if (subjects.length <= maxDisplay) {
                // Show all subjects if 2 or less
@@ -801,29 +800,52 @@
 
       // Delete sesi ujian
       async function deleteSesiUjian(id) {
-         if (confirm('Apakah Anda yakin ingin menghapus sesi ujian ini?')) {
-            try {
-               const response = await fetch(`/admin/sesi-ujian/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  }
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.deleteSuccess('Sesi Ujian');
-                  loadSesiUjian();
-                  loadStats();
-               } else {
-                  alertSystem.error('Gagal menghapus sesi ujian', result.message);
+         const confirmed = await Swal.fire({
+            title: 'Hapus Sesi Ujian?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/sesi-ujian/${id}`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
                }
-            } catch (error) {
-               console.error('Error deleting sesi ujian:', error);
-               alertSystem.error('Gagal menghapus sesi ujian', 'Terjadi kesalahan jaringan');
+            });
+            const result = await response.json();
+            if (result.success) {
+               await Swal.fire({
+                  title: 'Berhasil',
+                  text: 'Sesi ujian telah dihapus.',
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#0d6efd'
+               });
+               loadSesiUjian();
+               loadStats();
+            } else {
+               Swal.fire({
+                  title: 'Gagal menghapus',
+                  text: result.message || 'Terjadi kesalahan.',
+                  icon: 'error',
+                  confirmButtonText: 'Tutup'
+               });
             }
+         } catch (_) {
+            Swal.fire({
+               title: 'Gagal menghapus',
+               text: 'Terjadi kesalahan jaringan.',
+               icon: 'error',
+               confirmButtonText: 'Tutup'
+            });
          }
       }
 
@@ -834,6 +856,7 @@
          loadSesiUjian();
       });
    </script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    @include('layouts.logout-script')
 

@@ -17,6 +17,8 @@
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
 
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
+
    <style>
       .page-header {
          background: #f8f9fa;
@@ -508,57 +510,72 @@
 
       // Reset password
       async function resetPassword(id) {
-         if (confirm('Apakah Anda yakin ingin mereset password user ini?')) {
-            try {
-               const response = await fetch(`/admin/users/${id}/reset-password`, {
-                  method: 'POST',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  }
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.success('Password berhasil direset');
-                  if (result.new_password) {
-                     alert(`Password baru: ${result.new_password}`);
-                  }
-               } else {
-                  alertSystem.error('Gagal mereset password', result.message);
+         const confirmed = await Swal.fire({
+            title: 'Reset Password?',
+            text: 'Password akan direset dan tidak dapat dibatalkan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, reset',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/users/${id}/reset-password`, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
                }
-            } catch (error) {
-               console.error('Error resetting password:', error);
-               alertSystem.error('Gagal mereset password', 'Terjadi kesalahan jaringan');
+            });
+            const result = await response.json();
+            if (result.success) {
+               let html = 'Password berhasil direset';
+               if (result.new_password) {
+                  html = `<div>Password baru:</div><div class="mt-2"><code>${result.new_password}</code></div>`;
+               }
+               Swal.fire({ title: 'Berhasil', html: html, icon: 'success', confirmButtonText: 'OK', confirmButtonColor: '#0d6efd' });
+            } else {
+               Swal.fire({ title: 'Gagal mereset', text: result.message || 'Terjadi kesalahan.', icon: 'error', confirmButtonText: 'Tutup' });
             }
+         } catch (_) {
+            Swal.fire({ title: 'Gagal mereset', text: 'Terjadi kesalahan jaringan.', icon: 'error', confirmButtonText: 'Tutup' });
          }
       }
 
       // Delete user
       async function deleteUser(id) {
-         if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-            try {
-               const response = await fetch(`/admin/users/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  }
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.deleteSuccess('User');
-                  loadUsers(); // loadUsers sudah menghitung ulang statistik
-               } else {
-                  alertSystem.error('Gagal menghapus user', result.message);
+         const confirmed = await Swal.fire({
+            title: 'Hapus User?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/users/${id}`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
                }
-            } catch (error) {
-               console.error('Error deleting user:', error);
-               alertSystem.error('Gagal menghapus user', 'Terjadi kesalahan jaringan');
+            });
+            const result = await response.json();
+            if (result.success) {
+               await Swal.fire({ title: 'Berhasil', text: 'User telah dihapus.', icon: 'success', confirmButtonText: 'OK', confirmButtonColor: '#0d6efd' });
+               loadUsers();
+            } else {
+               Swal.fire({ title: 'Gagal menghapus', text: result.message || 'Terjadi kesalahan.', icon: 'error', confirmButtonText: 'Tutup' });
             }
+         } catch (_) {
+            Swal.fire({ title: 'Gagal menghapus', text: 'Terjadi kesalahan jaringan.', icon: 'error', confirmButtonText: 'Tutup' });
          }
       }
 
@@ -568,6 +585,7 @@
          loadUsers(); // loadUsers sudah menghitung statistik dari data tabel
       });
    </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    @include('layouts.logout-script')
 

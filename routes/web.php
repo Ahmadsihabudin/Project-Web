@@ -22,168 +22,20 @@ Route::get('/login', function () {
     return redirect('/');
 })->name('login');
 
-// Temporary debug route without auth
-Route::get('/debug/users', function () {
-    return response()->json([
-        'users_count' => App\Models\User::count(),
-        'users' => App\Models\User::all(['id', 'nama', 'email', 'role']),
-        'session_data' => session()->all()
-    ]);
-});
-
-// Debug session route
-Route::get('/debug/session', function () {
-    return response()->json([
-        'session' => session()->all(),
-        'user_type' => session('user_type'),
-        'user_id' => session('user_id'),
-        'user_name' => session('user_name'),
-        'user_email' => session('user_email'),
-        'session_id' => session()->getId(),
-        'session_status' => session()->status()
-    ]);
-});
-
-// Debug reports route
-Route::get('/debug/reports', function () {
-    return view('admin.reports.index');
-});
+// Debug routes removed for production security
 
 
-// Debug reports with session simulation
-Route::get('/debug/reports-staff', function () {
-    // Simulate staff session
-    session([
-        'user_id' => 2,
-        'user_type' => 'staff',
-        'user_name' => 'Staff Test',
-        'user_email' => 'staff@test.com',
-    ]);
-
-    return view('admin.reports.index');
-});
-
-// Debug CSRF token
-Route::get('/debug/csrf', function () {
-    return response()->json([
-        'csrf_token' => csrf_token(),
-        'session_id' => session()->getId(),
-        'session_status' => session()->status(),
-        'app_key' => config('app.key'),
-        'session_driver' => config('session.driver'),
-        'session_lifetime' => config('session.lifetime'),
-        'sessions_table_exists' => \Illuminate\Support\Facades\Schema::hasTable('sessions')
-    ]);
-});
-
-// Test CSRF endpoint
-Route::post('/debug/csrf-test', function (Request $request) {
-    return response()->json([
-        'success' => true,
-        'message' => 'CSRF token valid',
-        'received_token' => $request->header('X-CSRF-TOKEN'),
-        'expected_token' => csrf_token()
-    ]);
-});
-
-// Test peserta login endpoint
-Route::post('/debug/peserta-login-test', function (Request $request) {
-    $kode_peserta = $request->input('kode_peserta');
-    $kode_akses = $request->input('kode_akses');
-
-    $peserta = \App\Models\Peserta::where('kode_peserta', $kode_peserta)->first();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Test endpoint working',
-        'peserta_found' => $peserta ? true : false,
-        'peserta_data' => $peserta ? [
-            'id' => $peserta->id_peserta,
-            'nama' => $peserta->nama_peserta,
-            'kode_peserta' => $peserta->kode_peserta,
-            'status' => $peserta->status
-        ] : null,
-        'csrf_token' => csrf_token()
-    ]);
-});
-
-// Fix session and CSRF
-Route::get('/debug/fix-session', function () {
-    // Clear all caches
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-
-    // Clear sessions
-    \Illuminate\Support\Facades\DB::table('sessions')->truncate();
-
-    // Generate new CSRF token
-    $newToken = csrf_token();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Session and CSRF fixed',
-        'new_csrf_token' => $newToken,
-        'session_id' => session()->getId(),
-        'timestamp' => now()
-    ]);
-});
 
 
-// Debug participants API
-Route::get('/debug/participants', function () {
-    $controller = new App\Http\Controllers\ParticipantController();
-    return $controller->index();
-});
-
-// Debug dashboard API
-Route::get('/debug/dashboard', function () {
-    $controller = new App\Http\Controllers\DashboardController();
-    return $controller->getStats();
-});
-
-// Debug login test
-Route::post('/debug/login-test', function (Request $request) {
-    $user = App\Models\User::where('email', $request->email)->first();
-
-    if ($user && Hash::check($request->password, $user->password)) {
-        // Simulate login
-        session([
-            'user_id' => $user->id,
-            'user_type' => $user->role,
-            'user_name' => $user->nama,
-            'user_email' => $user->email,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'user' => $user,
-            'session' => session()->all()
-        ]);
-    }
-
-    return response()->json(['success' => false, 'message' => 'Invalid credentials']);
-});
 
 
-// Test login and redirect to reports
-Route::post('/debug/login-staff', function (Request $request) {
-    $user = App\Models\User::where('email', $request->email)->first();
 
-    if ($user && Hash::check($request->password, $user->password)) {
-        // Simulate login
-        session([
-            'user_id' => $user->id,
-            'user_type' => $user->role,
-            'user_name' => $user->nama,
-            'user_email' => $user->email,
-        ]);
 
-        return redirect('/admin/reports');
-    }
 
-    return response()->json(['success' => false, 'message' => 'Invalid credentials']);
-});
+
+
+
+
 
 
 // Admin Routes (Protected)
@@ -207,22 +59,14 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
     Route::view('/questions', 'admin.questions.index')->name('admin.questions.index');
     Route::view('/questions/create', 'admin.questions.create')->name('admin.questions.create');
     Route::view('/questions/{id}/edit', 'admin.questions.edit')->name('admin.questions.edit');
-    Route::get('/questions/import/template', function () {
-        return response()->download(public_path('sample_import_peserta.csv'));
-    })->name('admin.questions.import.template');
-    Route::post('/questions/import', function () {
-        return redirect()->back()->with('success', 'Import berhasil');
-    })->name('admin.questions.import');
+    Route::get('/questions/import/template', [App\Http\Controllers\QuestionImportController::class, 'downloadTemplate'])->name('admin.questions.import.template');
+    Route::post('/questions/import', [App\Http\Controllers\QuestionImportController::class, 'import'])->name('admin.questions.import');
 
     Route::view('/participants', 'admin.participants.index')->name('admin.participants.index');
     Route::view('/participants/create', 'admin.participants.create')->name('admin.participants.create');
     Route::view('/participants/{id}/edit', 'admin.participants.edit')->name('admin.participants.edit');
-    Route::get('/participants/import/template', function () {
-        return response()->download(public_path('sample_import_peserta.csv'));
-    })->name('admin.participants.import.template');
-    Route::post('/participants/import', function () {
-        return redirect()->back()->with('success', 'Import berhasil');
-    })->name('admin.participants.import');
+    Route::get('/participants/import/template', [App\Http\Controllers\ParticipantController::class, 'downloadTemplate'])->name('admin.participants.import.template');
+    Route::post('/participants/import', [App\Http\Controllers\ParticipantController::class, 'import'])->name('admin.participants.import');
 
     Route::view('/reports', 'admin.reports.index')->name('admin.reports.index');
     Route::view('/reports/create', 'admin.reports.create')->name('admin.reports.create');
@@ -238,16 +82,8 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
 
     // Sesi Ujian CRUD routes
     Route::post('/sesi-ujian', [App\Http\Controllers\SesiUjianController::class, 'store'])->name('admin.sesi-ujian.store');
-    // Sesi Ujian API (dummy handlers for now)
-    Route::get('/sesi-ujian/stats', function () {
-        $total = App\Models\SesiUjian::count();
-        $aktif = App\Models\SesiUjian::where('status', 'aktif')->count();
-        $selesai = App\Models\SesiUjian::where('status', 'selesai')->count();
-        return response()->json([
-            'success' => true,
-            'data' => compact('total', 'aktif', 'selesai'),
-        ]);
-    })->name('admin.sesi-ujian.stats');
+    // Sesi Ujian API routes
+    Route::get('/sesi-ujian/stats', [App\Http\Controllers\SesiUjianController::class, 'stats'])->name('admin.sesi-ujian.stats');
     Route::get('/sesi-ujian/data', function () {
         $rows = App\Models\SesiUjian::with(['ujian', 'batch'])
             ->orderBy('tanggal_mulai', 'desc')
@@ -319,24 +155,12 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
     Route::view('/settings/{id}/edit', 'admin.settings.edit')->name('admin.settings.edit');
 
     // Settings API routes
-    Route::get('/settings/stats', function () {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'total' => 0,
-                'active' => 0,
-                'encrypted' => 0,
-                'public' => 0
-            ]
-        ]);
-    })->name('admin.settings.stats');
-
-    Route::get('/settings/data', function () {
-        return response()->json([
-            'success' => true,
-            'data' => []
-        ]);
-    })->name('admin.settings.data');
+    Route::get('/settings/stats', [App\Http\Controllers\SettingController::class, 'stats'])->name('admin.settings.stats');
+    Route::get('/settings/data', [App\Http\Controllers\SettingController::class, 'data'])->name('admin.settings.data');
+    Route::post('/settings', [App\Http\Controllers\SettingController::class, 'store'])->name('admin.settings.store');
+    Route::get('/settings/{id}', [App\Http\Controllers\SettingController::class, 'show'])->name('admin.settings.show');
+    Route::put('/settings/{id}', [App\Http\Controllers\SettingController::class, 'update'])->name('admin.settings.update');
+    Route::delete('/settings/{id}', [App\Http\Controllers\SettingController::class, 'destroy'])->name('admin.settings.destroy');
 
     // Legacy redirect for /admin/exams
     Route::get('/exams', function () {
@@ -344,14 +168,7 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
     });
 
 
-    // Debug route
-    Route::get('/users/debug', function () {
-        return response()->json([
-            'session' => session()->all(),
-            'users_count' => App\Models\User::count(),
-            'users' => App\Models\User::all(['id', 'nama', 'email', 'role'])
-        ]);
-    });
+    // Debug route removed for production security
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store'])->name('admin.users.store');
     Route::get('/users/{id}', [App\Http\Controllers\UserController::class, 'show'])->name('admin.users.show');
     Route::put('/users/{id}', [App\Http\Controllers\UserController::class, 'update'])->name('admin.users.update');
@@ -359,10 +176,10 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
 
     // Participant Management API Routes
     Route::get('/participants/data', [App\Http\Controllers\ParticipantController::class, 'data'])->name('admin.participants.data');
+    Route::get('/participants/stats', [App\Http\Controllers\ParticipantController::class, 'stats'])->name('admin.participants.stats');
     Route::post('/participants', [App\Http\Controllers\ParticipantController::class, 'store'])->name('admin.participants.store');
-    Route::get('/participants/template', function () {
-        return response()->download(public_path('sample_import_peserta.csv'));
-    })->name('admin.participants.template');
+    Route::get('/participants/template', [App\Http\Controllers\ParticipantController::class, 'downloadTemplate'])->name('admin.participants.template');
+    Route::get('/participants/clear-test-data', [App\Http\Controllers\ParticipantController::class, 'clearTestData'])->name('admin.participants.clear-test-data');
     Route::get('/participants/{id}', [App\Http\Controllers\ParticipantController::class, 'show'])->name('admin.participants.show');
     Route::put('/participants/{id}', [App\Http\Controllers\ParticipantController::class, 'update'])->name('admin.participants.update');
     Route::delete('/participants/{id}', [App\Http\Controllers\ParticipantController::class, 'destroy'])->name('admin.participants.destroy');
@@ -429,19 +246,48 @@ Route::get('/admin/participants/batches', [App\Http\Controllers\ParticipantContr
 // Question Batch Routes
 Route::get('/admin/questions/batches', [App\Http\Controllers\QuestionController::class, 'getBatches'])->name('admin.questions.batches');
 
+// Public page for participants without access
+Route::get('/student/peserta-wrong', function () {
+    $pesertaData = session('peserta_wrong_data', null);
+    return view('students.peserta-wrong', ['pesertaData' => $pesertaData]);
+})->name('student.peserta-wrong');
+
+// API endpoint untuk mendapatkan data peserta yang ditolak login
+Route::get('/student/peserta-wrong/data', function () {
+    $pesertaData = session('peserta_wrong_data');
+
+    \Log::info('Peserta-wrong data requested', [
+        'session_id' => session()->getId(),
+        'has_data' => !empty($pesertaData),
+        'data' => $pesertaData
+    ]);
+
+    if ($pesertaData) {
+        return response()->json([
+            'success' => true,
+            'peserta' => $pesertaData
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Data peserta tidak tersedia'
+    ], 404);
+})->name('student.peserta-wrong.data');
+
 // Student Routes (Protected)
 Route::prefix('student')->middleware(['custom.auth'])->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.dashboard');
     Route::view('/exam', 'student.exam')->name('student.exam.index');
     Route::get('/information', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.information');
-    Route::get('/peserta-wrong', function () {
-        return view('students.peserta-wrong');
-    })->name('student.peserta-wrong');
     Route::get('/profile', [App\Http\Controllers\Student\ExamController::class, 'information'])->name('student.profile');
 
     // Exam API Routes for students
     Route::get('/exam/data', [App\Http\Controllers\Student\ExamController::class, 'index'])->name('student.exam.data');
     Route::get('/exam/available', [App\Http\Controllers\Student\ExamController::class, 'index'])->name('student.exam.available');
+    Route::get('/exam/ping', function () {
+        return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
+    })->name('student.exam.ping');
     Route::get('/exam/{id}/data', function ($id) {
         try {
             $sesi = App\Models\SesiUjian::with(['ujian', 'batch'])->find($id);
@@ -479,64 +325,7 @@ Route::prefix('student')->middleware(['custom.auth'])->group(function () {
     })->name('student.exam.data.single');
     Route::get('/exam/{id}/start', [App\Http\Controllers\Student\ExamController::class, 'startExam'])->name('student.exam.start');
     Route::get('/exam/{id}/info', [App\Http\Controllers\Student\ExamController::class, 'showExamInfo'])->name('student.exam.info');
-    Route::get('/exam/{id}/info-warning', function ($id) {
-        // Check if exam exists
-        $sesiUjian = \App\Models\SesiUjian::find($id);
-
-        if (!$sesiUjian) {
-            // If exam doesn't exist, redirect to information page with error message
-            return redirect('/student/information')->with('error', 'Sesi ujian tidak ditemukan. Mungkin sudah dihapus.');
-        }
-
-        return view('students.exam-info-warning', ['examId' => $id]);
-    })->name('student.exam.info-warning');
-    Route::get('/exam/{id}/questions-composition', function ($id) {
-        try {
-            $sesiUjian = \App\Models\SesiUjian::find($id);
-
-            if (!$sesiUjian) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Sesi ujian tidak ditemukan',
-                    'error' => 'EXAM_NOT_FOUND'
-                ], 404);
-            }
-
-            // Get mata pelajaran array
-            $mataPelajaranArray = explode(', ', $sesiUjian->mata_pelajaran);
-
-            // Get soal for this session's mata_pelajaran
-            $soal = \App\Models\Soal::whereIn('mata_pelajaran', $mataPelajaranArray)->get();
-
-            // Count by tipe_soal
-            $pilihanGanda = $soal->where('tipe_soal', 'pilihan_ganda')->count();
-            $essay = $soal->where('tipe_soal', 'essay')->count();
-            $benarSalah = $soal->where('tipe_soal', 'benar_salah')->count();
-            $total = $soal->count();
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'pilihan_ganda' => $pilihanGanda,
-                    'essay' => $essay,
-                    'true_false' => $benarSalah,
-                    'total' => $total
-                ]
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Error getting question composition:', [
-                'exam_id' => $id,
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memuat komposisi soal: ' . $e->getMessage()
-            ], 500);
-        }
-    })->name('student.exam.questions-composition');
+    Route::get('/exam/{id}/info-warning', [App\Http\Controllers\Student\ExamController::class, 'showExamInfoWarning'])->name('student.exam.info-warning');
     Route::get('/exam/{id}/warning', [App\Http\Controllers\Student\ExamController::class, 'showExamWarning'])->name('student.exam.warning');
     Route::get('/exam/{id}/show', [App\Http\Controllers\Student\ExamController::class, 'showExam'])->name('student.exam.show');
     Route::post('/exam/{id}/submit', [App\Http\Controllers\Student\ExamController::class, 'submitExam'])->name('student.exam.submit');

@@ -672,34 +672,6 @@
    <script>
       // CSRF Token
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-      // Test CSRF token validity
-      async function testCSRFToken() {
-         try {
-            const response = await fetch('/debug/csrf-test', {
-               method: 'POST',
-               headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': csrfToken,
-                  'Accept': 'application/json'
-               },
-               body: JSON.stringify({})
-            });
-
-            if (!response.ok) {
-               console.error('CSRF test failed:', response.status);
-               return false;
-            }
-
-            const result = await response.json();
-            console.log('CSRF test result:', result);
-            return result.success;
-         } catch (error) {
-            console.error('CSRF test error:', error);
-            return false;
-         }
-      }
-
       // Auto-detect user type based on input
       function detectUserType(username) {
          // Check if it's an email (contains @)
@@ -783,14 +755,6 @@
 
          showLoading(true);
 
-         // Test CSRF token first
-         const csrfValid = await testCSRFToken();
-         if (!csrfValid) {
-            showAlert('Session expired. Silakan refresh halaman dan coba lagi.');
-            showLoading(false);
-            return;
-         }
-
          try {
             let endpoint, data;
 
@@ -838,11 +802,52 @@
             }
 
             const result = await response.json();
+            console.log('=== LOGIN RESULT ===');
+            console.log('Response Status:', response.status);
+            console.log('Result Object:', result);
+            console.log('User Type:', userType);
+            console.log('Success:', result.success);
+            console.log('Wrong Batch:', result.wrong_batch);
+            console.log('Redirect:', result.redirect);
+            console.log('===================');
 
             if (response.status === 419) {
                showAlert('Session expired. Silakan refresh halaman dan coba lagi.');
                // Refresh CSRF token
                location.reload();
+               return;
+            }
+
+            if (response.status === 409) {
+               showAlert(result.message || 'Akun sedang digunakan di browser lain.');
+               return;
+            }
+
+            // Check for wrong_batch FIRST before anything else
+            if (result.wrong_batch === true) {
+               console.log('🔴 WRONG BATCH DETECTED - Redirecting immediately');
+               const redirectUrl = result.redirect || '/student/peserta-wrong';
+               console.log('Redirect URL:', redirectUrl);
+               console.log('Peserta data:', result.peserta);
+
+               // Simpan data peserta ke localStorage untuk ditampilkan di halaman peserta-wrong
+               if (result.peserta) {
+                  localStorage.setItem('peserta_wrong_data', JSON.stringify(result.peserta));
+               }
+
+               showLoading(false);
+
+               try {
+                  console.log('Attempting redirect NOW...');
+                  // Force immediate redirect without browser navigation history
+                  window.location.replace(redirectUrl);
+                  console.log('Redirect command executed');
+
+                  // Prevent any further code execution
+                  throw new Error('Redirecting to peserta-wrong');
+               } catch (err) {
+                  console.log('Redirect initiated:', err.message);
+               }
                return;
             }
 
@@ -854,16 +859,17 @@
                   if (userType === 'admin') {
                      window.location.href = '/admin/dashboard';
                   } else {
-                     window.location.href = '/student/information';
+                     // Allow backend to specify redirect, fallback to information
+                     window.location.href = result.redirect || '/student/information';
                   }
                }, 1500);
             } else {
+               // Login failed - show error
                showAlert(result.message || 'Login gagal! Periksa kembali kredensial Anda.');
             }
          } catch (error) {
             showAlert('Terjadi kesalahan. Silakan coba lagi.');
             console.error('Error:', error);
-         } finally {
             showLoading(false);
          }
       });

@@ -48,8 +48,6 @@ class QuestionController extends Controller
          $questions = Soal::with(['batch'])
             ->orderBy('id_soal', 'desc')
             ->get();
-
-         // Transform data for frontend
          $transformedQuestions = $questions->map(function ($question) {
             return [
                'id' => $question->id_soal,
@@ -62,21 +60,18 @@ class QuestionController extends Controller
                'opsi_d' => $question->opsi_d ?? '',
                'jawaban_benar' => $question->jawaban_benar ?? '',
                'poin' => $question->poin ?? 1,
-               'status' => $question->status ?? 'aktif',
-               'id_batch' => $question->batch, // Use batch string field
-               'id_ujian' => null, // No longer available
-               'ujian' => 'Tidak ada ujian', // No longer available
-               'batch' => $question->batch ?: 'Tidak ada batch', // Use batch string field directly
+               'id_batch' => $question->batch,
+               'id_ujian' => null,
+               'ujian' => 'Tidak ada ujian',
+               'batch' => $question->batch ?: 'Tidak ada batch',
                'created_at' => 'N/A',
                'updated_at' => 'N/A'
             ];
          });
-
-         // Calculate statistics
          $stats = [
             'total' => $questions->count(),
-            'aktif' => $questions->where('status', 'aktif')->count(),
-            'tidak_aktif' => $questions->where('status', 'tidak_aktif')->count()
+            'aktif' => $questions->count(), 
+            'tidak_aktif' => 0
          ];
 
          return response()->json([
@@ -102,10 +97,9 @@ class QuestionController extends Controller
          'mata_pelajaran' => 'required|string|max:100',
          'tipe_soal' => 'required|in:pilihan_ganda,essay,benar_salah',
          'poin' => 'required|integer|min:1|max:100',
-         'status' => 'required|in:aktif,tidak_aktif',
-         'id_ujian' => 'nullable|exists:ujian,id_ujian',
-         'id_batch' => 'required|string|max:255',
-         'durasi_menit' => 'required|integer|min:1|max:300'
+        
+         'batch' => 'required|string|max:255',
+       
       ]);
 
       if ($validator->fails()) {
@@ -117,7 +111,6 @@ class QuestionController extends Controller
       }
 
       try {
-         // Get default batch and ujian if not provided
          $defaultBatch = \App\Models\Batch::first();
          $defaultUjian = \App\Models\Ujian::first();
 
@@ -146,14 +139,8 @@ class QuestionController extends Controller
                'status' => 'aktif'
             ]);
          }
-
-         // Create or find batch
-         $batch = Batch::firstOrCreate(
-            ['nama_batch' => $request->id_batch],
-            [
-               'deskripsi' => 'Batch untuk ' . $request->id_batch
-            ]
-         );
+       
+         $batchName = $request->batch ?? $request->id_batch ?? 'Batch Default';
 
          $question = Soal::create([
             'pertanyaan' => $request->pertanyaan,
@@ -163,12 +150,14 @@ class QuestionController extends Controller
             'opsi_b' => $request->opsi_b ?? '',
             'opsi_c' => $request->opsi_c ?? '',
             'opsi_d' => $request->opsi_d ?? '',
+            'opsi_e' => $request->opsi_e ?? '',
+            'opsi_f' => $request->opsi_f ?? '',
             'jawaban_benar' => $request->jawaban_benar ?? '',
-            'poin' => $request->poin,
-            'status' => $request->status,
-            'id_ujian' => $request->id_ujian ?? $defaultUjian->id_ujian,
-            'id_batch' => $batch->id_batch,
-            'durasi_menit' => $request->durasi_menit
+            'umpan_balik' => $request->umpan_balik ?? '',
+            'level_kesulitan' => $request->level_kesulitan ?? 'sedang',
+            'poin' => $request->poin ?? 1,
+            'batch' => $batchName
+          
          ]);
 
          return response()->json([
@@ -214,10 +203,9 @@ class QuestionController extends Controller
          'mata_pelajaran' => 'required|string|max:100',
          'tipe_soal' => 'required|in:pilihan_ganda,essay,benar_salah',
          'poin' => 'required|integer|min:1|max:100',
-         'status' => 'required|in:aktif,tidak_aktif',
-         'id_ujian' => 'nullable|exists:ujian,id_ujian',
-         'id_batch' => 'required|string|max:255',
-         'durasi_menit' => 'required|integer|min:1|max:300'
+       
+         'batch' => 'required|string|max:255',
+        
       ]);
 
       if ($validator->fails()) {
@@ -231,16 +219,8 @@ class QuestionController extends Controller
       try {
          $question = Soal::findOrFail($id);
 
-         // Get default ujian if not provided
-         $defaultUjian = \App\Models\Ujian::first();
-
-         // Create or find batch
-         $batch = Batch::firstOrCreate(
-            ['nama_batch' => $request->id_batch],
-            [
-               'deskripsi' => 'Batch untuk ' . $request->id_batch
-            ]
-         );
+        
+         $batchName = $request->batch ?? $request->id_batch ?? $question->batch ?? 'Batch Default';
 
          $question->update([
             'pertanyaan' => $request->pertanyaan,
@@ -250,12 +230,14 @@ class QuestionController extends Controller
             'opsi_b' => $request->opsi_b ?? '',
             'opsi_c' => $request->opsi_c ?? '',
             'opsi_d' => $request->opsi_d ?? '',
+            'opsi_e' => $request->opsi_e ?? '',
+            'opsi_f' => $request->opsi_f ?? '',
             'jawaban_benar' => $request->jawaban_benar ?? '',
-            'poin' => $request->poin,
-            'status' => $request->status,
-            'id_ujian' => $request->id_ujian ?? $defaultUjian->id_ujian,
-            'id_batch' => $batch->id_batch,
-            'durasi_menit' => $request->durasi_menit
+            'umpan_balik' => $request->umpan_balik ?? '',
+            'level_kesulitan' => $request->level_kesulitan ?? $question->level_kesulitan ?? 'sedang',
+            'poin' => $request->poin ?? $question->poin ?? 1,
+            'batch' => $batchName
+            
          ]);
 
          return response()->json([
@@ -299,16 +281,45 @@ class QuestionController extends Controller
    {
       try {
          $total = Soal::count();
-         $aktif = Soal::where('status', 'aktif')->count();
+
+        
+         $aktif = $total;
+
+        
+         $byCategory = Soal::select('mata_pelajaran')
+            ->distinct()
+            ->whereNotNull('mata_pelajaran')
+            ->where('mata_pelajaran', '!=', '')
+            ->get()
+            ->pluck('mata_pelajaran')
+            ->unique()
+            ->values()
+            ->toArray();
+
+  
+         $byDifficulty = Soal::select('level_kesulitan')
+            ->distinct()
+            ->whereNotNull('level_kesulitan')
+            ->where('level_kesulitan', '!=', '')
+            ->get()
+            ->pluck('level_kesulitan')
+            ->unique()
+            ->values()
+            ->toArray();
 
          return response()->json([
             'success' => true,
-            'stats' => [
+            'data' => [
                'total' => $total,
-               'aktif' => $aktif
+               'active' => $aktif,
+               'by_category' => $byCategory,
+               'by_difficulty' => $byDifficulty
             ]
          ]);
       } catch (\Exception $e) {
+         \Log::error('Error in getStats: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+         ]);
          return response()->json([
             'success' => false,
             'message' => 'Gagal memuat statistik: ' . $e->getMessage()

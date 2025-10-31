@@ -52,8 +52,6 @@ class SettingController extends Controller
          }
 
          $settingData = $request->all();
-
-         // Encrypt value if needed
          if ($request->is_encrypted) {
             $settingData['value'] = encrypt($request->value);
          }
@@ -80,13 +78,10 @@ class SettingController extends Controller
    {
       try {
          $setting = Setting::findOrFail($id);
-
-         // Decrypt value if needed
          if ($setting->is_encrypted) {
             try {
                $setting->value = decrypt($setting->value);
             } catch (\Exception $e) {
-               // If decryption fails, keep the encrypted value
             }
          }
 
@@ -138,8 +133,6 @@ class SettingController extends Controller
          }
 
          $settingData = $request->all();
-
-         // Encrypt value if needed
          if ($request->is_encrypted) {
             $settingData['value'] = encrypt($request->value);
          }
@@ -219,7 +212,6 @@ class SettingController extends Controller
          $settings = Setting::all();
 
          $transformedSettings = $settings->map(function ($setting) {
-            // Decrypt value if needed for display
             $displayValue = $setting->value;
             if ($setting->is_encrypted) {
                try {
@@ -266,13 +258,9 @@ class SettingController extends Controller
          $totalSettings = Setting::count();
          $publicSettings = Setting::where('is_public', true)->count();
          $encryptedSettings = Setting::where('is_encrypted', true)->count();
-
-         // Count by category
          $byCategory = Setting::select('category', DB::raw('count(*) as total'))
             ->groupBy('category')
             ->get();
-
-         // Count by type
          $byType = Setting::select('type', DB::raw('count(*) as total'))
             ->groupBy('type')
             ->get();
@@ -306,17 +294,13 @@ class SettingController extends Controller
          $publicSettings = [];
          foreach ($settings as $setting) {
             $value = $setting->value;
-
-            // Decrypt value if needed
             if ($setting->is_encrypted) {
                try {
                   $value = decrypt($setting->value);
                } catch (\Exception $e) {
-                  continue; // Skip if decryption fails
+                  continue;
                }
             }
-
-            // Convert value based on type
             switch ($setting->type) {
                case 'integer':
                   $value = (int) $value;

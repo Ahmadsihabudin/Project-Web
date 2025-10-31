@@ -3,6 +3,36 @@
 @section('title', 'Informasi Ujian - Peringatan & Komposisi')
 
 @section('content')
+@php
+// Format exam data (from controller)
+$subject = $exam->mata_pelajaran ?? optional($exam->ujian)->nama_ujian ?? '-';
+$duration = $exam->durasi_menit ?? 0;
+$startDateFormatted = $startDateTime ? $startDateTime->format('d/m/Y') : '-';
+$startTimeFormatted = $startDateTime ? $startDateTime->format('H:i') : '-';
+
+// URLs and other data
+$startExamUrl = route('student.exam.start', $exam->id_sesi);
+$backUrl = route('student.information');
+$statusText = $statusLabel ?? 'Siap Dimulai';
+$canStartExam = $canStart ?? false;
+
+// Participant data
+$participantName = $participant->nama_peserta ?? $participant->nama ?? 'Peserta';
+$participantCode = $participant->kode_peserta ?? 'N/A';
+$participantBatch = $participant->batch ?? 'N/A';
+$participantEmail = $participant->email ?? 'N/A';
+$participantSchool = $participant->asal_smk ?? '-';
+$participantMajor = $participant->jurusan ?? '-';
+
+// Composition data from controller
+// Ensure composition exists and has the right structure
+$composition = $composition ?? [];
+$multipleChoiceCount = isset($composition['pilihan_ganda']) ? (int)$composition['pilihan_ganda'] : 0;
+$essayCount = isset($composition['essay']) ? (int)$composition['essay'] : 0;
+$trueFalseCount = isset($composition['true_false']) ? (int)$composition['true_false'] : 0;
+$totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
+@endphp
+
 <style>
    body {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -22,6 +52,7 @@
          opacity: 0;
          transform: translateY(30px);
       }
+
       to {
          opacity: 1;
          transform: translateY(0);
@@ -39,6 +70,7 @@
          opacity: 0;
          transform: translateY(-20px);
       }
+
       to {
          opacity: 1;
          transform: translateY(0);
@@ -80,6 +112,7 @@
          opacity: 0;
          transform: translateX(-30px);
       }
+
       to {
          opacity: 1;
          transform: translateX(0);
@@ -100,6 +133,7 @@
          opacity: 0;
          transform: translateX(30px);
       }
+
       to {
          opacity: 1;
          transform: translateX(0);
@@ -135,10 +169,21 @@
       animation-fill-mode: forwards;
    }
 
-   .warning-item:nth-child(1) { animation-delay: 0.1s; }
-   .warning-item:nth-child(2) { animation-delay: 0.2s; }
-   .warning-item:nth-child(3) { animation-delay: 0.3s; }
-   .warning-item:nth-child(4) { animation-delay: 0.4s; }
+   .warning-item:nth-child(1) {
+      animation-delay: 0.1s;
+   }
+
+   .warning-item:nth-child(2) {
+      animation-delay: 0.2s;
+   }
+
+   .warning-item:nth-child(3) {
+      animation-delay: 0.3s;
+   }
+
+   .warning-item:nth-child(4) {
+      animation-delay: 0.4s;
+   }
 
    .warning-item:last-child {
       margin-bottom: 0;
@@ -256,10 +301,21 @@
       animation-fill-mode: forwards;
    }
 
-   .question-item:nth-child(1) { animation-delay: 0.1s; }
-   .question-item:nth-child(2) { animation-delay: 0.2s; }
-   .question-item:nth-child(3) { animation-delay: 0.3s; }
-   .question-item:nth-child(4) { animation-delay: 0.4s; }
+   .question-item:nth-child(1) {
+      animation-delay: 0.1s;
+   }
+
+   .question-item:nth-child(2) {
+      animation-delay: 0.2s;
+   }
+
+   .question-item:nth-child(3) {
+      animation-delay: 0.3s;
+   }
+
+   .question-item:nth-child(4) {
+      animation-delay: 0.4s;
+   }
 
    .question-item:last-child {
       border-bottom: none;
@@ -429,7 +485,7 @@
 
          <!-- Exam Status -->
          <div class="text-center mb-4">
-            <span class="exam-status" id="examStatus">Status: Siap Dimulai</span>
+            <span class="exam-status" id="examStatus">Status: {{ $statusLabel }}</span>
          </div>
 
          <!-- Basic Info -->
@@ -443,19 +499,19 @@
             <div class="info-grid">
                <div class="info-item">
                   <div class="info-label">Mata Pelajaran</div>
-                  <div class="info-value" id="examSubject">Matematika</div>
+                  <div class="info-value" id="examSubject">{{ $subject }}</div>
                </div>
                <div class="info-item">
                   <div class="info-label">Durasi</div>
-                  <div class="info-value" id="examDuration">60 Menit</div>
+                  <div class="info-value" id="examDuration">{{ $duration }} Menit</div>
                </div>
                <div class="info-item">
                   <div class="info-label">Tanggal Mulai</div>
-                  <div class="info-value" id="examStartDate">17/10/2025</div>
+                  <div class="info-value" id="examStartDate">{{ $startDateFormatted }}</div>
                </div>
                <div class="info-item">
                   <div class="info-label">Waktu Mulai</div>
-                  <div class="info-value" id="examStartTime">12:00</div>
+                  <div class="info-value" id="examStartTime">{{ $startTimeFormatted }}</div>
                </div>
             </div>
          </div>
@@ -471,35 +527,40 @@
             <div class="question-list">
                <div class="question-item">
                   <span class="question-type">Pilihan Ganda</span>
-                  <span class="question-count" id="multipleChoiceCount">25 Soal</span>
+                  <span class="question-count">{{ $multipleChoiceCount }} Soal</span>
                </div>
                <div class="question-item">
                   <span class="question-type">Essay</span>
-                  <span class="question-count" id="essayCount">5 Soal</span>
+                  <span class="question-count">{{ $essayCount }} Soal</span>
                </div>
                <div class="question-item">
                   <span class="question-type">True/False</span>
-                  <span class="question-count" id="trueFalseCount">10 Soal</span>
+                  <span class="question-count">{{ $trueFalseCount }} Soal</span>
                </div>
                <div class="question-item" style="background: #e9ecef; font-weight: bold; color: #495057;">
                   <span>Total Soal</span>
-                  <span class="question-count" style="background: #991B1B;" id="totalQuestions">40 Soal</span>
+                  <span class="question-count" style="background: #991B1B;">{{ $totalQuestions }} Soal</span>
                </div>
             </div>
+
          </div>
       </div>
    </div>
 
    <!-- Action Buttons -->
    <div class="action-buttons">
-      <a href="/student/information" class="btn-back">
+      <a href="{{ $backUrl }}" class="btn-back">
          <i class="bi bi-arrow-left me-2"></i>
          Kembali
       </a>
-      <a href="#" class="btn-start-exam" id="startExamBtn">
+      @if($canStart)
+      <a href="{{ $startExamUrl }}" class="btn-start-exam" id="startExamBtn">
          <i class="bi bi-play-circle me-2"></i>
          Mulai Ujian
       </a>
+      @else
+      <span class="btn-start-exam" style="opacity: 0.6; cursor: not-allowed;">Ujian belum dapat dimulai</span>
+      @endif
    </div>
 </div>
 
@@ -508,13 +569,9 @@
    // Load exam data
    async function loadExamData() {
       try {
-         console.log('Loading exam data...');
-
          // Get exam ID from URL
          const pathParts = window.location.pathname.split('/');
          const examId = pathParts[pathParts.length - 2]; // Get ID from /student/exam/{id}/info-warning
-
-         console.log('Exam ID:', examId);
 
          const response = await fetch(`/student/exam/${examId}/data`, {
             method: 'GET',
@@ -529,7 +586,6 @@
          }
 
          const result = await response.json();
-         console.log('Exam data result:', result);
 
          if (result.success && result.data) {
             const exam = result.data;
@@ -549,22 +605,11 @@
                document.getElementById('examStartTime').textContent = startTime;
             }
 
-            // Load question composition data
-            await loadQuestionComposition(examId);
-
             // Set start exam button link
             const startBtn = document.getElementById('startExamBtn');
-            console.log('🔍 Start button element:', startBtn);
-            console.log('🔍 Exam ID for href:', examId);
-            
             if (startBtn) {
-                const newHref = `/student/exam/${examId}/start`;
-                startBtn.href = newHref;
-                console.log('✅ Setting start exam button href:', newHref);
-                console.log('✅ Button href after setting:', startBtn.href);
-                console.log('✅ Button href attribute:', startBtn.getAttribute('href'));
-            } else {
-                console.error('❌ Start button not found!');
+               const newHref = `/student/exam/${examId}/start`;
+               startBtn.href = newHref;
             }
 
             // Update exam status
@@ -580,7 +625,6 @@
             }
 
          } else {
-            console.error('Failed to load exam data:', result);
             if (result.error === 'EXAM_NOT_FOUND') {
                // Redirect to information page if exam not found
                alert('Sesi ujian tidak ditemukan. Mungkin sudah dihapus. Anda akan diarahkan ke halaman informasi.');
@@ -591,7 +635,6 @@
          }
 
       } catch (error) {
-         console.error('Error loading exam data:', error);
          if (error.message.includes('404')) {
             // Handle 404 error specifically
             alert('Sesi ujian tidak ditemukan. Mungkin sudah dihapus. Anda akan diarahkan ke halaman informasi.');
@@ -602,54 +645,6 @@
       }
    }
 
-   // Load question composition data
-   async function loadQuestionComposition(examId) {
-      try {
-         console.log('Loading question composition for exam:', examId);
-
-         const response = await fetch(`/student/exam/${examId}/questions-composition`, {
-            method: 'GET',
-            headers: {
-               'Accept': 'application/json'
-            },
-            credentials: 'same-origin'
-         });
-
-         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-         }
-
-         const result = await response.json();
-         console.log('Question composition result:', result);
-
-         if (result.success && result.data) {
-            const composition = result.data;
-
-            // Update question counts with real data
-            document.getElementById('multipleChoiceCount').textContent = composition.pilihan_ganda + ' Soal';
-            document.getElementById('essayCount').textContent = composition.essay + ' Soal';
-            document.getElementById('trueFalseCount').textContent = composition.true_false + ' Soal';
-            document.getElementById('totalQuestions').textContent = composition.total + ' Soal';
-
-            console.log('Question composition updated:', composition);
-         } else {
-            console.error('Failed to load question composition:', result);
-            // Set default values if API fails
-            document.getElementById('multipleChoiceCount').textContent = '0 Soal';
-            document.getElementById('essayCount').textContent = '0 Soal';
-            document.getElementById('trueFalseCount').textContent = '0 Soal';
-            document.getElementById('totalQuestions').textContent = '0 Soal';
-         }
-
-      } catch (error) {
-         console.error('Error loading question composition:', error);
-         // Set error values
-         document.getElementById('multipleChoiceCount').textContent = 'Error';
-         document.getElementById('essayCount').textContent = 'Error';
-         document.getElementById('trueFalseCount').textContent = 'Error';
-         document.getElementById('totalQuestions').textContent = 'Error';
-      }
-   }
 
    function showError(message) {
       // Update exam status to show error
@@ -664,25 +659,30 @@
 
    // Initialize on page load
    document.addEventListener('DOMContentLoaded', function() {
+      // Get exam ID immediately
+      const pathParts = window.location.pathname.split('/');
+      const examId = pathParts[pathParts.length - 2];
+
+      // Load exam data
       loadExamData();
-      
-      // Add click handler for debugging
+
+      // Add click handler
       const startBtn = document.getElementById('startExamBtn');
       if (startBtn) {
          startBtn.addEventListener('click', function(e) {
-            console.log('🖱️ Start button clicked!');
-            console.log('🖱️ Current href:', this.href);
-            console.log('🖱️ Event:', e);
-            
             if (this.href === '#' || this.href === window.location.href) {
-               console.error('❌ Button href is not set properly!');
                e.preventDefault();
                alert('Button belum diatur dengan benar. Silakan refresh halaman.');
-            } else {
-               console.log('✅ Button href is valid, proceeding...');
             }
          });
       }
    });
+
+   // Also try immediate load if DOM is already ready
+   if (document.readyState !== 'loading') {
+      const pathParts = window.location.pathname.split('/');
+      const examId = pathParts[pathParts.length - 2];
+      loadExamData();
+   }
 </script>
 @endsection

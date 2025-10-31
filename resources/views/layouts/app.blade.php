@@ -6,9 +6,8 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>@yield('title', 'Ujian Online')</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
-   
-   <!-- Favicon -->
-   <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+
+   <!-- Favicon Global Admin -->
    <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
 
    <!-- Vite CSS -->

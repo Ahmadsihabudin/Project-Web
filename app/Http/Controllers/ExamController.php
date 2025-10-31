@@ -29,8 +29,6 @@ class ExamController extends Controller
                'message' => 'Data peserta tidak ditemukan'
             ], 404);
          }
-
-         // Get exams based on participant's batch
          $exams = Ujian::where('status', 'aktif')
             ->whereHas('batch', function ($query) use ($peserta) {
                $query->where('nama_batch', $peserta->jurusan);
@@ -39,7 +37,6 @@ class ExamController extends Controller
 
          $formattedExams = [];
          foreach ($exams as $exam) {
-            // Check if participant has already taken this exam
             $existingAnswer = Jawaban::where('id_peserta', $pesertaId)
                ->where('id_ujian', $exam->id_ujian)
                ->first();
@@ -78,11 +75,7 @@ class ExamController extends Controller
    {
       try {
          $pesertaId = session('user_id');
-
-         // Get current time
          $now = Carbon::now();
-
-         // Get all exams
          $exams = Ujian::with(['soal'])
             ->where('status', 'aktif')
             ->where('tanggal_mulai', '<=', $now)
@@ -92,7 +85,6 @@ class ExamController extends Controller
          $availableExams = [];
 
          foreach ($exams as $exam) {
-            // Check if student has already completed this exam
             $existingAnswer = Jawaban::where('id_peserta', $pesertaId)
                ->where('id_ujian', $exam->id_ujian)
                ->first();
@@ -101,8 +93,6 @@ class ExamController extends Controller
             if ($existingAnswer) {
                $status = 'completed';
             }
-
-            // Check if exam is currently available
             $startTime = Carbon::parse($exam->tanggal_mulai);
             $endTime = Carbon::parse($exam->tanggal_selesai);
 
@@ -143,8 +133,6 @@ class ExamController extends Controller
    {
       try {
          $pesertaId = session('user_id');
-
-         // Check if exam exists and is available
          $exam = Ujian::with(['soal'])
             ->where('id_ujian', $id)
             ->where('status', 'aktif')
@@ -156,8 +144,6 @@ class ExamController extends Controller
                'message' => 'Ujian tidak ditemukan atau tidak tersedia'
             ], 404);
          }
-
-         // Check if exam is within time range
          $now = Carbon::now();
          $startTime = Carbon::parse($exam->tanggal_mulai);
          $endTime = Carbon::parse($exam->tanggal_selesai);
@@ -175,8 +161,6 @@ class ExamController extends Controller
                'message' => 'Ujian sudah berakhir'
             ], 400);
          }
-
-         // Check if student has already taken this exam
          $existingAnswer = Jawaban::where('id_peserta', $pesertaId)
             ->where('id_ujian', $exam->id_ujian)
             ->first();
@@ -187,8 +171,6 @@ class ExamController extends Controller
                'message' => 'Anda sudah mengikuti ujian ini'
             ], 400);
          }
-
-         // Get random questions for this exam
          $questions = $exam->soal->shuffle()->take($exam->jumlah_soal ?? $exam->soal->count());
 
          $formattedQuestions = [];
@@ -205,8 +187,6 @@ class ExamController extends Controller
                'jawaban_benar' => $soal->jawaban_benar
             ];
          }
-
-         // Log exam start
          ActivityLog::create([
             'user_type' => 'peserta',
             'user_id' => $pesertaId,
@@ -253,11 +233,7 @@ class ExamController extends Controller
       try {
          $pesertaId = session('user_id');
          $answers = $request->answers;
-
-         // Get exam details
          $exam = Ujian::with(['soal'])->findOrFail($id);
-
-         // Check if exam is still within time range
          $now = Carbon::now();
          $endTime = Carbon::parse($exam->tanggal_selesai);
 
@@ -267,8 +243,6 @@ class ExamController extends Controller
                'message' => 'Waktu ujian sudah berakhir'
             ], 400);
          }
-
-         // Check if student has already submitted
          $existingAnswer = Jawaban::where('id_peserta', $pesertaId)
             ->where('id_ujian', $exam->id_ujian)
             ->first();
@@ -279,8 +253,6 @@ class ExamController extends Controller
                'message' => 'Anda sudah mengirimkan jawaban untuk ujian ini'
             ], 400);
          }
-
-         // Calculate score
          $totalQuestions = count($answers);
          $correctAnswers = 0;
 
@@ -292,8 +264,6 @@ class ExamController extends Controller
                if ($soal && $soal->jawaban_benar === $selectedOption) {
                   $correctAnswers++;
                }
-
-               // Save individual answer
                Jawaban::create([
                   'id_peserta' => $pesertaId,
                   'id_ujian' => $exam->id_ujian,
@@ -305,8 +275,6 @@ class ExamController extends Controller
          }
 
          $score = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
-
-         // Log exam submission
          ActivityLog::create([
             'user_type' => 'peserta',
             'user_id' => $pesertaId,

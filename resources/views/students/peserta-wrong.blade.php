@@ -21,14 +21,14 @@
 
    .no-exam-card {
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      padding: 3rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      padding: 3rem 4rem;
       text-align: center;
-      max-width: 600px;
+      max-width: 1200px;
       width: 100%;
       animation: slideUp 0.6s ease-out;
-      border-left: 4px solid #991B1B;
+      border-top: 5px solid #991B1B;
    }
 
    @keyframes slideUp {
@@ -80,28 +80,34 @@
    }
 
    .contact-info {
-      background: #f8f9fa;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
       border-radius: 15px;
       padding: 2rem;
-      margin: 2rem 0;
-      border-left: 4px solid #991B1B;
+      border: 2px solid #991B1B;
+      box-shadow: 0 4px 15px rgba(153, 27, 27, 0.1);
    }
 
    .contact-info h4 {
-      color: #333;
-      margin-bottom: 1rem;
+      color: #991B1B;
+      margin-bottom: 1.5rem;
       font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #991B1B;
    }
 
    .contact-info p {
-      color: #7f8c8d;
-      margin-bottom: 0.5rem;
+      color: #2c3e50;
+      margin-bottom: 0.8rem;
       font-size: 1rem;
+      line-height: 1.6;
    }
 
    .contact-info .highlight {
       color: #991B1B;
       font-weight: 600;
+      font-size: 1.05rem;
    }
 
    .action-buttons {
@@ -152,40 +158,86 @@
       text-decoration: none;
    }
 
-   .participant-info {
-      background: #ecf0f1;
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin: 1.5rem 0;
+   .content-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
       text-align: left;
    }
 
+   .left-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+   }
+
+   .right-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+   }
+
+   .participant-info {
+      background: linear-gradient(135deg, #ecf0f1 0%, #d5dbdb 100%);
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: left;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border: 1px solid #bdc3c7;
+      height: fit-content;
+   }
+
    .participant-info h5 {
-      color: #333;
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #991B1B;
+   }
+
+   .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
    }
 
    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #bdc3c7;
+      background: white;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
    }
 
-   .info-row:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
+   .info-row:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
    }
 
    .info-label {
       font-weight: 600;
-      color: #34495e;
+      color: #991B1B;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: block;
    }
 
    .info-value {
-      color: #7f8c8d;
+      color: #2c3e50;
+      font-size: 1rem;
+      font-weight: 500;
+   }
+
+   @media (max-width: 992px) {
+      .content-wrapper {
+         grid-template-columns: 1fr;
+         gap: 1.5rem;
+      }
    }
 
    @media (max-width: 768px) {
@@ -194,7 +246,7 @@
       }
 
       .no-exam-card {
-         padding: 2rem;
+         padding: 2rem 1.5rem;
       }
 
       .no-exam-title {
@@ -203,6 +255,11 @@
 
       .no-exam-subtitle {
          font-size: 1rem;
+      }
+
+      .info-grid {
+         grid-template-columns: 1fr;
+         gap: 1rem;
       }
 
       .action-buttons {
@@ -233,35 +290,44 @@
          Maaf, saat ini tidak ada jadwal ujian yang tersedia untuk batch Anda.
       </p>
 
-      <!-- Participant Info -->
-      <div class="participant-info">
-         <h5><i class="bi bi-person-circle me-2"></i>Informasi Peserta</h5>
-         <div class="info-row">
-            <span class="info-label">Nama:</span>
-            <span class="info-value" id="participantName">Memuat...</span>
+      <!-- Content Wrapper (Landscape Layout) -->
+      <div class="content-wrapper">
+         <!-- Left Section: Participant Info -->
+         <div class="left-section">
+            <div class="participant-info">
+               <h5><i class="bi bi-person-circle me-2"></i>Informasi Peserta</h5>
+               <div class="info-grid">
+                  <div class="info-row">
+                     <span class="info-label">Nama</span>
+                     <span class="info-value" id="participantName">{{ $pesertaData['nama'] ?? 'Memuat...' }}</span>
+                  </div>
+                  <div class="info-row">
+                     <span class="info-label">Kode Peserta</span>
+                     <span class="info-value" id="participantCode">{{ $pesertaData['kode_peserta'] ?? 'Memuat...' }}</span>
+                  </div>
+                  <div class="info-row">
+                     <span class="info-label">Batch</span>
+                     <span class="info-value" id="participantBatch">{{ $pesertaData['batch'] ?? 'Memuat...' }}</span>
+                  </div>
+                  <div class="info-row">
+                     <span class="info-label">Email</span>
+                     <span class="info-value" id="participantEmail">{{ $pesertaData['email'] ?? 'Memuat...' }}</span>
+                  </div>
+               </div>
+            </div>
          </div>
-         <div class="info-row">
-            <span class="info-label">Kode Peserta:</span>
-            <span class="info-value" id="participantCode">Memuat...</span>
-         </div>
-         <div class="info-row">
-            <span class="info-label">Batch:</span>
-            <span class="info-value" id="participantBatch">Memuat...</span>
-         </div>
-         <div class="info-row">
-            <span class="info-label">Email:</span>
-            <span class="info-value" id="participantEmail">Memuat...</span>
-         </div>
-      </div>
 
-      <!-- Contact Info -->
-      <div class="contact-info">
-         <h4><i class="bi bi-telephone-fill me-2"></i>Hubungi Staff Akti</h4>
-         <p><strong>Untuk mendapatkan akses ujian, silakan hubungi:</strong></p>
-         <p class="highlight">📞 Telepon: (021) 1234-5678</p>
-         <p class="highlight">📧 Email: staff@akti.ac.id</p>
-         <p class="highlight">💬 WhatsApp: +62 812-3456-7890</p>
-         <p><small>Jam kerja: Senin - Jumat, 08:00 - 17:00 WIB</small></p>
+         <!-- Right Section: Contact Info -->
+         <div class="right-section">
+            <div class="contact-info">
+               <h4><i class="bi bi-telephone-fill me-2"></i>Hubungi Staff Akti</h4>
+               <p><strong>Untuk mendapatkan akses ujian, silakan hubungi:</strong></p>
+               <p class="highlight">📞 Telepon: (021) 1234-5678</p>
+               <p class="highlight">📧 Email: staff@akti.ac.id</p>
+               <p class="highlight">💬 WhatsApp: +62 812-3456-7890</p>
+               <p><small>Jam kerja: Senin - Jumat, 08:00 - 17:00 WIB</small></p>
+            </div>
+         </div>
       </div>
 
       <!-- Action Buttons -->
@@ -269,46 +335,15 @@
          <a href="tel:+622112345678" class="btn-contact">
             <i class="bi bi-telephone me-2"></i>Hubungi Sekarang
          </a>
-
       </div>
    </div>
 </div>
 
+<script id="peserta-data" type="application/json">
+   @json($pesertaData ?? null)
+</script>
 <script>
-   // Load participant information
-   async function loadParticipantInfo() {
-      try {
-         const response = await fetch('/student/exam/data', {
-            method: 'GET',
-            headers: {
-               'Accept': 'application/json'
-            },
-            credentials: 'same-origin'
-         });
-
-         if (response.ok) {
-            const result = await response.json();
-            if (result.success && result.peserta) {
-               // Update participant info
-               document.getElementById('participantName').textContent = result.peserta.nama || 'Peserta';
-               document.getElementById('participantCode').textContent = result.peserta.kode_peserta || 'N/A';
-               document.getElementById('participantBatch').textContent = result.peserta.batch || 'N/A';
-               document.getElementById('participantEmail').textContent = result.peserta.email || 'N/A';
-            }
-         }
-      } catch (error) {
-         console.error('Error loading participant info:', error);
-         // Set error values
-         document.getElementById('participantName').textContent = 'Error loading data';
-         document.getElementById('participantCode').textContent = 'Error loading data';
-         document.getElementById('participantBatch').textContent = 'Error loading data';
-         document.getElementById('participantEmail').textContent = 'Error loading data';
-      }
-   }
-
-   // Load participant info on page load
-   document.addEventListener('DOMContentLoaded', function() {
-      loadParticipantInfo();
-   });
+   const pesertaDataElement = document.getElementById('peserta-data');
+   const pesertaData = pesertaDataElement ? JSON.parse(pesertaDataElement.textContent) : null;
 </script>
 @endsection

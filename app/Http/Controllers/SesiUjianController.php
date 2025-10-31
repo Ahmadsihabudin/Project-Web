@@ -9,12 +9,11 @@ use App\Models\SesiUjian;
 use App\Models\Batch;
 use App\Models\Peserta;
 use App\Models\Soal;
+use Carbon\Carbon;
 
 class SesiUjianController extends Controller
 {
-   /**
-    * Display a listing of sesi ujian
-    */
+
    public function index()
    {
       return view('admin.sesi-ujian.index');
@@ -31,7 +30,6 @@ class SesiUjianController extends Controller
     */
    public function show($id)
    {
-      // Redirect to index since show view was removed
       return redirect()->route('admin.sesi-ujian.index');
    }
 
@@ -43,28 +41,21 @@ class SesiUjianController extends Controller
       return view('admin.sesi-ujian.edit', compact('id'));
    }
 
+
    /**
     * Get sesi ujian data for AJAX
     */
    public function data(Request $request)
    {
       try {
-         \Log::info('Loading sesi ujian data...');
          $sesiUjian = SesiUjian::with(['ujian', 'batch'])
             ->select('id_sesi', 'id_ujian', 'id_batch', 'mata_pelajaran', 'deskripsi', 'tanggal_mulai', 'jam_mulai', 'jam_selesai', 'tanggal_selesai', 'durasi_menit', 'status')
             ->orderBy('tanggal_mulai', 'desc')
             ->orderBy('jam_mulai', 'desc')
             ->get();
-
-         \Log::info('Found sesi ujian:', ['count' => $sesiUjian->count()]);
-
-         // Get batch names from database
          $batchNames = \DB::table('batch')
             ->pluck('nama_batch', 'id_batch')
             ->toArray();
-
-         // Get participant counts for each batch
-         // Map batch names to participant counts
          $participantCounts = [];
          $batchParticipants = \DB::table('peserta')
             ->select('batch', \DB::raw('COUNT(*) as count'))
@@ -79,12 +70,8 @@ class SesiUjianController extends Controller
 
          $transformedSesiUjian = $sesiUjian->map(function ($sesiUjianItem) use ($batchNames, $participantCounts) {
             try {
-               // Combine date and time for datetime-local display
-               // Format waktu dengan benar
                $waktuMulai = null;
                $waktuSelesai = null;
-
-               // Format waktu dengan benar - hanya gabungkan jika kedua field ada
                if ($sesiUjianItem->tanggal_mulai && $sesiUjianItem->jam_mulai) {
                   $waktuMulai = $sesiUjianItem->tanggal_mulai . ' ' . $sesiUjianItem->jam_mulai;
                } else if ($sesiUjianItem->tanggal_mulai) {
@@ -99,8 +86,6 @@ class SesiUjianController extends Controller
 
                $batchName = 'Unknown Batch';
                $participantCount = 0;
-
-               // Handle batch relationship safely
                if ($sesiUjianItem->batch && $sesiUjianItem->batch->nama_batch) {
                   $batchName = $sesiUjianItem->batch->nama_batch;
                   $participantCount = $participantCounts[$sesiUjianItem->batch->nama_batch] ?? 0;
@@ -113,7 +98,7 @@ class SesiUjianController extends Controller
                return [
                   'id' => $sesiUjianItem->id_sesi,
                   'nama_ujian' => $sesiUjianItem->ujian ? $sesiUjianItem->ujian->nama_ujian : 'Nama Ujian',
-                  'mata_pelajaran' => $sesiUjianItem->mata_pelajaran ?? '', // Add mata_pelajaran field
+                  'mata_pelajaran' => $sesiUjianItem->mata_pelajaran ?? '',
                   'deskripsi' => $sesiUjianItem->deskripsi ?? '',
                   'tanggal_mulai' => $sesiUjianItem->tanggal_mulai ? date('Y-m-d', strtotime($sesiUjianItem->tanggal_mulai)) : null,
                   'tanggal_selesai' => $sesiUjianItem->tanggal_selesai ? date('Y-m-d', strtotime($sesiUjianItem->tanggal_selesai)) : null,
@@ -138,7 +123,7 @@ class SesiUjianController extends Controller
                return [
                   'id' => $sesiUjianItem->id_sesi,
                   'nama_ujian' => 'Error loading data',
-                  'mata_pelajaran' => $sesiUjianItem->mata_pelajaran ?? '', // Add mata_pelajaran field
+                  'mata_pelajaran' => $sesiUjianItem->mata_pelajaran ?? '',
                   'deskripsi' => '',
                   'tanggal_mulai' => $sesiUjianItem->tanggal_mulai,
                   'tanggal_selesai' => $sesiUjianItem->tanggal_selesai,
@@ -184,19 +169,60 @@ class SesiUjianController extends Controller
    public function stats()
    {
       try {
+         $today = Carbon::today();
+         $now = Carbon::now();
          $total = SesiUjian::count();
-         $active = SesiUjian::where('status', 'aktif')->count();
-         $upcoming = SesiUjian::where('status', 'aktif')
-            ->where('tanggal_mulai', '>=', now()->toDateString())
+         $completed = SesiUjian::where(function ($query) use ($today) {
+            $query->where('status', 'nonaktif')
+               ->orWhere(function ($q) use ($today) {
+                  $q->whereNotNull('tanggal_selesai')
+                     ->where('tanggal_selesai', '<', $today);
+               });
+         })->count();
+         $currentTime = $now->format('H:i:s');
+         $scheduled = SesiUjian::where('status', 'aktif')
+            ->where(function ($query) use ($today, $currentTime) {
+               $query->where('tanggal_mulai', '>', $today)
+                  ->orWhere(function ($q) use ($today, $currentTime) {
+                     $q->whereDate('tanggal_mulai', $today)
+                        ->where('jam_mulai', '>', $currentTime);
+                  });
+            })
             ->count();
-         $completed = SesiUjian::where('status', 'nonaktif')->count();
+         $currentTime = $now->format('H:i:s');
+         $active = SesiUjian::where('status', 'aktif')
+            ->where(function ($query) use ($today, $currentTime) {
+               $query->where(function ($q) use ($today, $currentTime) {
+                  $q->where('tanggal_mulai', '<', $today)
+                     ->orWhere(function ($sq) use ($currentTime) {
+                        $sq->whereDate('tanggal_mulai', Carbon::today())
+                           ->where('jam_mulai', '<=', $currentTime);
+                     });
+               })
+                  ->where(function ($q) use ($today, $currentTime) {
+                     $q->whereNull('tanggal_selesai')
+                        ->orWhere('tanggal_selesai', '>', $today)
+                        ->orWhere(function ($sq) use ($currentTime) {
+                           $sq->whereDate('tanggal_selesai', Carbon::today())
+                              ->where('jam_selesai', '>=', $currentTime);
+                        });
+                  });
+            })
+            ->count();
+
+         \Log::info('SesiUjian stats calculated:', [
+            'total' => $total,
+            'active' => $active,
+            'scheduled' => $scheduled,
+            'completed' => $completed
+         ]);
 
          return response()->json([
             'success' => true,
             'data' => [
                'total' => $total,
                'active' => $active,
-               'upcoming' => $upcoming,
+               'scheduled' => $scheduled,
                'completed' => $completed
             ]
          ]);
@@ -221,7 +247,6 @@ class SesiUjianController extends Controller
    public function store(Request $request)
    {
       try {
-         // Debug log untuk melihat data yang diterima
          \Log::info('SesiUjian Store Request Data:', $request->all());
 
          $validator = Validator::make($request->all(), [
@@ -244,40 +269,30 @@ class SesiUjianController extends Controller
          }
 
          DB::beginTransaction();
-
-         // Parse datetime format (already in Y-m-d H:i:s format from frontend)
          $tanggalMulai = date('Y-m-d', strtotime($request->tanggal_mulai));
          $jamMulai = date('H:i:s', strtotime($request->tanggal_mulai));
          $tanggalSelesai = date('Y-m-d', strtotime($request->tanggal_selesai));
          $jamSelesai = date('H:i:s', strtotime($request->tanggal_selesai));
-
-         // Debug log untuk melihat data yang diterima
          \Log::info('Parsed datetime values:', [
             'tanggal_mulai' => $tanggalMulai,
             'jam_mulai' => $jamMulai,
             'tanggal_selesai' => $tanggalSelesai,
             'jam_selesai' => $jamSelesai
          ]);
-
-         // Create single sesi ujian with all selected mata pelajaran
          $mataPelajaranString = implode(', ', $request->mata_pelajaran);
-
-         // Create nama ujian based on all selected mata pelajaran
          $namaUjian = 'Ujian ' . $mataPelajaranString;
-
-         // Create or get ujian first (using nama_ujian as key)
          $ujian = \App\Models\Ujian::firstOrCreate(
             ['nama_ujian' => $namaUjian],
             [
                'mata_pelajaran' => $mataPelajaranString,
-               'deskripsi' => '', // Deskripsi sekarang di sesi_ujian
+               'deskripsi' => '',
             ]
          );
 
          $sesiUjian = SesiUjian::create([
             'id_ujian' => $ujian->id_ujian,
             'id_batch' => $request->id_batch,
-            'mata_pelajaran' => $mataPelajaranString, // Store all subjects as comma-separated string
+            'mata_pelajaran' => $mataPelajaranString,
             'deskripsi' => $request->deskripsi ?? '',
             'tanggal_mulai' => $tanggalMulai,
             'tanggal_selesai' => $tanggalSelesai,
@@ -297,8 +312,6 @@ class SesiUjianController extends Controller
          ]);
       } catch (\Exception $e) {
          DB::rollBack();
-
-         // Log detailed error
          \Log::error('Error creating sesi ujian:', [
             'message' => $e->getMessage(),
             'file' => $e->getFile(),
@@ -322,8 +335,6 @@ class SesiUjianController extends Controller
    {
       try {
          $sesiUjian = SesiUjian::with(['ujian', 'batch'])->findOrFail($id);
-
-         // Format data untuk edit form
          $sesiUjianData = [
             'id' => $sesiUjian->id_sesi,
             'deskripsi' => $sesiUjian->deskripsi ?? '',
@@ -338,8 +349,6 @@ class SesiUjianController extends Controller
             'created_at' => 'N/A',
             'updated_at' => 'N/A'
          ];
-
-         // Debug log untuk melihat data yang dikirim
          \Log::info('SesiUjian Show Data:', [
             'id' => $sesiUjianData['id'],
             'deskripsi' => $sesiUjianData['deskripsi'],
@@ -369,7 +378,6 @@ class SesiUjianController extends Controller
    public function update(Request $request, $id)
    {
       try {
-         // Debug log untuk melihat data yang diterima
          \Log::info('SesiUjian Update Request Data:', $request->all());
 
          $sesiUjian = SesiUjian::findOrFail($id);
@@ -391,16 +399,12 @@ class SesiUjianController extends Controller
                'errors' => $validator->errors()
             ], 422);
          }
-
-         // Parse datetime format (YYYY-MM-DD HH:MM)
          \Log::info('DateTime parsing - Raw values:', [
             'tanggal_mulai' => $request->tanggal_mulai,
             'tanggal_selesai' => $request->tanggal_selesai,
             'tanggal_mulai_type' => gettype($request->tanggal_mulai),
             'tanggal_selesai_type' => gettype($request->tanggal_selesai)
          ]);
-
-         // Validate datetime values before parsing
          if (empty($request->tanggal_mulai) || empty($request->tanggal_selesai)) {
             throw new \Exception('Tanggal mulai atau tanggal selesai tidak boleh kosong');
          }
@@ -418,8 +422,6 @@ class SesiUjianController extends Controller
          ]);
 
          DB::beginTransaction();
-
-         // Handle mata pelajaran array
          \Log::info('Mata pelajaran data type:', ['type' => gettype($request->mata_pelajaran), 'value' => $request->mata_pelajaran]);
 
          $mataPelajaranString = is_array($request->mata_pelajaran)
@@ -427,11 +429,7 @@ class SesiUjianController extends Controller
             : $request->mata_pelajaran;
 
          \Log::info('Mata pelajaran string:', ['string' => $mataPelajaranString]);
-
-         // Create nama ujian based on all selected mata pelajaran
          $namaUjian = 'Ujian ' . $mataPelajaranString;
-
-         // Update or create ujian
          try {
             \Log::info('Creating/updating ujian with data:', [
                'nama_ujian' => $namaUjian,
@@ -485,8 +483,6 @@ class SesiUjianController extends Controller
             ]);
             throw $e;
          }
-
-         // Debug log untuk melihat data yang tersimpan
          \Log::info('SesiUjian Updated Data:', [
             'id' => $sesiUjian->id_sesi,
             'jam_mulai' => $sesiUjian->jam_mulai,
@@ -503,8 +499,6 @@ class SesiUjianController extends Controller
          ]);
       } catch (\Exception $e) {
          DB::rollBack();
-
-         // Log detailed error with stack trace
          \Log::error('Error updating sesi ujian:', [
             'id' => $id,
             'request_data' => $request->all(),
@@ -513,8 +507,6 @@ class SesiUjianController extends Controller
             'error_line' => $e->getLine(),
             'error_trace' => $e->getTraceAsString()
          ]);
-
-         // Check if it's the specific "Undefined array key" error
          if (strpos($e->getMessage(), 'Undefined array key') !== false) {
             \Log::error('UNDEFINED ARRAY KEY ERROR DETECTED:', [
                'message' => $e->getMessage(),
@@ -544,8 +536,6 @@ class SesiUjianController extends Controller
          \Log::info('SesiUjian found:', ['id' => $sesiUjian->id_sesi, 'mata_pelajaran' => $sesiUjian->mata_pelajaran]);
 
          DB::beginTransaction();
-
-         // Delete sesi ujian
          $sesiUjian->delete();
          \Log::info('SesiUjian deleted successfully:', ['id' => $id]);
 
@@ -654,7 +644,6 @@ class SesiUjianController extends Controller
    public function getAvailableBatches()
    {
       try {
-         // Query batch yang memiliki peserta berdasarkan string batch di tabel peserta
          $batches = \DB::table('peserta')
             ->select('batch')
             ->whereNotNull('batch')
@@ -664,9 +653,9 @@ class SesiUjianController extends Controller
             ->get()
             ->map(function ($item, $index) {
                return [
-                  'id' => $index + 1, // Generate sequential ID
-                  'batch_name' => $item->batch, // Store original batch name
-                  'nama_batch' => $item->batch, // Display name
+                  'id' => $index + 1,
+                  'batch_name' => $item->batch,
+                  'nama_batch' => $item->batch,
                   'keterangan' => 'Batch dari data peserta'
                ];
             });

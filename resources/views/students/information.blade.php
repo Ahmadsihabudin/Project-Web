@@ -22,6 +22,7 @@
          opacity: 0;
          transform: translateY(30px);
       }
+
       to {
          opacity: 1;
          transform: translateY(0);
@@ -83,9 +84,12 @@
    }
 
    @keyframes borderGlow {
-      0%, 100% {
+
+      0%,
+      100% {
          opacity: 0.8;
       }
+
       50% {
          opacity: 1;
       }
@@ -96,6 +100,7 @@
          opacity: 0;
          transform: translateY(-20px);
       }
+
       to {
          opacity: 1;
          transform: translateY(0);
@@ -149,12 +154,29 @@
       animation-fill-mode: forwards;
    }
 
-   .info-item:nth-child(1) { animation-delay: 0.1s; }
-   .info-item:nth-child(2) { animation-delay: 0.2s; }
-   .info-item:nth-child(3) { animation-delay: 0.3s; }
-   .info-item:nth-child(4) { animation-delay: 0.4s; }
-   .info-item:nth-child(5) { animation-delay: 0.5s; }
-   .info-item:nth-child(6) { animation-delay: 0.6s; }
+   .info-item:nth-child(1) {
+      animation-delay: 0.1s;
+   }
+
+   .info-item:nth-child(2) {
+      animation-delay: 0.2s;
+   }
+
+   .info-item:nth-child(3) {
+      animation-delay: 0.3s;
+   }
+
+   .info-item:nth-child(4) {
+      animation-delay: 0.4s;
+   }
+
+   .info-item:nth-child(5) {
+      animation-delay: 0.5s;
+   }
+
+   .info-item:nth-child(6) {
+      animation-delay: 0.6s;
+   }
 
    .info-item:hover {
       transform: translateY(-2px);
@@ -235,7 +257,7 @@
       font-weight: bold;
    }
 
-   /* Button Next Styling */
+
    .btn-primary {
       background: linear-gradient(135deg, #991B1B, #B91C1C);
       border: none;
@@ -363,7 +385,7 @@
          <span id="welcomeTitle">Selamat Datang di Sistem Ujian Online</span>
       </h1>
       <p class="welcome-subtitle">
-         <span id="welcomeSubtitle">Silakan periksa informasi Anda dan pilih ujian yang tersedia</span>
+         <span id="welcomeSubtitle">Silakan periksa informasi ujian anda</span>
       </p>
    </div>
 
@@ -456,16 +478,27 @@
 
    <!-- Next to Exam Info Button -->
    <div class="text-center mt-3 mb-3">
+      @if(isset($initialExamInfoUrl) && !empty($initialExamInfoUrl) && $initialExamInfoUrl !== '#')
+      <a id="nextExamBtn" href="{{ $initialExamInfoUrl }}" class="btn btn-primary" role="button">
+         <i class="bi bi-arrow-right-circle me-2"></i>
+         Next
+      </a>
+      @elseif(isset($initialExamId) && !empty($initialExamId))
+      <a id="nextExamBtn" href="{{ route('student.exam.info-warning', $initialExamId) }}" class="btn btn-primary" role="button">
+         <i class="bi bi-arrow-right-circle me-2"></i>
+         Next
+      </a>
+      @else
       <a id="nextExamBtn" href="#" class="btn btn-primary" role="button">
          <i class="bi bi-arrow-right-circle me-2"></i>
          Next
       </a>
+      @endif
    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-   // Load user info only
    async function loadUserInfo() {
       try {
          const response = await fetch('/student/exam/data', {
@@ -475,17 +508,12 @@
             },
             credentials: 'same-origin'
          });
-         console.log('Response status:', response.status);
 
          if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
          }
 
          const result = await response.json();
-         console.log('📡 API Response:', result);
-         console.log('📡 API Response success:', result.success);
-         console.log('📡 API Response data:', result.data);
-         console.log('📡 API Response peserta:', result.peserta);
 
          if (result.success && result.peserta) {
             // Update student info
@@ -495,77 +523,106 @@
             document.getElementById('studentEmail').textContent = result.peserta.email || 'N/A';
             document.getElementById('studentSchool').textContent = result.peserta.asal_smk || 'N/A';
             document.getElementById('studentMajor').textContent = result.peserta.jurusan || 'N/A';
-            
-            // Update button if we have exam data
-            console.log('🔍 Checking exam data...');
-            console.log('🔍 result.data exists:', !!result.data);
-            console.log('🔍 result.data is array:', Array.isArray(result.data));
-            console.log('🔍 result.data length:', result.data ? result.data.length : 'N/A');
-            
-            if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-               const firstExam = result.data[0];
-               const nextExamBtn = document.getElementById('nextExamBtn');
-               
-               console.log('🔍 Exam data found:', firstExam);
-               console.log('🔍 Button element:', nextExamBtn);
-               
-               if (nextExamBtn) {
-                  const newHref = `/student/exam/${firstExam.id}/info-warning`;
-                  nextExamBtn.href = newHref;
-                  console.log('✅ Button href updated to:', newHref);
-                  console.log('✅ Button current href:', nextExamBtn.href);
-               } else {
-                  console.error('❌ Button not found!');
-               }
-            } else {
-               console.log('❌ No exam data available or invalid format');
-               console.log('❌ result.data:', result.data);
-            }
          }
       } catch (error) {
-         console.error('Error loading user info:', error);
+         // Error loading user info
       }
    }
+</script>
 
-   // Initialize on page load
+@if(session('error'))
+<script id="session-error-data" type="application/json">
+   @json(session('error'))
+</script>
+@endif
+
+<script>
    document.addEventListener('DOMContentLoaded', function() {
       // Check for error message from session
-      @if(session('error'))
-         alert('{{ session('error') }}');
-      @endif
-      
-      // Add click listener to button for debugging
+      const errorDataElement = document.getElementById('session-error-data');
+      if (errorDataElement) {
+         const errorMessage = JSON.parse(errorDataElement.textContent);
+         if (errorMessage) {
+            alert(errorMessage);
+         }
+      }
+
+      // Load user and exam data first
+      loadUserInfo();
+
+      // Ensure Next button has valid URL
       const nextBtn = document.getElementById('nextExamBtn');
       if (nextBtn) {
+         const currentHref = nextBtn.getAttribute('href');
+
+         // Function to update button URL
+         const updateButtonUrl = (url) => {
+            nextBtn.href = url;
+         };
+
          nextBtn.addEventListener('click', function(e) {
-            console.log('🖱️ Button clicked!');
-            console.log('🖱️ Current href:', this.href);
-            console.log('🖱️ Event:', e);
-            
-            if (this.href === '#' || this.href === window.location.href) {
-               console.error('❌ Button href is not set properly!');
-               console.log('🔧 Attempting to set href manually...');
-               
-               // Try to set href manually as fallback
-               this.href = '/student/exam/3/info-warning';
-               console.log('🔧 Manual href set to:', this.href);
-               
-               // Try again
-               if (this.href === '#' || this.href === window.location.href) {
-                  e.preventDefault();
-                  alert('Button belum diatur dengan benar. Silakan refresh halaman.');
-               } else {
-                  console.log('✅ Manual href set successfully, proceeding...');
-                  window.location.href = this.href;
-               }
-            } else {
-               console.log('✅ Button href is valid, proceeding...');
+            const href = this.getAttribute('href');
+            const isDisabled = this.style.pointerEvents === 'none' || this.style.opacity === '0.6';
+
+            if (isDisabled) {
+               e.preventDefault();
+               return false;
+            }
+
+            if (!href || href === '#' || href === '') {
+               e.preventDefault();
+               alert('Sedang memuat data ujian, silakan tunggu sebentar...');
+               return false;
             }
          });
+
+         if (!currentHref || currentHref === '#' || currentHref === '') {
+
+            nextBtn.style.opacity = '0.6';
+            nextBtn.style.pointerEvents = 'none';
+            nextBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Memuat...';
+
+
+            fetch('/student/exam/data')
+               .then(response => {
+                  if (!response.ok) {
+                     throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+                  return response.json();
+               })
+               .then(result => {
+                  if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
+                     const firstExam = result.data[0];
+                     let newUrl = null;
+
+                     if (firstExam.info_warning_url) {
+                        const url = new URL(firstExam.info_warning_url);
+                        newUrl = url.pathname;
+                     } else {
+                        const examId = firstExam.id || firstExam.id_sesi;
+                        if (examId) {
+                           newUrl = `/student/exam/${examId}/info-warning`;
+                        }
+                     }
+
+                     if (newUrl) {
+                        updateButtonUrl(newUrl);
+                        nextBtn.style.opacity = '1';
+                        nextBtn.style.pointerEvents = 'auto';
+                        nextBtn.innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i>Next';
+                     } else {
+                        nextBtn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Error';
+                     }
+                  } else {
+                     nextBtn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Error';
+                  }
+               })
+               .catch(err => {
+                  nextBtn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Error';
+                  nextBtn.style.opacity = '1';
+               });
+         }
       }
-      
-      // Load user info
-      loadUserInfo();
    });
 </script>
 @endsection

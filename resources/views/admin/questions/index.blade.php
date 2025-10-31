@@ -17,6 +17,8 @@
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
 
+   <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
+
    <style>
       .page-header {
          background: #f8f9fa;
@@ -428,7 +430,8 @@
    </div>
 
    <script>
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      // Use var instead of const to avoid redeclaration error if included in layout
+      var csrfToken = typeof csrfToken !== 'undefined' ? csrfToken : document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       // Load statistics
       async function loadStats() {
@@ -686,29 +689,52 @@
 
       // Delete question
       async function deleteQuestion(id) {
-         if (confirm('Apakah Anda yakin ingin menghapus soal ini?')) {
-            try {
-               const response = await fetch(`/admin/questions/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                     'Content-Type': 'application/json',
-                     'X-CSRF-TOKEN': csrfToken
-                  }
-               });
-
-               const result = await response.json();
-
-               if (result.success) {
-                  alertSystem.deleteSuccess('Soal');
-                  loadQuestions();
-                  loadStats();
-               } else {
-                  alertSystem.error('Gagal menghapus soal', result.message);
+         const confirmed = await Swal.fire({
+            title: 'Hapus Soal?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true
+         }).then(r => r.isConfirmed);
+         if (!confirmed) return;
+         try {
+            const response = await fetch(`/admin/questions/${id}`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
                }
-            } catch (error) {
-               console.error('Error deleting question:', error);
-               alertSystem.error('Gagal menghapus soal', 'Terjadi kesalahan jaringan');
+            });
+            const result = await response.json();
+            if (result.success) {
+               await Swal.fire({
+                  title: 'Berhasil',
+                  text: 'Soal telah dihapus.',
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#0d6efd'
+               });
+               loadQuestions();
+               loadStats();
+            } else {
+               Swal.fire({
+                  title: 'Gagal menghapus',
+                  text: result.message || 'Terjadi kesalahan.',
+                  icon: 'error',
+                  confirmButtonText: 'Tutup'
+               });
             }
+         } catch (_) {
+            Swal.fire({
+               title: 'Gagal menghapus',
+               text: 'Terjadi kesalahan jaringan.',
+               icon: 'error',
+               confirmButtonText: 'Tutup'
+            });
          }
       }
 
@@ -783,6 +809,7 @@
          }
       }
    </script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <!-- Import Modal -->
    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">

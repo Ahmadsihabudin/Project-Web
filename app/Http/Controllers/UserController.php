@@ -21,14 +21,10 @@ class UserController extends Controller
          $users = User::select('id', 'name', 'email', 'role', 'last_login_at')
             ->orderBy('id', 'desc')
             ->get();
-
-         // Add is_active status (simplified - you can add is_active column later)
          $users = $users->map(function ($user) {
-            $user->is_active = true; // For now, all users are considered active
+            $user->is_active = true;
             return $user;
          });
-
-         // Calculate statistics
          $stats = [
             'total' => $users->count(),
             'active' => $users->where('is_active', true)->count(),
@@ -50,11 +46,18 @@ class UserController extends Controller
    }
 
    /**
+    * Show the form for creating a new user
+    */
+   public function create()
+   {
+      return view('admin.users.create');
+   }
+
+   /**
     * Store a newly created user
     */
    public function store(Request $request)
    {
-      // Check if user is admin (only admin can create new users)
       if (session('user_type') !== 'admin') {
          return response()->json([
             'success' => false,
@@ -63,13 +66,53 @@ class UserController extends Controller
       }
 
       $validator = Validator::make($request->all(), [
-         'name' => 'required|string|max:255',
-         'email' => 'required|email|unique:users,email',
-         'password' => 'required|string|min:6',
-         'role' => 'required|in:admin,staff'
+         'name' => 'required|string|max:255|min:2',
+         'email' => 'required|email|max:255|unique:users,email',
+         'username' => 'required|string|max:255|min:3',
+         'password' => 'required|string|min:6|max:255',
+         'password_confirmation' => 'required|string|min:6|max:255',
+         'role' => 'required|in:admin,staff,supervisor',
+         'status' => 'nullable|in:active,inactive',
+         'phone' => 'nullable|string|max:20',
+         'address' => 'nullable|string|max:500',
+         'notes' => 'nullable|string|max:1000'
+      ], [
+         'name.required' => 'Nama lengkap harus diisi',
+         'name.min' => 'Nama minimal 2 karakter',
+         'email.required' => 'Email harus diisi',
+         'email.email' => 'Format email tidak valid',
+         'email.unique' => 'Email sudah digunakan',
+         'username.required' => 'Username harus diisi',
+         'username.min' => 'Username minimal 3 karakter',
+         'username.unique' => 'Username sudah digunakan',
+         'password.required' => 'Password harus diisi',
+         'password.min' => 'Password minimal 6 karakter',
+         'password_confirmation.required' => 'Konfirmasi password harus diisi',
+         'password_confirmation.min' => 'Konfirmasi password minimal 6 karakter',
+         'role.required' => 'Role harus diisi',
+         'role.in' => 'Role harus admin, staff, atau supervisor',
+         'status.in' => 'Status harus active atau inactive',
+         'phone.max' => 'Nomor telepon maksimal 20 karakter',
+         'address.max' => 'Alamat maksimal 500 karakter',
+         'notes.max' => 'Catatan maksimal 1000 karakter'
       ]);
+      if ($request->password !== $request->password_confirmation) {
+         $validator->errors()->add('password_confirmation', 'Konfirmasi password tidak sesuai');
+      }
+      $existingUsername = User::where('username', $request->username)
+         ->whereNotNull('username')
+         ->exists();
+
+      if ($existingUsername) {
+         $validator->errors()->add('username', 'Username sudah digunakan');
+      }
 
       if ($validator->fails()) {
+         \Log::error('User validation failed', [
+            'errors' => $validator->errors()->toArray(),
+            'input' => $request->all()
+         ]);
+
          return response()->json([
             'success' => false,
             'message' => 'Validasi gagal',
@@ -81,13 +124,14 @@ class UserController extends Controller
          $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->username,
             'password' => SecurityHelper::hashPassword($request->password),
             'role' => $request->role,
-            'login_attempts' => 0,
-            'locked_until' => null
+            'status' => $request->status ?: 'active',
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'notes' => $request->notes
          ]);
-
-         // Log activity
          ActivityLog::create([
             'user_type' => 'admin',
             'user_id' => session('user_id'),
@@ -120,7 +164,7 @@ class UserController extends Controller
          $user = User::select('id', 'name', 'email', 'role', 'last_login_at')
             ->findOrFail($id);
 
-         $user->is_active = true; // For now, all users are considered active
+         $user->is_active = true;
 
          return view('admin.users.edit', compact('user'));
       } catch (\Exception $e) {
@@ -138,7 +182,7 @@ class UserController extends Controller
          $user = User::select('id', 'name', 'email', 'role', 'last_login_at')
             ->findOrFail($id);
 
-         $user->is_active = true; // For now, all users are considered active
+         $user->is_active = true;
 
          return response()->json([
             'success' => true,
@@ -157,7 +201,6 @@ class UserController extends Controller
     */
    public function update(Request $request, $id)
    {
-      // Check if user is admin (only admin can update users)
       if (session('user_type') !== 'admin') {
          return response()->json([
             'success' => false,
@@ -166,10 +209,19 @@ class UserController extends Controller
       }
 
       $validator = Validator::make($request->all(), [
-         'name' => 'required|string|max:255',
+         'name' => 'required|string|max:255|min:2',
          'email' => 'required|email|unique:users,email,' . $id,
          'password' => 'nullable|string|min:6',
          'role' => 'required|in:admin,staff'
+      ], [
+         'name.required' => 'Nama lengkap harus diisi',
+         'name.min' => 'Nama minimal 2 karakter',
+         'email.required' => 'Email harus diisi',
+         'email.email' => 'Format email tidak valid',
+         'email.unique' => 'Email sudah digunakan',
+         'password.min' => 'Password minimal 6 karakter',
+         'role.required' => 'Role harus diisi',
+         'role.in' => 'Role harus admin atau staff'
       ]);
 
       if ($validator->fails()) {
@@ -189,15 +241,11 @@ class UserController extends Controller
             'email' => $request->email,
             'role' => $request->role
          ];
-
-         // Only update password if provided
          if ($request->filled('password')) {
             $updateData['password'] = SecurityHelper::hashPassword($request->password);
          }
 
          $user->update($updateData);
-
-         // Log activity
          ActivityLog::create([
             'user_type' => 'admin',
             'user_id' => session('user_id'),
@@ -226,7 +274,6 @@ class UserController extends Controller
     */
    public function destroy(Request $request, $id)
    {
-      // Check if user is admin (only admin can delete users)
       if (session('user_type') !== 'admin') {
          return response()->json([
             'success' => false,
@@ -237,8 +284,6 @@ class UserController extends Controller
       try {
          $user = User::findOrFail($id);
          $userName = $user->name;
-
-         // Prevent deleting the last admin
          if ($user->role === 'admin') {
             $adminCount = User::where('role', 'admin')->count();
             if ($adminCount <= 1) {
@@ -250,8 +295,6 @@ class UserController extends Controller
          }
 
          $user->delete();
-
-         // Log activity
          ActivityLog::create([
             'user_type' => 'admin',
             'user_id' => session('user_id'),
@@ -291,14 +334,10 @@ class UserController extends Controller
          $users = User::select('id', 'name', 'email', 'role', 'last_login_at')
             ->orderBy('id', 'desc')
             ->get();
-
-         // Add is_active status (simplified - you can add is_active column later)
          $users = $users->map(function ($user) {
-            $user->is_active = true; // For now, all users are considered active
+            $user->is_active = true;
             return $user;
          });
-
-         // Calculate statistics
          $stats = [
             'total' => $users->count(),
             'active' => $users->where('is_active', true)->count(),
