@@ -16,6 +16,7 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <style>
       .form-control.is-valid {
@@ -122,12 +123,32 @@
                                  <label for="pertanyaan" class="form-label fw-bold">Pertanyaan <span class="text-danger">*</span></label>
                                  <textarea class="form-control" id="pertanyaan" name="pertanyaan" rows="4" required placeholder="Masukkan pertanyaan..."></textarea>
                               </div>
+                              <div class="mb-3" id="gambarContainer" style="display: none;">
+                                 <label for="gambar" class="form-label fw-bold">Gambar Soal</label>
+                                 <input type="file" class="form-control" id="gambar" name="gambar" accept="image/jpeg,image/jpg,image/png,image/gif">
+                                 <small class="form-text text-muted">Format: JPG, PNG, GIF. Maksimal 2MB</small>
+                                 <div id="gambarPreviewContainer" class="mt-2">
+                                    <div id="existingGambar" style="display: none;">
+                                       <p class="mb-2"><strong>Gambar Saat Ini:</strong></p>
+                                       <img id="existingGambarImg" src="" alt="Gambar Soal" class="img-thumbnail" style="max-width: 300px; max-height: 300px;">
+                                       <div class="mt-2">
+                                          <label class="form-check-label">
+                                             <input type="checkbox" id="hapus_gambar" name="hapus_gambar" value="1" class="form-check-input">
+                                             Hapus gambar
+                                          </label>
+                                       </div>
+                                    </div>
+                                    <div id="newGambarPreview" class="mt-2" style="display: none;">
+                                       <p class="mb-2"><strong>Preview Gambar Baru:</strong></p>
+                                       <img id="gambarPreviewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 300px; max-height: 300px;">
+                                    </div>
+                                 </div>
+                              </div>
                               <div class="mb-3">
                                  <label for="tipe_soal" class="form-label fw-bold">Tipe Soal <span class="text-danger">*</span></label>
                                  <select class="form-select" id="tipe_soal" name="tipe_soal" required>
                                     <option value="">Pilih Tipe Soal</option>
                                     <option value="pilihan_ganda">Pilihan Ganda</option>
-                                    <option value="essay">Essay</option>
                                  </select>
                               </div>
                            </div>
@@ -140,6 +161,11 @@
                               <div class="mb-3">
                                  <label for="poin" class="form-label fw-bold">Poin <span class="text-danger">*</span></label>
                                  <input type="number" class="form-control" id="poin" name="poin" min="1" max="100" required>
+                              </div>
+                              <div class="mb-3">
+                                 <label for="durasi_soal" class="form-label fw-bold">Durasi Soal (Menit)</label>
+                                 <input type="number" class="form-control" id="durasi_soal" name="durasi_soal" min="1" placeholder="Contoh: 5" value="">
+                                 <div class="form-text">Waktu maksimal untuk mengerjakan soal ini (dalam menit). Kosongkan jika tidak ada batas waktu.</div>
                               </div>
                               <div class="mb-3">
                                  <label for="umpan_balik" class="form-label fw-bold">Umpan Balik</label>
@@ -255,13 +281,6 @@
                                  </div>
                               </div>
 
-                              <!-- Jawaban Benar untuk Essay dan Benar/Salah -->
-                              <div class="row mb-3" id="jawabanEssay" style="display: none;">
-                                 <div class="col-md-12">
-                                    <label for="jawaban_benar_essay" class="form-label fw-bold">Jawaban Benar <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" name="jawaban_benar_essay" id="jawaban_benar_essay" rows="3" placeholder="Masukkan jawaban yang benar..."></textarea>
-                                 </div>
-                              </div>
                            </div>
                         </div>
                      </div>
@@ -296,7 +315,6 @@
       function getTipeSoalText(tipe) {
          const tipeMap = {
             'pilihan_ganda': 'Pilihan Ganda',
-            'essay': 'Essay',
             'benar_salah': 'Benar/Salah'
          };
          return tipeMap[tipe] || tipe || 'Pilihan Ganda';
@@ -324,7 +342,27 @@
                   document.getElementById('pertanyaan').value = question.pertanyaan || '';
                   document.getElementById('tipe_soal').value = question.tipe_soal || '';
                   document.getElementById('poin').value = question.poin || '';
+                  document.getElementById('durasi_soal').value = question.durasi_soal || '';
                   document.getElementById('umpan_balik').value = question.umpan_balik || '';
+
+                  // Handle gambar
+                  const gambarContainer = document.getElementById('gambarContainer');
+                  const existingGambar = document.getElementById('existingGambar');
+                  const existingGambarImg = document.getElementById('existingGambarImg');
+                  
+                  if (question.tipe_soal === 'pilihan_ganda') {
+                     if (gambarContainer) gambarContainer.style.display = 'block';
+                     
+                     // Show existing image if exists
+                     if (question.gambar) {
+                        existingGambarImg.src = '/' + question.gambar;
+                        existingGambar.style.display = 'block';
+                     } else {
+                        existingGambar.style.display = 'none';
+                     }
+                  } else {
+                     if (gambarContainer) gambarContainer.style.display = 'none';
+                  }
 
                   // Generate answer options if it's multiple choice
                   if (question.tipe_soal === 'pilihan_ganda') {
@@ -343,9 +381,6 @@
                         const correctRadio = document.getElementById(`jawaban_${question.jawaban_benar}`);
                         if (correctRadio) correctRadio.checked = true;
                      }
-                  } else if (question.tipe_soal === 'essay' || question.tipe_soal === 'benar_salah') {
-                     document.getElementById('jawaban_benar_essay').value = question.jawaban_benar || '';
-                  }
                }
             }
          } catch (error) {
@@ -359,20 +394,16 @@
          const tipeSoal = document.getElementById('tipe_soal').value;
          const answerOptionsSection = document.getElementById('answerOptionsSection');
          const jawabanPilihanGanda = document.getElementById('jawabanPilihanGanda');
-         const jawabanEssay = document.getElementById('jawabanEssay');
+         const gambarContainer = document.getElementById('gambarContainer');
 
          if (tipeSoal === 'pilihan_ganda') {
             answerOptionsSection.style.display = 'block';
             jawabanPilihanGanda.style.display = 'block';
-            jawabanEssay.style.display = 'none';
-         } else if (tipeSoal === 'essay') {
-            answerOptionsSection.style.display = 'none';
-            jawabanPilihanGanda.style.display = 'none';
-            jawabanEssay.style.display = 'block';
+            if (gambarContainer) gambarContainer.style.display = 'block';
          } else {
             answerOptionsSection.style.display = 'none';
             jawabanPilihanGanda.style.display = 'none';
-            jawabanEssay.style.display = 'none';
+            if (gambarContainer) gambarContainer.style.display = 'none';
          }
       }
 
@@ -396,25 +427,49 @@
          const poin = form.querySelector('#poin').value;
 
          if (!pertanyaan) {
-            alert('Pertanyaan harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Pertanyaan harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#pertanyaan').focus();
             return;
          }
 
          if (!mataPelajaran) {
-            alert('Mata Pelajaran harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Mata Pelajaran harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#mata_pelajaran').focus();
             return;
          }
 
          if (!tipeSoal) {
-            alert('Tipe Soal harus dipilih!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Tipe Soal harus dipilih!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#tipe_soal').focus();
             return;
          }
 
          if (!poin || poin < 1) {
-            alert('Poin harus diisi dan minimal 1!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Poin harus diisi dan minimal 1!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#poin').focus();
             return;
          }
@@ -428,25 +483,28 @@
             const jawabanBenar = form.querySelector('input[name="jawaban_benar"]:checked');
 
             if (!opsiA || !opsiB || !opsiC || !opsiD) {
-               alert('Semua opsi jawaban (A, B, C, D) harus diisi!');
+               await Swal.fire({
+                  icon: 'warning',
+                  title: 'Validasi Gagal',
+                  text: 'Semua opsi jawaban (A, B, C, D) harus diisi!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
                return;
             }
 
             if (!jawabanBenar) {
-               alert('Pilih jawaban yang benar (A, B, C, D, E, atau F)!');
+               await Swal.fire({
+                  icon: 'warning',
+                  title: 'Validasi Gagal',
+                  text: 'Pilih jawaban yang benar (A, B, C, D, E, atau F)!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
                return;
             }
          }
 
-         // Validasi untuk essay
-         if (tipeSoal === 'essay') {
-            const jawabanBenarEssay = form.querySelector('#jawaban_benar_essay').value.trim();
-
-            if (!jawabanBenarEssay) {
-               alert('Jawaban benar harus diisi!');
-               return;
-            }
-         }
 
          console.log('Form validation passed');
 
@@ -455,43 +513,29 @@
          try {
             const formData = new FormData(event.target);
 
-            const questionData = {
-               batch: formData.get('batch') || null,
-               pertanyaan: formData.get('pertanyaan'),
-               mata_pelajaran: formData.get('mata_pelajaran'),
-               tipe_soal: formData.get('tipe_soal'),
-               poin: parseInt(formData.get('poin')) || 1,
-               umpan_balik: formData.get('umpan_balik') || null
-            };
-
-            // Handle jawaban benar berdasarkan tipe soal
-            if (tipeSoal === 'pilihan_ganda') {
-               questionData.jawaban_benar = formData.get('jawaban_benar');
-               questionData.opsi_a = formData.get('opsi_a') || '';
-               questionData.opsi_b = formData.get('opsi_b') || '';
-               questionData.opsi_c = formData.get('opsi_c') || '';
-               questionData.opsi_d = formData.get('opsi_d') || '';
-               questionData.opsi_e = formData.get('opsi_e') || '';
-               questionData.opsi_f = formData.get('opsi_f') || '';
-            } else if (tipeSoal === 'essay') {
-               questionData.jawaban_benar = formData.get('jawaban_benar_essay');
-               questionData.opsi_a = '';
-               questionData.opsi_b = '';
-               questionData.opsi_c = '';
-               questionData.opsi_d = '';
-               questionData.opsi_e = '';
-               questionData.opsi_f = '';
+            // Add image if exists
+            const gambarInput = document.getElementById('gambar');
+            if (gambarInput && gambarInput.files.length > 0) {
+               formData.append('gambar', gambarInput.files[0]);
             }
 
-            console.log('Question Data to be sent:', questionData);
+            // Add hapus_gambar flag if checked
+            const hapusGambarCheckbox = document.getElementById('hapus_gambar');
+            if (hapusGambarCheckbox && hapusGambarCheckbox.checked) {
+               formData.append('hapus_gambar', '1');
+            }
+
+            console.log('Form Data to be sent:', formData);
+
+            // Add _method for PUT
+            formData.append('_method', 'PUT');
 
             const response = await fetch(`/admin/questions/${questionId}`, {
-               method: 'PUT',
+               method: 'POST',
                headers: {
-                  'Content-Type': 'application/json',
                   'X-CSRF-TOKEN': csrfToken
                },
-               body: JSON.stringify(questionData)
+               body: formData
             });
 
             const result = await response.json();
@@ -499,16 +543,44 @@
 
             if (result.success) {
                alertSystem.updateSuccess('Soal');
+               
+               // Show SweetAlert success
+               await Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  text: 'Soal berhasil diperbarui!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
 
                // Redirect to index page
                window.location.href = '{{ route("admin.questions.index") }}';
             } else {
-               alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
+               // Show validation errors or error message
+               let errorMessage = result.message || 'Terjadi kesalahan';
+               if (result.errors) {
+                  const errorList = Object.values(result.errors).flat().join('<br>');
+                  errorMessage = errorList || errorMessage;
+               }
+               
+               await Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal Menyimpan',
+                  html: errorMessage,
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
             }
          } catch (error) {
             console.error('Error saving question:', error);
             alertSystem.hide(loadingAlert);
-            alertSystem.error('Gagal menyimpan', 'Terjadi kesalahan jaringan: ' + error.message);
+            await Swal.fire({
+               icon: 'error',
+               title: 'Gagal Menyimpan',
+               text: 'Terjadi kesalahan jaringan: ' + error.message,
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
          }
       }
 
@@ -527,12 +599,35 @@
          const editForm = document.getElementById('editQuestionForm');
          const tipeSoalSelect = document.getElementById('tipe_soal');
 
+         const gambarInput = document.getElementById('gambar');
+         const gambarPreviewImg = document.getElementById('gambarPreviewImg');
+         const newGambarPreview = document.getElementById('newGambarPreview');
+         const existingGambar = document.getElementById('existingGambar');
+
          if (editForm) {
             editForm.addEventListener('submit', handleEditForm);
          }
 
          if (tipeSoalSelect) {
             tipeSoalSelect.addEventListener('change', generateAnswerOptions);
+         }
+
+         // Preview gambar baru when file is selected
+         if (gambarInput && gambarPreviewImg && newGambarPreview) {
+            gambarInput.addEventListener('change', function(e) {
+               const file = e.target.files[0];
+               if (file) {
+                  const reader = new FileReader();
+                  reader.onload = function(e) {
+                     gambarPreviewImg.src = e.target.result;
+                     newGambarPreview.style.display = 'block';
+                     if (existingGambar) existingGambar.style.display = 'none';
+                  };
+                  reader.readAsDataURL(file);
+               } else {
+                  newGambarPreview.style.display = 'none';
+               }
+            });
          }
 
          // Add real-time validation for form fields

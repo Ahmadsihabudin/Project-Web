@@ -16,6 +16,7 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <style>
       .form-control.is-valid {
@@ -172,27 +173,51 @@
          const role = form.querySelector('#role').value;
 
          if (!name) {
-            alert('Nama harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Nama harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#name').focus();
             return;
          }
 
          if (!email) {
-            alert('Email harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Email harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#email').focus();
             return;
          }
 
 
          if (!role) {
-            alert('Role harus dipilih!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Role harus dipilih!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#role').focus();
             return;
          }
 
          // Validasi password jika diisi
          if (password && password !== passwordConfirmation) {
-            alert('Konfirmasi password tidak sama!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Konfirmasi password tidak sama!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#password_confirmation').focus();
             return;
          }

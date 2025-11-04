@@ -16,6 +16,7 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <style>
       .form-control.is-valid {
@@ -205,25 +206,49 @@
          const type = form.querySelector('#type').value;
 
          if (!key) {
-            alert('Key harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Key harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#key').focus();
             return;
          }
 
          if (!value) {
-            alert('Value harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Value harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#value').focus();
             return;
          }
 
          if (!category) {
-            alert('Kategori harus dipilih!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Kategori harus dipilih!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#category').focus();
             return;
          }
 
          if (!type) {
-            alert('Tipe Data harus dipilih!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Tipe Data harus dipilih!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#type').focus();
             return;
          }
@@ -231,13 +256,25 @@
          // Validasi format value berdasarkan type
          if (type === 'integer') {
             if (isNaN(value)) {
-               alert('Value harus berupa angka untuk tipe integer!');
+               await Swal.fire({
+                  icon: 'warning',
+                  title: 'Validasi Gagal',
+                  text: 'Value harus berupa angka untuk tipe integer!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
                form.querySelector('#value').focus();
                return;
             }
          } else if (type === 'boolean') {
             if (!['true', 'false', '1', '0'].includes(value.toLowerCase())) {
-               alert('Value harus berupa true/false untuk tipe boolean!');
+               await Swal.fire({
+                  icon: 'warning',
+                  title: 'Validasi Gagal',
+                  text: 'Value harus berupa true/false untuk tipe boolean!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
                form.querySelector('#value').focus();
                return;
             }
@@ -245,7 +282,13 @@
             try {
                JSON.parse(value);
             } catch (e) {
-               alert('Value harus berupa JSON yang valid!');
+               await Swal.fire({
+                  icon: 'warning',
+                  title: 'Validasi Gagal',
+                  text: 'Value harus berupa JSON yang valid!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
                form.querySelector('#value').focus();
                return;
             }

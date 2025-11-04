@@ -547,8 +547,6 @@
             let questionContent = '';
             if (question.tipe_soal === 'pilihan_ganda') {
                questionContent = generateMultipleChoiceDisplay(question);
-            } else if (question.tipe_soal === 'essay') {
-               questionContent = generateEssayDisplay(question);
             }
 
             // Add umpan balik if exists
@@ -646,18 +644,6 @@
          `;
       }
 
-      // Generate essay display
-      function generateEssayDisplay(question) {
-         return `
-            <div class="question-text mb-3">
-               <strong>${question.pertanyaan}</strong>
-            </div>
-            <div class="answer-section">
-               <div class="answer-label">Jawaban Benar:</div>
-               <div class="answer-text">${question.jawaban_benar}</div>
-            </div>
-         `;
-      }
 
       // Generate true/false display
       function generateTrueFalseDisplay(question) {
@@ -681,7 +667,7 @@
       function getTipeSoalText(tipeSoal) {
          const tipeMap = {
             'pilihan_ganda': 'Pilihan Ganda',
-            'essay': 'Essay'
+            'benar_salah': 'Benar/Salah'
          };
          return tipeMap[tipeSoal] || tipeSoal;
       }
@@ -756,7 +742,13 @@
          const file = fileInput.files[0];
 
          if (!file) {
-            alert('Pilih file Excel terlebih dahulu!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Pilih file Excel terlebih dahulu!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             return;
          }
 
@@ -787,16 +779,22 @@
                document.getElementById('importForm').reset();
             } else {
                if (result.errors && result.errors.length > 0) {
-                  let errorMessage = result.message + '\n\nDetail kesalahan:\n';
+                  let errorMessage = result.message + '<br><br><strong>Detail kesalahan:</strong><br>';
                   result.errors.forEach((error, index) => {
                      if (index < 5) { // Show max 5 errors
-                        errorMessage += `Baris ${error.row}: ${error.errors.join(', ')}\n`;
+                        errorMessage += `Baris ${error.row}: ${error.errors.join(', ')}<br>`;
                      }
                   });
                   if (result.errors.length > 5) {
                      errorMessage += `... dan ${result.errors.length - 5} kesalahan lainnya.`;
                   }
-                  alert(errorMessage);
+                  await Swal.fire({
+                     icon: 'error',
+                     title: 'Import Gagal',
+                     html: errorMessage,
+                     confirmButtonText: 'OK',
+                     confirmButtonColor: '#991B1B'
+                  });
                } else {
                   alertSystem.error('Import Gagal!', result.message);
                }

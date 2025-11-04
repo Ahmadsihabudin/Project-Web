@@ -864,22 +864,46 @@
       }
 
       // View details
-      function viewDetails(id) {
-         alert('Fitur detail akan segera tersedia');
+      async function viewDetails(id) {
+         await Swal.fire({
+            icon: 'info',
+            title: 'Segera Hadir',
+            text: 'Fitur detail akan segera tersedia',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#991B1B'
+         });
       }
 
       // Download report
-      function downloadReport(id) {
-         alert('Fitur download akan segera tersedia');
+      async function downloadReport(id) {
+         await Swal.fire({
+            icon: 'info',
+            title: 'Segera Hadir',
+            text: 'Fitur download akan segera tersedia',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#991B1B'
+         });
       }
 
       // Export functions
-      function exportToPDF() {
-         alert('Fitur export PDF akan segera tersedia');
+      async function exportToPDF() {
+         await Swal.fire({
+            icon: 'info',
+            title: 'Segera Hadir',
+            text: 'Fitur export PDF akan segera tersedia',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#991B1B'
+         });
       }
 
-      function exportToExcel() {
-         alert('Fitur export Excel akan segera tersedia');
+      async function exportToExcel() {
+         await Swal.fire({
+            icon: 'info',
+            title: 'Segera Hadir',
+            text: 'Fitur export Excel akan segera tersedia',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#991B1B'
+         });
       }
 
       // Checkbox functions
@@ -960,11 +984,23 @@
                loadReports();
                loadStats();
             } else {
-               alert('Gagal menghapus data: ' + result.message);
+               await Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal Menghapus',
+                  text: result.message || 'Gagal menghapus data',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
             }
          } catch (error) {
             console.error('Error deleting reports:', error);
-            alert('Terjadi kesalahan saat menghapus data');
+            await Swal.fire({
+               icon: 'error',
+               title: 'Terjadi Kesalahan',
+               text: 'Terjadi kesalahan saat menghapus data',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
          }
       }
 

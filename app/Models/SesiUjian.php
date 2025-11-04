@@ -26,6 +26,9 @@ class SesiUjian extends Model
         'tanggal_selesai',
         'durasi_menit',
         'status',
+        'hide_nomor_urut',
+        'hide_poin',
+        'hide_mata_pelajaran',
     ];
 
     protected $casts = [
@@ -33,6 +36,9 @@ class SesiUjian extends Model
         'tanggal_selesai' => 'date:Y-m-d',
         'jam_mulai' => 'string',
         'jam_selesai' => 'string',
+        'hide_nomor_urut' => 'boolean',
+        'hide_poin' => 'boolean',
+        'hide_mata_pelajaran' => 'boolean',
     ];
 
     public function ujian(): BelongsTo

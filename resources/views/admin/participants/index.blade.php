@@ -382,10 +382,14 @@
                               <th>No</th>
                               <th>Nama</th>
                               <th>Email</th>
+                              <th>No HP</th>
+                              <th>NIK</th>
                               <th>Kode Peserta</th>
                               <th>Kode Akses</th>
-                              <th>Asal SMK</th>
+                              <th>Nama Sekolah</th>
                               <th>Jurusan</th>
+                              <th>Kota/Kab</th>
+                              <th>Provinsi</th>
                               <th>Batch</th>
                               <th>Aksi</th>
                            </tr>
@@ -426,33 +430,48 @@
                      <table class="table table-sm table-bordered">
                         <thead class="table-light">
                            <tr>
+                              <th>No</th>
                               <th>Nama</th>
                               <th>Email</th>
-                              <th>NIM</th>
+                              <th>No HP</th>
+                              <th>NIK</th>
+                              <th>Kode Peserta</th>
                               <th>Kode Akses</th>
                               <th>Asal SMK</th>
                               <th>Jurusan</th>
+                              <th>Kota/Kabupaten</th>
+                              <th>Provinsi</th>
                               <th>Batch</th>
                            </tr>
                         </thead>
                         <tbody>
                            <tr>
-                              <td>John Doe</td>
-                              <td>john@example.com</td>
-                              <td>123456789</td>
-                              <td>ABC123</td>
+                              <td>1</td>
+                              <td>Ahmad Rizki Pratama</td>
+                              <td>ahmad.rizki@smkn1.sch.id</td>
+                              <td>081234567890</td>
+                              <td>3201010101010001</td>
+                              <td>RK2024001</td>
+                              <td>password123</td>
                               <td>SMK Negeri 1 Jakarta</td>
-                              <td>Teknik Komputer</td>
-                              <td>2024</td>
+                              <td>Teknik Komputer dan Jaringan</td>
+                              <td>Jakarta</td>
+                              <td>DKI Jakarta</td>
+                              <td>Batch 1</td>
                            </tr>
                            <tr>
-                              <td>Jane Smith</td>
-                              <td>jane@example.com</td>
-                              <td>987654321</td>
-                              <td>XYZ789</td>
+                              <td>2</td>
+                              <td>Siti Nurhaliza</td>
+                              <td>siti.nurhaliza@smkn2.sch.id</td>
+                              <td>081234567891</td>
+                              <td>3201010101010002</td>
+                              <td>RK2024002</td>
+                              <td>password123</td>
                               <td>SMK Negeri 2 Bandung</td>
                               <td>Rekayasa Perangkat Lunak</td>
-                              <td>2024</td>
+                              <td>Bandung</td>
+                              <td>Jawa Barat</td>
+                              <td>Batch 1</td>
                            </tr>
                         </tbody>
                      </table>
@@ -652,10 +671,14 @@
                <td>${index + 1}</td>
                <td>${participant.nama || '-'}</td>
                <td>${participant.email || '-'}</td>
+               <td>${participant.no_hp || '-'}</td>
+               <td>${participant.nik || '-'}</td>
                <td><span class="badge bg-info">${participant.kode_peserta || '-'}</span></td>
                <td><span class="badge bg-success">${participant.kode_akses || '-'}</span></td>
                <td>${participant.asal_smk || '-'}</td>
                <td>${participant.jurusan || '-'}</td>
+               <td>${participant.kota_kabupaten || '-'}</td>
+               <td>${participant.provinsi || '-'}</td>
                <td><span class="badge bg-secondary">${participant.batch || '-'}</span></td>
                <td>
                   <div class="action-buttons">

@@ -126,6 +126,74 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
         return response()->json(['success' => true, 'data' => $mapel]);
     })->name('admin.sesi-ujian.mata-pelajaran');
 
+    // Calculate total duration based on batch and mata pelajaran
+    Route::post('/sesi-ujian/calculate-duration', function (Request $request) {
+        try {
+            $idBatch = $request->input('id_batch');
+            $mataPelajaran = $request->input('mata_pelajaran', []);
+            
+            if (!$idBatch || empty($mataPelajaran)) {
+                return response()->json([
+                    'success' => true,
+                    'total_duration' => 0,
+                    'total_soal' => 0
+                ]);
+            }
+            
+            // Get batch name
+            $batch = App\Models\Batch::find($idBatch);
+            if (!$batch) {
+                return response()->json([
+                    'success' => true,
+                    'total_duration' => 0,
+                    'total_soal' => 0
+                ]);
+            }
+            
+            // Query soal berdasarkan batch dan mata pelajaran
+            $soalQuery = App\Models\Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batch->nama_batch))]);
+            
+            if (is_array($mataPelajaran) && !empty($mataPelajaran)) {
+                $soalQuery->where(function ($query) use ($mataPelajaran) {
+                    $first = true;
+                    foreach ($mataPelajaran as $mp) {
+                        $mpNormalized = strtolower(trim($mp));
+                        if ($first) {
+                            $query->whereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                            $first = false;
+                        } else {
+                            $query->orWhereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                        }
+                    }
+                });
+            }
+            
+            $soal = $soalQuery->get();
+            
+            // Calculate total duration
+            $totalDuration = 0;
+            $totalSoal = $soal->count();
+            
+            foreach ($soal as $s) {
+                if ($s->durasi_soal) {
+                    $totalDuration += $s->durasi_soal;
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'total_duration' => $totalDuration,
+                'total_soal' => $totalSoal
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error calculating duration: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung durasi: ' . $e->getMessage()
+            ], 500);
+        }
+    })->name('admin.sesi-ujian.calculate-duration');
+
     Route::get('/participants/batches', function () {
         $batches = App\Models\Batch::orderBy('nama_batch')->get(['id_batch', 'nama_batch']);
         return response()->json(['success' => true, 'data' => $batches]);
@@ -146,6 +214,9 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
             'jam_selesai' => $sesi->jam_selesai,
             'durasi_menit' => $sesi->durasi_menit,
             'status' => $sesi->status,
+            'hide_nomor_urut' => (bool)$sesi->hide_nomor_urut,
+            'hide_poin' => (bool)$sesi->hide_poin,
+            'hide_mata_pelajaran' => (bool)$sesi->hide_mata_pelajaran,
         ];
         return response()->json(['success' => true, 'data' => $payload]);
     })->name('admin.sesi-ujian.show');

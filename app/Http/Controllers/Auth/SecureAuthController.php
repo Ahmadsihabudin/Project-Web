@@ -53,15 +53,19 @@ class SecureAuthController extends Controller
                     'locked_until' => Carbon::now()->addMinutes(SecurityHelper::getLockDuration($user->login_attempts))
                 ]);
             }
-            ActivityLog::create([
-                'user_type' => 'admin',
-                'user_id' => $user?->id ?? 0,
-                'action' => 'login_failed',
-                'description' => 'Failed login attempt',
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'metadata' => SecurityHelper::getDeviceInfo($request->userAgent())
-            ]);
+            try {
+                ActivityLog::create([
+                    'user_type' => 'admin',
+                    'user_id' => $user?->id ?? 0,
+                    'action' => 'login_failed',
+                    'description' => 'Failed login attempt',
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'metadata' => SecurityHelper::getDeviceInfo($request->userAgent())
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to create activity log', ['error' => $e->getMessage()]);
+            }
 
             return response()->json([
                 'success' => false,

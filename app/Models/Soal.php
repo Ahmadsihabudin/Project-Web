@@ -45,6 +45,7 @@ class Soal extends Model
     protected $fillable = [
         'batch',
         'pertanyaan',
+        'gambar',
         'mata_pelajaran',
         'level_kesulitan',
         'tipe_soal',
@@ -56,11 +57,13 @@ class Soal extends Model
         'opsi_f',
         'jawaban_benar',
         'umpan_balik',
-        'poin'
+        'poin',
+        'durasi_soal'
     ];
 
     protected $casts = [
-        'poin' => 'integer'
+        'poin' => 'integer',
+        'durasi_soal' => 'integer'
     ];
 
     /**

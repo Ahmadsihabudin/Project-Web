@@ -289,6 +289,32 @@ class SesiUjianController extends Controller
             ]
          );
 
+         // Calculate durasi_menit automatically if not provided
+         $durasiMenit = $request->durasi_menit;
+         if (!$durasiMenit) {
+            // Calculate from soal durasi_soal
+            $batch = Batch::find($request->id_batch);
+            if ($batch) {
+               $soalQuery = Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batch->nama_batch))]);
+               if (!empty($request->mata_pelajaran)) {
+                  $soalQuery->where(function ($query) use ($request) {
+                     $first = true;
+                     foreach ($request->mata_pelajaran as $mp) {
+                        $mpNormalized = strtolower(trim($mp));
+                        if ($first) {
+                           $query->whereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                           $first = false;
+                        } else {
+                           $query->orWhereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                        }
+                     }
+                  });
+               }
+               $soal = $soalQuery->get();
+               $durasiMenit = $soal->sum('durasi_soal');
+            }
+         }
+
          $sesiUjian = SesiUjian::create([
             'id_ujian' => $ujian->id_ujian,
             'id_batch' => $request->id_batch,
@@ -298,8 +324,11 @@ class SesiUjianController extends Controller
             'tanggal_selesai' => $tanggalSelesai,
             'jam_mulai' => $jamMulai,
             'jam_selesai' => $jamSelesai,
-            'durasi_menit' => $request->durasi_menit,
+            'durasi_menit' => $durasiMenit,
             'status' => 'aktif',
+            'hide_nomor_urut' => $request->has('hide_nomor_urut') ? (bool)$request->hide_nomor_urut : false,
+            'hide_poin' => $request->has('hide_poin') ? (bool)$request->hide_poin : false,
+            'hide_mata_pelajaran' => $request->has('hide_mata_pelajaran') ? (bool)$request->hide_mata_pelajaran : false,
          ]);
 
 
@@ -346,6 +375,9 @@ class SesiUjianController extends Controller
             'durasi_menit' => $sesiUjian->durasi_menit,
             'status' => $sesiUjian->status,
             'id_batch' => $sesiUjian->id_batch,
+            'hide_nomor_urut' => (bool)$sesiUjian->hide_nomor_urut,
+            'hide_poin' => (bool)$sesiUjian->hide_poin,
+            'hide_mata_pelajaran' => (bool)$sesiUjian->hide_mata_pelajaran,
             'created_at' => 'N/A',
             'updated_at' => 'N/A'
          ];
@@ -463,16 +495,45 @@ class SesiUjianController extends Controller
                'tanggal_selesai' => $tanggalSelesai
             ]);
 
+            // Calculate durasi_menit automatically if not provided
+            $durasiMenit = $request->durasi_menit;
+            if (!$durasiMenit) {
+               // Calculate from soal durasi_soal
+               $batch = Batch::find($request->id_batch);
+               if ($batch) {
+                  $soalQuery = Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batch->nama_batch))]);
+                  if (!empty($request->mata_pelajaran)) {
+                     $soalQuery->where(function ($query) use ($request) {
+                        $first = true;
+                        foreach ($request->mata_pelajaran as $mp) {
+                           $mpNormalized = strtolower(trim($mp));
+                           if ($first) {
+                              $query->whereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                              $first = false;
+                           } else {
+                              $query->orWhereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                           }
+                        }
+                     });
+                  }
+                  $soal = $soalQuery->get();
+                  $durasiMenit = $soal->sum('durasi_soal');
+               }
+            }
+
             $sesiUjian->update([
                'id_ujian' => $ujian->id_ujian,
                'id_batch' => $request->id_batch,
                'mata_pelajaran' => $mataPelajaranString,
+               'hide_nomor_urut' => $request->has('hide_nomor_urut') ? (bool)$request->hide_nomor_urut : false,
+               'hide_poin' => $request->has('hide_poin') ? (bool)$request->hide_poin : false,
+               'hide_mata_pelajaran' => $request->has('hide_mata_pelajaran') ? (bool)$request->hide_mata_pelajaran : false,
                'deskripsi' => $request->deskripsi ?? '',
                'tanggal_mulai' => $tanggalMulai,
                'tanggal_selesai' => $tanggalSelesai,
                'jam_mulai' => $jamMulai,
                'jam_selesai' => $jamSelesai,
-               'durasi_menit' => $request->durasi_menit,
+               'durasi_menit' => $durasiMenit,
             ]);
 
             \Log::info('Sesi ujian updated successfully');

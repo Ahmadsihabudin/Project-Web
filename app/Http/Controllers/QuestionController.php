@@ -95,11 +95,11 @@ class QuestionController extends Controller
       $validator = Validator::make($request->all(), [
          'pertanyaan' => 'required|string|max:1000',
          'mata_pelajaran' => 'required|string|max:100',
-         'tipe_soal' => 'required|in:pilihan_ganda,essay,benar_salah',
+         'tipe_soal' => 'required|in:pilihan_ganda,benar_salah',
          'poin' => 'required|integer|min:1|max:100',
-        
          'batch' => 'required|string|max:255',
-       
+         'gambar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+         'durasi_soal' => 'nullable|integer|min:1',
       ]);
 
       if ($validator->fails()) {
@@ -142,8 +142,18 @@ class QuestionController extends Controller
        
          $batchName = $request->batch ?? $request->id_batch ?? 'Batch Default';
 
+         // Handle image upload
+         $gambarPath = null;
+         if ($request->hasFile('gambar')) {
+            $gambar = $request->file('gambar');
+            $gambarName = time() . '_' . uniqid() . '.' . $gambar->getClientOriginalExtension();
+            $gambar->move(public_path('storage/soal_images'), $gambarName);
+            $gambarPath = 'storage/soal_images/' . $gambarName;
+         }
+
          $question = Soal::create([
             'pertanyaan' => $request->pertanyaan,
+            'gambar' => $gambarPath,
             'mata_pelajaran' => $request->mata_pelajaran,
             'tipe_soal' => $request->tipe_soal,
             'opsi_a' => $request->opsi_a ?? '',
@@ -156,8 +166,8 @@ class QuestionController extends Controller
             'umpan_balik' => $request->umpan_balik ?? '',
             'level_kesulitan' => $request->level_kesulitan ?? 'sedang',
             'poin' => $request->poin ?? 1,
+            'durasi_soal' => $request->durasi_soal ?? null,
             'batch' => $batchName
-          
          ]);
 
          return response()->json([
@@ -201,11 +211,26 @@ class QuestionController extends Controller
       $validator = Validator::make($request->all(), [
          'pertanyaan' => 'required|string|max:1000',
          'mata_pelajaran' => 'required|string|max:100',
-         'tipe_soal' => 'required|in:pilihan_ganda,essay,benar_salah',
+         'tipe_soal' => 'required|in:pilihan_ganda,benar_salah',
          'poin' => 'required|integer|min:1|max:100',
-       
-         'batch' => 'required|string|max:255',
-        
+         'batch' => 'nullable|string|max:255',
+         'gambar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+         'durasi_soal' => 'nullable|integer|min:1',
+      ], [
+         'pertanyaan.required' => 'Pertanyaan harus diisi',
+         'pertanyaan.max' => 'Pertanyaan maksimal 1000 karakter',
+         'mata_pelajaran.required' => 'Mata pelajaran harus diisi',
+         'mata_pelajaran.max' => 'Mata pelajaran maksimal 100 karakter',
+         'tipe_soal.required' => 'Tipe soal harus dipilih',
+         'tipe_soal.in' => 'Tipe soal harus salah satu dari: pilihan_ganda, benar_salah',
+         'poin.required' => 'Poin harus diisi',
+         'poin.integer' => 'Poin harus berupa angka',
+         'poin.min' => 'Poin minimal 1',
+         'poin.max' => 'Poin maksimal 100',
+         'batch.max' => 'Batch maksimal 255 karakter',
+         'gambar.image' => 'File harus berupa gambar',
+         'gambar.mimes' => 'Format gambar harus jpeg, jpg, png, atau gif',
+         'gambar.max' => 'Ukuran gambar maksimal 2MB'
       ]);
 
       if ($validator->fails()) {
@@ -219,11 +244,31 @@ class QuestionController extends Controller
       try {
          $question = Soal::findOrFail($id);
 
-        
          $batchName = $request->batch ?? $request->id_batch ?? $question->batch ?? 'Batch Default';
+
+         // Handle image upload
+         $gambarPath = $question->gambar; // Keep existing image by default
+         if ($request->hasFile('gambar')) {
+            // Delete old image if exists
+            if ($question->gambar && file_exists(public_path($question->gambar))) {
+               unlink(public_path($question->gambar));
+            }
+            
+            $gambar = $request->file('gambar');
+            $gambarName = time() . '_' . uniqid() . '.' . $gambar->getClientOriginalExtension();
+            $gambar->move(public_path('storage/soal_images'), $gambarName);
+            $gambarPath = 'storage/soal_images/' . $gambarName;
+         } elseif ($request->has('hapus_gambar') && $request->hapus_gambar == '1') {
+            // Delete image if user wants to remove it
+            if ($question->gambar && file_exists(public_path($question->gambar))) {
+               unlink(public_path($question->gambar));
+            }
+            $gambarPath = null;
+         }
 
          $question->update([
             'pertanyaan' => $request->pertanyaan,
+            'gambar' => $gambarPath,
             'mata_pelajaran' => $request->mata_pelajaran,
             'tipe_soal' => $request->tipe_soal,
             'opsi_a' => $request->opsi_a ?? '',
@@ -236,8 +281,8 @@ class QuestionController extends Controller
             'umpan_balik' => $request->umpan_balik ?? '',
             'level_kesulitan' => $request->level_kesulitan ?? $question->level_kesulitan ?? 'sedang',
             'poin' => $request->poin ?? $question->poin ?? 1,
+            'durasi_soal' => $request->has('durasi_soal') && $request->durasi_soal ? (int)$request->durasi_soal : null,
             'batch' => $batchName
-            
          ]);
 
          return response()->json([

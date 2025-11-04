@@ -50,7 +50,7 @@ class ParticipantController extends Controller
    public function index()
    {
       try {
-         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'asal_smk', 'jurusan', 'batch', 'status')
+         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'kode_akses', 'asal_smk', 'jurusan', 'batch', 'status', 'no_hp', 'nik', 'kota_kabupaten', 'provinsi')
             ->orderBy('id_peserta', 'desc')
             ->get();
          $transformedParticipants = $participants->map(function ($participant) {
@@ -59,13 +59,17 @@ class ParticipantController extends Controller
                'nama' => $participant->nama_peserta,
                'email' => $participant->email,
                'kode_peserta' => $participant->kode_peserta,
-               'kode_akses' => '****',
+               'kode_akses' => $participant->kode_akses ?? '****',
                'batch' => $participant->batch ?? 'Belum ditentukan',
                'status' => $participant->status ?? 'aktif',
                'nilai' => null,
                'avatar' => strtoupper(substr($participant->nama_peserta, 0, 1)),
                'asal_smk' => $participant->asal_smk,
                'jurusan' => $participant->jurusan,
+               'no_hp' => $participant->no_hp,
+               'nik' => $participant->nik,
+               'kota_kabupaten' => $participant->kota_kabupaten,
+               'provinsi' => $participant->provinsi,
                'created_at' => 'N/A'
             ];
          });
@@ -150,7 +154,11 @@ class ParticipantController extends Controller
          'kode_peserta' => 'required|string|min:3|max:255|unique:peserta,kode_peserta',
          'batch' => 'required|string|max:255|min:1',
          'asal_smk' => 'required|string|max:255',
-         'jurusan' => 'nullable|string|max:255'
+         'jurusan' => 'nullable|string|max:255',
+         'no_hp' => 'nullable|string|max:15|regex:/^[0-9]*$/',
+         'nik' => 'nullable|string|max:16|regex:/^[0-9]*$/',
+         'provinsi' => 'nullable|string|max:100',
+         'kota_kabupaten' => 'nullable|string|max:100'
       ], [
          'nama.required' => 'Nama lengkap harus diisi',
          'nama.min' => 'Nama minimal 2 karakter',
@@ -163,7 +171,11 @@ class ParticipantController extends Controller
          'asal_smk.required' => 'Asal SMK harus diisi',
          'email.required' => 'Email harus diisi',
          'email.unique' => 'Email sudah digunakan oleh peserta lain',
-         'email.email' => 'Format email tidak valid'
+         'email.email' => 'Format email tidak valid',
+         'no_hp.regex' => 'No HP hanya boleh berisi angka',
+         'no_hp.max' => 'No HP maksimal 15 digit',
+         'nik.regex' => 'NIK hanya boleh berisi angka',
+         'nik.max' => 'NIK maksimal 16 digit'
       ]);
 
       if ($validator->fails()) {
@@ -199,7 +211,11 @@ class ParticipantController extends Controller
             'jurusan' => $request->jurusan ?: $request->batch,
             'batch' => $request->batch,
             'status' => 'aktif',
-            'email' => $request->email
+            'email' => $request->email,
+            'no_hp' => $request->no_hp ?: null,
+            'nik' => $request->nik ?: null,
+            'kota_kabupaten' => $request->kota_kabupaten ?: null,
+            'provinsi' => $request->provinsi ?: null
          ]);
 
          return response()->json([
@@ -247,7 +263,11 @@ class ParticipantController extends Controller
          'kode_peserta' => 'required|string|max:255|min:3|unique:peserta,kode_peserta,' . $id . ',id_peserta',
          'kode_akses' => 'nullable|string|min:3|max:255',
          'batch' => 'required|string|max:255|min:1',
-         'status' => 'required|in:aktif,tidak_aktif,berlangsung,selesai|string'
+         'status' => 'required|in:aktif,tidak_aktif,berlangsung,selesai|string',
+         'no_hp' => 'nullable|string|max:15|regex:/^[0-9]*$/',
+         'nik' => 'nullable|string|max:16|regex:/^[0-9]*$/',
+         'provinsi' => 'nullable|string|max:100',
+         'kota_kabupaten' => 'nullable|string|max:100'
       ], [
          'nama.required' => 'Nama lengkap harus diisi',
          'nama.min' => 'Nama minimal 2 karakter',
@@ -261,7 +281,11 @@ class ParticipantController extends Controller
          'email.unique' => 'Email sudah digunakan oleh peserta lain',
          'email.email' => 'Format email tidak valid',
          'status.required' => 'Status harus diisi',
-         'status.in' => 'Status harus salah satu dari: aktif, tidak_aktif, berlangsung, selesai'
+         'status.in' => 'Status harus salah satu dari: aktif, tidak_aktif, berlangsung, selesai',
+         'no_hp.regex' => 'No HP hanya boleh berisi angka',
+         'no_hp.max' => 'No HP maksimal 15 digit',
+         'nik.regex' => 'NIK hanya boleh berisi angka',
+         'nik.max' => 'NIK maksimal 16 digit'
       ]);
 
       if ($validator->fails()) {
@@ -288,7 +312,11 @@ class ParticipantController extends Controller
             'jurusan' => $request->jurusan ?: $request->batch,
             'batch' => $request->batch,
             'status' => $request->status,
-            'email' => $request->email
+            'email' => $request->email,
+            'no_hp' => $request->no_hp ?: null,
+            'nik' => $request->nik ?: null,
+            'kota_kabupaten' => $request->kota_kabupaten ?: null,
+            'provinsi' => $request->provinsi ?: null
          ];
          if ($request->filled('kode_akses')) {
             $updateData['kode_akses'] = $request->kode_akses;
@@ -339,13 +367,18 @@ class ParticipantController extends Controller
          $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
          $sheet = $spreadsheet->getActiveSheet();
          $headers = [
-            'A1' => 'Nama',
-            'B1' => 'Email',
-            'C1' => 'Kode Peserta',
-            'D1' => 'Kode Akses',
-            'E1' => 'Batch',
-            'F1' => 'Asal SMK',
-            'G1' => 'Jurusan'
+            'A1' => 'No',
+            'B1' => 'Nama',
+            'C1' => 'Email',
+            'D1' => 'No HP',
+            'E1' => 'NIK',
+            'F1' => 'Kode Peserta',
+            'G1' => 'Kode Akses',
+            'H1' => 'Asal SMK',
+            'I1' => 'Jurusan',
+            'J1' => 'Kota/Kabupaten',
+            'K1' => 'Provinsi',
+            'L1' => 'Batch'
          ];
 
          foreach ($headers as $cell => $value) {
@@ -353,11 +386,11 @@ class ParticipantController extends Controller
          }
          $timestamp = date('YmdHis');
          $sampleData = [
-            ['Ahmad Rizki Pratama', 'ahmad.rizki@smkn1.sch.id', 'RK' . $timestamp . '001', 'password123', 'Batch 1', 'SMK Negeri 1 Jakarta', 'Teknik Komputer dan Jaringan'],
-            ['Siti Nurhaliza', 'siti.nurhaliza@smkn2.sch.id', 'RK' . $timestamp . '002', 'password123', 'Batch 1', 'SMK Negeri 2 Bandung', 'Rekayasa Perangkat Lunak'],
-            ['Budi Santoso', 'budi.santoso@smkn3.sch.id', 'RK' . $timestamp . '003', 'password123', 'Batch 2', 'SMK Negeri 3 Surabaya', 'Teknik Informatika'],
-            ['Dewi Kartika Sari', 'dewi.kartika@smkn4.sch.id', 'RK' . $timestamp . '004', 'password123', 'Batch 2', 'SMK Negeri 4 Yogyakarta', 'Multimedia'],
-            ['Eko Prasetyo', 'eko.prasetyo@smkn5.sch.id', 'RK' . $timestamp . '005', 'password123', 'Batch 3', 'SMK Negeri 5 Semarang', 'Teknik Elektronika']
+            ['1', 'Ahmad Rizki Pratama', 'ahmad.rizki@smkn1.sch.id', '081234567890', '3201010101010001', 'RK' . $timestamp . '001', 'password123', 'SMK Negeri 1 Jakarta', 'Teknik Komputer dan Jaringan', 'Jakarta', 'DKI Jakarta', 'Batch 1'],
+            ['2', 'Siti Nurhaliza', 'siti.nurhaliza@smkn2.sch.id', '081234567891', '3201010101010002', 'RK' . $timestamp . '002', 'password123', 'SMK Negeri 2 Bandung', 'Rekayasa Perangkat Lunak', 'Bandung', 'Jawa Barat', 'Batch 1'],
+            ['3', 'Budi Santoso', 'budi.santoso@smkn3.sch.id', '081234567892', '3201010101010003', 'RK' . $timestamp . '003', 'password123', 'SMK Negeri 3 Surabaya', 'Teknik Informatika', 'Surabaya', 'Jawa Timur', 'Batch 2'],
+            ['4', 'Dewi Kartika Sari', 'dewi.kartika@smkn4.sch.id', '081234567893', '3201010101010004', 'RK' . $timestamp . '004', 'password123', 'SMK Negeri 4 Yogyakarta', 'Multimedia', 'Yogyakarta', 'DIY Yogyakarta', 'Batch 2'],
+            ['5', 'Eko Prasetyo', 'eko.prasetyo@smkn5.sch.id', '081234567894', '3201010101010005', 'RK' . $timestamp . '005', 'password123', 'SMK Negeri 5 Semarang', 'Teknik Elektronika', 'Semarang', 'Jawa Tengah', 'Batch 3']
          ];
 
          $row = 2;
@@ -369,13 +402,18 @@ class ParticipantController extends Controller
             }
             $row++;
          }
-         $sheet->getColumnDimension('A')->setWidth(25);
-         $sheet->getColumnDimension('B')->setWidth(30);
-         $sheet->getColumnDimension('C')->setWidth(15);
+         $sheet->getColumnDimension('A')->setWidth(8);
+         $sheet->getColumnDimension('B')->setWidth(25);
+         $sheet->getColumnDimension('C')->setWidth(30);
          $sheet->getColumnDimension('D')->setWidth(15);
-         $sheet->getColumnDimension('E')->setWidth(12);
-         $sheet->getColumnDimension('F')->setWidth(25);
-         $sheet->getColumnDimension('G')->setWidth(30);
+         $sheet->getColumnDimension('E')->setWidth(18);
+         $sheet->getColumnDimension('F')->setWidth(15);
+         $sheet->getColumnDimension('G')->setWidth(15);
+         $sheet->getColumnDimension('H')->setWidth(25);
+         $sheet->getColumnDimension('I')->setWidth(30);
+         $sheet->getColumnDimension('J')->setWidth(20);
+         $sheet->getColumnDimension('K')->setWidth(20);
+         $sheet->getColumnDimension('L')->setWidth(12);
          $headerStyle = [
             'font' => [
                'bold' => true,
@@ -396,7 +434,7 @@ class ParticipantController extends Controller
                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
             ]
          ];
-         $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+         $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
          $dataStyle = [
             'borders' => [
                'allBorders' => [
@@ -408,20 +446,25 @@ class ParticipantController extends Controller
                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
             ]
          ];
-         $sheet->getStyle('A2:G' . ($row - 1))->applyFromArray($dataStyle);
+         $sheet->getStyle('A2:L' . ($row - 1))->applyFromArray($dataStyle);
          $instructionRow = $row + 1;
          $sheet->setCellValue('A' . $instructionRow, 'PANDUAN PENGGUNAAN:');
          $sheet->getStyle('A' . $instructionRow)->getFont()->setBold(true);
 
          $instructions = [
             '1. Isi data peserta sesuai format di atas',
-            '2. Nama: Nama lengkap peserta',
-            '3. Email: Email valid peserta (opsional)',
-            '4. Kode Peserta: Kode unik peserta (minimal 6 karakter)',
-            '5. Kode Akses: Password untuk login peserta',
-            '6. Batch: Nama batch peserta',
-            '7. Asal SMK: Nama sekolah asal peserta',
-            '8. Jurusan: Jurusan peserta di SMK'
+            '2. No: Nomor urut (opsional, bisa dikosongkan)',
+            '3. Nama: Nama lengkap peserta (wajib)',
+            '4. Email: Email valid peserta (opsional)',
+            '5. No HP: Nomor handphone peserta (opsional)',
+            '6. NIK: Nomor Induk Kependudukan (opsional)',
+            '7. Kode Peserta: Kode unik peserta - wajib (minimal 6 karakter)',
+            '8. Kode Akses: Password untuk login peserta - wajib',
+            '9. Asal SMK: Nama sekolah asal peserta - wajib',
+            '10. Jurusan: Jurusan peserta di SMK - wajib',
+            '11. Kota/Kabupaten: Nama kota atau kabupaten (opsional)',
+            '12. Provinsi: Nama provinsi (opsional)',
+            '13. Batch: Nama batch peserta - wajib (pilih dari dropdown jika ada)'
          ];
 
          $instructionStartRow = $instructionRow + 1;
@@ -552,13 +595,18 @@ class ParticipantController extends Controller
 
             try {
                $rowData = [
-                  'nama' => $row[0] ?? '',
-                  'email' => $row[1] ?? '',
-                  'kode_peserta' => $row[2] ?? '',
-                  'kode_akses' => $row[3] ?? '',
-                  'batch' => $row[4] ?? '',
-                  'asal_smk' => $row[5] ?? '',
-                  'jurusan' => $row[6] ?? ''
+                  'no' => $row[0] ?? '',
+                  'nama' => $row[1] ?? '',
+                  'email' => $row[2] ?? '',
+                  'no_hp' => $row[3] ?? '',
+                  'nik' => $row[4] ?? '',
+                  'kode_peserta' => $row[5] ?? '',
+                  'kode_akses' => $row[6] ?? '',
+                  'asal_smk' => $row[7] ?? '',
+                  'jurusan' => $row[8] ?? '',
+                  'kota_kabupaten' => $row[9] ?? '',
+                  'provinsi' => $row[10] ?? '',
+                  'batch' => $row[11] ?? ''
                ];
                \Log::info('Processing row ' . $rowNumber . ':', [
                   'raw_row' => $row,
@@ -626,7 +674,7 @@ class ParticipantController extends Controller
                   ['nama_batch' => $rowData['batch']],
                   ['keterangan' => 'Batch untuk ' . $rowData['batch']]
                );
-               $nextNomor = (Peserta::max('nomor_urut') ?? 0) + 1;
+               $nextNomor = !empty(trim($rowData['no'])) ? (int)$rowData['no'] : ((Peserta::max('nomor_urut') ?? 0) + 1);
                $participantData = [
                   'nomor_urut' => $nextNomor,
                   'nama_peserta' => $rowData['nama'],
@@ -636,7 +684,11 @@ class ParticipantController extends Controller
                   'jurusan' => $rowData['jurusan'] ?: $rowData['batch'],
                   'batch' => $rowData['batch'],
                   'status' => 'aktif',
-                  'email' => $rowData['email'] ?: null
+                  'email' => $rowData['email'] ?: null,
+                  'no_hp' => !empty(trim($rowData['no_hp'])) ? $rowData['no_hp'] : null,
+                  'nik' => !empty(trim($rowData['nik'])) ? $rowData['nik'] : null,
+                  'kota_kabupaten' => !empty(trim($rowData['kota_kabupaten'])) ? $rowData['kota_kabupaten'] : null,
+                  'provinsi' => !empty(trim($rowData['provinsi'])) ? $rowData['provinsi'] : null
                ];
 
                Peserta::create($participantData);

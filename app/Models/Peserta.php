@@ -68,6 +68,10 @@ class Peserta extends Authenticatable
         'batch',
         'status',
         'email',
+        'no_hp',
+        'nik',
+        'kota_kabupaten',
+        'provinsi',
         'current_session_id',
         'is_logged_in',
         'last_activity_at'

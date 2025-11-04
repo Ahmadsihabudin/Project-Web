@@ -16,6 +16,8 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+   <script src="{{ asset('js/indonesia-regions.js') }}"></script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <style>
       .form-control.is-valid {
@@ -104,6 +106,16 @@
                                  <label for="kode_peserta" class="form-label fw-bold">Kode Peserta <span class="text-danger">*</span></label>
                                  <input type="text" class="form-control" id="kode_peserta" name="kode_peserta" required readonly>
                               </div>
+                              <div class="mb-3">
+                                 <label for="no_hp" class="form-label fw-bold">No HP</label>
+                                 <input type="tel" class="form-control" id="no_hp" name="no_hp" placeholder="Contoh: 081234567890" maxlength="15" pattern="[0-9]*" inputmode="numeric">
+                                 <small class="form-text text-muted">Hanya angka, maksimal 15 digit</small>
+                              </div>
+                              <div class="mb-3">
+                                 <label for="nik" class="form-label fw-bold">NIK</label>
+                                 <input type="text" class="form-control" id="nik" name="nik" placeholder="Nomor Induk Kependudukan" maxlength="16" pattern="[0-9]*" inputmode="numeric">
+                                 <small class="form-text text-muted">Hanya angka, 16 digit</small>
+                              </div>
                            </div>
                         </div>
 
@@ -171,6 +183,24 @@
                                     </div>
                                  </div>
                               </div>
+                              <div class="row">
+                                 <div class="col-md-6">
+                                    <div class="mb-3">
+                                       <label for="provinsi" class="form-label fw-bold">Provinsi</label>
+                                       <select class="form-select" id="provinsi" name="provinsi">
+                                          <option value="">Pilih Provinsi</option>
+                                       </select>
+                                    </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <div class="mb-3">
+                                       <label for="kota_kabupaten" class="form-label fw-bold">Kota/Kabupaten</label>
+                                       <select class="form-select" id="kota_kabupaten" name="kota_kabupaten" disabled>
+                                          <option value="">Pilih Provinsi terlebih dahulu</option>
+                                       </select>
+                                    </div>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      </div>
@@ -223,6 +253,25 @@
                   document.getElementById('jurusan').value = participant.jurusan || '';
                   document.getElementById('batch').value = participant.batch || '';
                   document.getElementById('status').value = participant.status || 'aktif';
+                  document.getElementById('no_hp').value = participant.no_hp || '';
+                  document.getElementById('nik').value = participant.nik || '';
+                  
+                  // Set provinsi dan kabupaten
+                  const provinsiSelect = document.getElementById('provinsi');
+                  const kotaKabupatenSelect = document.getElementById('kota_kabupaten');
+                  
+                  if (participant.provinsi && provinsiSelect) {
+                     provinsiSelect.value = participant.provinsi;
+                     // Trigger change untuk load kabupaten
+                     provinsiSelect.dispatchEvent(new Event('change'));
+                     
+                     // Set kabupaten setelah dropdown di-populate
+                     setTimeout(() => {
+                        if (participant.kota_kabupaten && kotaKabupatenSelect) {
+                           kotaKabupatenSelect.value = participant.kota_kabupaten;
+                        }
+                     }, 100);
+                  }
                }
             }
          } catch (error) {
@@ -251,31 +300,61 @@
          const batch = form.querySelector('#batch').value.trim();
 
          if (!nama) {
-            alert('Nama harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Nama harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#nama').focus();
             return;
          }
 
          if (!email) {
-            alert('Email harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Email harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#email').focus();
             return;
          }
 
          if (!kodeAkses) {
-            alert('Kode Akses harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Kode Akses harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#kode_akses').focus();
             return;
          }
 
          if (!asalSmk) {
-            alert('Asal SMK harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Asal SMK harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#asal_smk').focus();
             return;
          }
 
          if (!batch) {
-            alert('Batch harus diisi!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Batch harus diisi!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#batch').focus();
             return;
          }
@@ -294,8 +373,12 @@
                asal_smk: formData.get('asal_smk'),
                jurusan: formData.get('jurusan'),
                batch: formData.get('batch'),
-               kode_peserta: formData.get('kode_peserta') || '', // Add kode_peserta
-               status: formData.get('status') || 'aktif' // Add status
+               kode_peserta: formData.get('kode_peserta') || '',
+               status: formData.get('status') || 'aktif',
+               no_hp: formData.get('no_hp'),
+               nik: formData.get('nik'),
+               kota_kabupaten: formData.get('kota_kabupaten'),
+               provinsi: formData.get('provinsi')
             };
 
             console.log('Participant Data to be sent:', participantData);
@@ -314,17 +397,44 @@
 
             if (result.success) {
                alertSystem.updateSuccess('Peserta');
-               alert(`Peserta berhasil diperbarui!\n\nKode Peserta: ${result.data.kode_peserta}\n\nData telah disimpan.`);
-               setTimeout(() => {
-                  window.location.href = '{{ route("admin.participants.index") }}';
-               }, 2000);
+               
+               // Show SweetAlert success
+               await Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  html: `Peserta berhasil diperbarui!<br><br><strong>Kode Peserta: ${result.data.kode_peserta}</strong><br><br>Data telah disimpan.`,
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
+
+               // Redirect to index page
+               window.location.href = '{{ route("admin.participants.index") }}';
             } else {
-               alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
+               // Show validation errors or error message
+               let errorMessage = result.message || 'Terjadi kesalahan';
+               if (result.errors) {
+                  const errorList = Object.values(result.errors).flat().join('<br>');
+                  errorMessage = errorList || errorMessage;
+               }
+               
+               await Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal Menyimpan',
+                  html: errorMessage,
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
             }
          } catch (error) {
             console.error('Error saving participant:', error);
             alertSystem.hide(loadingAlert);
-            alertSystem.error('Gagal menyimpan', 'Terjadi kesalahan jaringan: ' + error.message);
+            await Swal.fire({
+               icon: 'error',
+               title: 'Gagal Menyimpan',
+               text: 'Terjadi kesalahan jaringan: ' + error.message,
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
          }
       }
 
@@ -373,6 +483,78 @@
                } else if (this.value) {
                   this.classList.remove('is-invalid');
                   this.classList.add('is-valid');
+               }
+            });
+         }
+
+         // Validasi No HP - hanya angka
+         const noHpField = document.getElementById('no_hp');
+         if (noHpField) {
+            noHpField.addEventListener('input', function() {
+               this.value = this.value.replace(/[^0-9]/g, '');
+               if (this.value.length > 15) {
+                  this.value = this.value.substring(0, 15);
+               }
+            });
+         }
+
+         // Validasi NIK - hanya angka, 16 digit
+         const nikField = document.getElementById('nik');
+         if (nikField) {
+            nikField.addEventListener('input', function() {
+               this.value = this.value.replace(/[^0-9]/g, '');
+               if (this.value.length > 16) {
+                  this.value = this.value.substring(0, 16);
+               }
+            });
+         }
+
+         // Populate Provinsi dropdown
+         const provinsiSelect = document.getElementById('provinsi');
+         if (provinsiSelect && typeof provincesIndonesia !== 'undefined') {
+            provincesIndonesia.forEach(province => {
+               const option = document.createElement('option');
+               option.value = province.name;
+               option.textContent = province.name;
+               provinsiSelect.appendChild(option);
+            });
+         }
+
+         // Handle Provinsi change - update Kabupaten/Kota
+         if (provinsiSelect) {
+            provinsiSelect.addEventListener('change', function() {
+               const kotaKabupatenSelect = document.getElementById('kota_kabupaten');
+               if (kotaKabupatenSelect && typeof regenciesIndonesia !== 'undefined') {
+                  kotaKabupatenSelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>';
+                  
+                  if (this.value) {
+                     // Find province ID
+                     const selectedProvince = provincesIndonesia.find(p => p.name === this.value);
+                     if (selectedProvince) {
+                        const regencies = getRegenciesByProvince(selectedProvince.id);
+                        if (regencies.length > 0) {
+                           kotaKabupatenSelect.disabled = false;
+                           regencies.forEach(regency => {
+                              const option = document.createElement('option');
+                              option.value = regency;
+                              option.textContent = regency;
+                              kotaKabupatenSelect.appendChild(option);
+                           });
+                        } else {
+                           kotaKabupatenSelect.disabled = false;
+                           const option = document.createElement('option');
+                           option.value = '';
+                           option.textContent = 'Data kabupaten belum tersedia';
+                           kotaKabupatenSelect.appendChild(option);
+                        }
+                     } else {
+                        kotaKabupatenSelect.disabled = true;
+                        kotaKabupatenSelect.innerHTML = '<option value="">Pilih Provinsi terlebih dahulu</option>';
+                     }
+                  } else {
+                     kotaKabupatenSelect.disabled = true;
+                     kotaKabupatenSelect.innerHTML = '<option value="">Pilih Provinsi terlebih dahulu</option>';
+                  }
                }
             });
          }

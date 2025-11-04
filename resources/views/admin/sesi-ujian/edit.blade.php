@@ -16,6 +16,7 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <style>
       .form-control.is-valid {
@@ -220,8 +221,13 @@
                               </div>
                            </div>
                            <div class="mb-3">
-                              <label for="durasi_menit" class="form-label fw-bold">Durasi (Menit)</label>
-                              <input type="number" class="form-control" id="durasi_menit" name="durasi_menit" min="1" placeholder="Contoh: 60">
+                              <label for="durasi_menit" class="form-label fw-bold">Total Durasi (Menit)</label>
+                              <input type="number" class="form-control" id="durasi_menit" name="durasi_menit" min="0" readonly style="background-color: #e9ecef;">
+                              <div class="form-text">
+                                 <i class="bi bi-info-circle me-1"></i>
+                                 Durasi dihitung otomatis berdasarkan jumlah soal dan durasi per soal
+                                 <span id="durasiInfo" class="text-muted"></span>
+                              </div>
                            </div>
                         </div>
                      </div>
@@ -233,16 +239,38 @@
 
                      <div class="row mt-4">
                         <div class="col-12">
-                           <h6 class="mb-3">Pengaturan Tambahan</h6>
-                           <div class="row">
-                              <div class="col-md-6">
-                              </div>
-                              <div class="col-md-6">
-                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="show_results_immediately" name="show_results_immediately" checked>
-                                    <label class="form-check-label" for="show_results_immediately">
-                                       Tampilkan hasil langsung
-                                    </label>
+                           <h6 class="mb-3"><i class="bi bi-gear me-2"></i>Pengaturan Tampilan Peserta</h6>
+                           <div class="card">
+                              <div class="card-body">
+                                 <p class="text-muted mb-3">Centang untuk menyembunyikan informasi dari peserta saat ujian:</p>
+                                 <div class="row">
+                                    <div class="col-md-4">
+                                       <div class="form-check mb-3">
+                                          <input class="form-check-input" type="checkbox" id="hide_nomor_urut" name="hide_nomor_urut" value="1">
+                                          <label class="form-check-label fw-bold" for="hide_nomor_urut">
+                                             <i class="bi bi-hash me-1"></i>Sembunyikan Nomor Urut Soal
+                                          </label>
+                                          <small class="form-text text-muted d-block">Peserta tidak akan melihat nomor urut soal</small>
+                                       </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                       <div class="form-check mb-3">
+                                          <input class="form-check-input" type="checkbox" id="hide_poin" name="hide_poin" value="1">
+                                          <label class="form-check-label fw-bold" for="hide_poin">
+                                             <i class="bi bi-star me-1"></i>Sembunyikan Poin Soal
+                                          </label>
+                                          <small class="form-text text-muted d-block">Peserta tidak akan melihat poin setiap soal</small>
+                                       </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                       <div class="form-check mb-3">
+                                          <input class="form-check-input" type="checkbox" id="hide_mata_pelajaran" name="hide_mata_pelajaran" value="1">
+                                          <label class="form-check-label fw-bold" for="hide_mata_pelajaran">
+                                             <i class="bi bi-book me-1"></i>Sembunyikan Nama Mata Pelajaran
+                                          </label>
+                                          <small class="form-text text-muted d-block">Peserta tidak akan melihat nama mata pelajaran</small>
+                                       </div>
+                                    </div>
                                  </div>
                               </div>
                            </div>
@@ -318,6 +346,17 @@
                      console.log('No mata pelajaran data to set');
                   }
 
+                  // Set hide/show checkboxes
+                  if (sesiUjian.hide_nomor_urut) {
+                     document.getElementById('hide_nomor_urut').checked = true;
+                  }
+                  if (sesiUjian.hide_poin) {
+                     document.getElementById('hide_poin').checked = true;
+                  }
+                  if (sesiUjian.hide_mata_pelajaran) {
+                     document.getElementById('hide_mata_pelajaran').checked = true;
+                  }
+
                   // Batch: set by id; if current id not in list yet, inject option with current value
                   const batchSelect = document.getElementById('id_batch');
                   if (batchSelect) {
@@ -374,6 +413,11 @@
                      console.log('Tanggal selesai set:', combinedDateTime);
                   }
                   document.getElementById('durasi_menit').value = sesiUjian.durasi_menit || '';
+                  
+                  // Calculate duration after loading data
+                  setTimeout(function() {
+                     calculateDuration();
+                  }, 500);
                }
             }
          } catch (error) {
@@ -484,6 +528,67 @@
          const checkboxes = document.querySelectorAll('input[name="mata_pelajaran[]"]:checked, input[type="checkbox"][id^="mata_pelajaran_"]:checked');
          selectedMataPelajaran = Array.from(checkboxes).map(cb => cb.value);
          console.log('Selected mata pelajaran:', selectedMataPelajaran);
+         
+         // Calculate duration when mata pelajaran changes
+         calculateDuration();
+      }
+      
+      // Calculate total duration based on batch and mata pelajaran
+      async function calculateDuration() {
+         const idBatch = document.getElementById('id_batch')?.value;
+         const durasiInput = document.getElementById('durasi_menit');
+         const durasiInfo = document.getElementById('durasiInfo');
+         
+         if (!idBatch || selectedMataPelajaran.length === 0) {
+            if (durasiInput) durasiInput.value = '';
+            if (durasiInfo) durasiInfo.textContent = '';
+            return;
+         }
+         
+         try {
+            const response = await fetch('/admin/sesi-ujian/calculate-duration', {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': csrfToken
+               },
+               body: JSON.stringify({
+                  id_batch: parseInt(idBatch),
+                  mata_pelajaran: selectedMataPelajaran
+               })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+               const totalDuration = result.total_duration || 0;
+               const totalSoal = result.total_soal || 0;
+               
+               if (durasiInput) {
+                  durasiInput.value = totalDuration;
+               }
+               
+               if (durasiInfo) {
+                  if (totalSoal > 0) {
+                     if (totalDuration > 0) {
+                        durasiInfo.textContent = `(${totalSoal} soal × durasi per soal = ${totalDuration} menit)`;
+                     } else {
+                        durasiInfo.textContent = `(${totalSoal} soal, namun tidak ada durasi yang ditetapkan per soal)`;
+                     }
+                  } else {
+                     durasiInfo.textContent = '(Belum ada soal yang dipilih)';
+                  }
+               }
+            } else {
+               console.error('Error calculating duration:', result.message);
+               if (durasiInput) durasiInput.value = '';
+               if (durasiInfo) durasiInfo.textContent = '';
+            }
+         } catch (error) {
+            console.error('Error calculating duration:', error);
+            if (durasiInput) durasiInput.value = '';
+            if (durasiInfo) durasiInfo.textContent = '';
+         }
       }
 
       // Select all mata pelajaran
@@ -506,7 +611,7 @@
       }
 
       // Set tanggal mulai
-      function setTanggalMulai() {
+      async function setTanggalMulai() {
          const date = document.getElementById('tanggal_mulai_date').value;
          const time = document.getElementById('tanggal_mulai_time').value;
 
@@ -521,12 +626,18 @@
 
             console.log('Tanggal mulai set:', datetime);
          } else {
-            alert('Pilih tanggal dan jam mulai terlebih dahulu!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Pilih tanggal dan jam mulai terlebih dahulu!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
          }
       }
 
       // Set tanggal selesai
-      function setTanggalSelesai() {
+      async function setTanggalSelesai() {
          const date = document.getElementById('tanggal_selesai_date').value;
          const time = document.getElementById('tanggal_selesai_time').value;
 
@@ -538,7 +649,13 @@
 
             console.log('Tanggal selesai set:', datetime);
          } else {
-            alert('Pilih tanggal dan jam selesai terlebih dahulu!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Pilih tanggal dan jam selesai terlebih dahulu!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
          }
       }
 
@@ -636,23 +753,47 @@
          });
 
          if (!idBatch) {
-            alert('Batch harus dipilih!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Batch harus dipilih!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#id_batch').focus();
             return;
          }
 
          if (selectedMataPelajaran.length === 0) {
-            alert('Minimal satu Mata Pelajaran harus dipilih!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Minimal satu Mata Pelajaran harus dipilih!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             return;
          }
 
          if (!tanggalMulai) {
-            alert('Tanggal & Jam Mulai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Tanggal & Jam Mulai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             return;
          }
 
          if (!tanggalSelesai) {
-            alert('Tanggal & Jam Selesai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Tanggal & Jam Selesai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             return;
          }
 
@@ -661,7 +802,13 @@
          const endDateTime = new Date(tanggalSelesai);
 
          if (endDateTime <= startDateTime) {
-            alert('Waktu Selesai harus setelah Waktu Mulai!');
+            await Swal.fire({
+               icon: 'warning',
+               title: 'Validasi Gagal',
+               text: 'Waktu Selesai harus setelah Waktu Mulai!',
+               confirmButtonText: 'OK',
+               confirmButtonColor: '#991B1B'
+            });
             form.querySelector('#tanggal_selesai').focus();
             return;
          }
@@ -680,9 +827,12 @@
                deskripsi: formData.get('deskripsi'),
                id_batch: parseInt(formData.get('id_batch')),
                mata_pelajaran: selectedMataPelajaran,
-               tanggal_mulai: formData.get('tanggal_mulai'),
-               tanggal_selesai: formData.get('tanggal_selesai'),
-               durasi_menit: formData.get('durasi_menit') ? parseInt(formData.get('durasi_menit')) : null
+               tanggal_mulai: tanggalMulai,
+               tanggal_selesai: tanggalSelesai,
+               durasi_menit: formData.get('durasi_menit') ? parseInt(formData.get('durasi_menit')) : null,
+               hide_nomor_urut: document.getElementById('hide_nomor_urut').checked ? 1 : 0,
+               hide_poin: document.getElementById('hide_poin').checked ? 1 : 0,
+               hide_mata_pelajaran: document.getElementById('hide_mata_pelajaran').checked ? 1 : 0
             };
 
             // Debug log untuk melihat data yang dikirim
@@ -806,6 +956,14 @@
 
          if (deselectAllBtn) {
             deselectAllBtn.addEventListener('click', deselectAllMataPelajaran);
+         }
+         
+         // Add event listener for batch change
+         const idBatchSelect = document.getElementById('id_batch');
+         if (idBatchSelect) {
+            idBatchSelect.addEventListener('change', function() {
+               calculateDuration();
+            });
          }
 
          // Add event listeners for datetime buttons

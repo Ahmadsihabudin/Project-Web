@@ -16,6 +16,7 @@
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
 
@@ -585,10 +586,16 @@
       }
 
       // View setting
-      function viewSetting(id) {
+      async function viewSetting(id) {
          // Implementation for viewing setting details
          console.log('Viewing setting:', id);
-         alert('Fitur lihat detail pengaturan akan segera tersedia');
+         await Swal.fire({
+            icon: 'info',
+            title: 'Segera Hadir',
+            text: 'Fitur lihat detail pengaturan akan segera tersedia',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#991B1B'
+         });
       }
 
       // Delete setting

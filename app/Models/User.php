@@ -61,6 +61,8 @@ class User extends Authenticatable
         'address',
         'notes',
         'last_login_at',
+        'login_attempts',
+        'locked_until',
         'current_session_id',
         'is_logged_in',
         'last_activity_at'
@@ -86,7 +88,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'last_login_at' => 'datetime'
+            'last_login_at' => 'datetime',
+            'locked_until' => 'datetime'
         ];
     }
 }
