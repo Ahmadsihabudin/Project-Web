@@ -1,10 +1,7 @@
 <script>
-   // CSRF Token - check if already declared
    if (typeof csrfToken === 'undefined') {
       var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
    }
-
-   // Enhanced logout function
   async function logout() {
      const confirmed = await Swal.fire({
         title: 'Keluar dari Aplikasi?',
@@ -36,7 +33,6 @@
      }
   }
 
-   // Alternative logout function using form submit
   async function logoutForm() {
      const confirmed = await Swal.fire({
         title: 'Keluar dari Aplikasi?',
@@ -62,7 +58,6 @@
      form.submit();
   }
 
-   // Simple logout function with direct redirect
   async function simpleLogout() {
      const confirmed = await Swal.fire({
         title: 'Keluar dari Aplikasi?',
@@ -79,9 +74,7 @@
      window.location.href = '/auth/logout';
   }
 
-   // Show profile function
   function showProfile() { Swal.fire({ title: 'Segera Hadir', text: 'Fitur Profil akan segera tersedia.', icon: 'info', confirmButtonText: 'OK' }); }
 
-   // Show settings function
   function showSettings() { Swal.fire({ title: 'Segera Hadir', text: 'Fitur Pengaturan akan segera tersedia.', icon: 'info', confirmButtonText: 'OK' }); }
 </script>

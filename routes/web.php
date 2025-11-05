@@ -194,6 +194,19 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
         }
     })->name('admin.sesi-ujian.calculate-duration');
 
+    // Update all sesi ujian duration
+    Route::post('/sesi-ujian/update-all-duration', function () {
+        try {
+            $result = App\Http\Controllers\SesiUjianController::updateAllDurasiSesiUjian();
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update durasi: ' . $e->getMessage()
+            ], 500);
+        }
+    })->name('admin.sesi-ujian.update-all-duration');
+
     Route::get('/participants/batches', function () {
         $batches = App\Models\Batch::orderBy('nama_batch')->get(['id_batch', 'nama_batch']);
         return response()->json(['success' => true, 'data' => $batches]);
@@ -221,13 +234,22 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
         return response()->json(['success' => true, 'data' => $payload]);
     })->name('admin.sesi-ujian.show');
 
-    Route::view('/settings', 'admin.settings.index')->name('admin.settings.index');
-    Route::view('/settings/create', 'admin.settings.create')->name('admin.settings.create');
-    Route::view('/settings/{id}/edit', 'admin.settings.edit')->name('admin.settings.edit');
+    Route::view('/settings/info-ujian', 'admin.settings.info-ujian.index')->name('admin.settings.info-ujian.index');
+    Route::view('/settings/backup', 'admin.settings.backup.index')->name('admin.settings.backup.index');
+    Route::view('/settings/logo', 'admin.settings.logo.index')->name('admin.settings.logo.index');
 
-    // Settings API routes
+    // Backup API routes - Specific routes must come before parameterized routes
+    Route::post('/settings/backup/create', [App\Http\Controllers\SettingController::class, 'createBackup'])->name('admin.settings.backup.create');
+    Route::get('/settings/backup/list', [App\Http\Controllers\SettingController::class, 'listBackups'])->name('admin.settings.backup.list');
+    Route::get('/settings/backup/download/{filename}', [App\Http\Controllers\SettingController::class, 'downloadBackup'])->name('admin.settings.backup.download');
+    Route::delete('/settings/backup/delete/{filename}', [App\Http\Controllers\SettingController::class, 'deleteBackup'])->name('admin.settings.backup.delete');
+
+    // Settings API routes - Specific routes must come before parameterized routes
     Route::get('/settings/stats', [App\Http\Controllers\SettingController::class, 'stats'])->name('admin.settings.stats');
     Route::get('/settings/data', [App\Http\Controllers\SettingController::class, 'data'])->name('admin.settings.data');
+    Route::match(['get', 'post'], '/settings/api/info-ujian', [App\Http\Controllers\SettingController::class, 'infoUjian'])->name('admin.settings.api.info-ujian');
+    Route::match(['get', 'post', 'put'], '/settings/api/logo', [App\Http\Controllers\SettingController::class, 'logo'])->name('admin.settings.api.logo');
+    Route::post('/settings/api/logo/reset', [App\Http\Controllers\SettingController::class, 'resetLogo'])->name('admin.settings.api.logo.reset');
     Route::post('/settings', [App\Http\Controllers\SettingController::class, 'store'])->name('admin.settings.store');
     Route::get('/settings/{id}', [App\Http\Controllers\SettingController::class, 'show'])->name('admin.settings.show');
     Route::put('/settings/{id}', [App\Http\Controllers\SettingController::class, 'update'])->name('admin.settings.update');
@@ -301,7 +323,7 @@ Route::middleware(['custom.auth'])->group(function () {
         return redirect()->route('admin.reports.index');
     });
     Route::get('/exam/settings', function () {
-        return redirect()->route('admin.settings.index');
+        return redirect()->route('admin.settings.info-ujian.index');
     });
 });
 

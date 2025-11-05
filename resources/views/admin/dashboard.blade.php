@@ -7,15 +7,15 @@
    <title>Dashboard Admin - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-   <!-- Custom Sidebar CSS -->
+   
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
    @include('layouts.alert-system')
-   <!-- Favicon -->
+   
    <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png?v=2') }}">
    <style>
       .stats-card {
@@ -208,17 +208,17 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Dashboard Content -->
+         
          <div class="p-4">
-            <!-- Stats Cards -->
+            
             <div class="row mb-4">
                <div class="col-xl-3 col-md-6 mb-4">
                   <div class="card stats-card border-0 shadow-sm">
@@ -289,7 +289,7 @@
                </div>
             </div>
 
-            <!-- Recent Exams Table -->
+            
             <div class="card">
                <div class="card-header">
                   <h6 class="m-0 font-weight-bold">Ujian Terbaru</h6>
@@ -322,13 +322,12 @@
       </div>
    </div>
 
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    @include('layouts.logout-script')
 
    <script>
-      // Load dashboard data from API
       async function loadDashboardData() {
          console.log('Loading dashboard data from API...');
          try {
@@ -371,7 +370,6 @@
          }
       }
 
-      // Update dashboard statistics
       function updateDashboardStats(stats) {
          const totalUjianEl = document.getElementById('totalUjian');
          const pesertaAktifEl = document.getElementById('pesertaAktif');
@@ -383,7 +381,6 @@
          if (ujianHariIniEl) ujianHariIniEl.textContent = stats.ujian_hari_ini || 0;
          if (ujianSelesaiEl) ujianSelesaiEl.textContent = stats.ujian_selesai || 0;
 
-         // Update ujian terbaru table
          if (stats.ujian_terbaru && Array.isArray(stats.ujian_terbaru)) {
             updateUjianTerbaruTable(stats.ujian_terbaru);
          }
@@ -426,8 +423,6 @@
          // Add new rows
          ujianList.forEach((ujian, index) => {
             const row = document.createElement('tr');
-
-
 
             row.innerHTML = `
                <td>${index + 1}</td>

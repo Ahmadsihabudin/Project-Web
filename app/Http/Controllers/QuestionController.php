@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Soal;
 use App\Models\Ujian;
 use App\Models\Batch;
+use App\Http\Controllers\SesiUjianController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -58,8 +59,16 @@ class QuestionController extends Controller
                'opsi_b' => $question->opsi_b ?? '',
                'opsi_c' => $question->opsi_c ?? '',
                'opsi_d' => $question->opsi_d ?? '',
+               'opsi_e' => $question->opsi_e ?? '',
+               'opsi_f' => $question->opsi_f ?? '',
                'jawaban_benar' => $question->jawaban_benar ?? '',
                'poin' => $question->poin ?? 1,
+               'durasi_soal' => $question->durasi_soal ?? null,
+               'gambar' => $question->gambar ?? null,
+               'umpan_balik' => $question->umpan_balik ?? null,
+               'jenis_penilaian' => $question->jenis_penilaian ?? 'normal',
+               'poin_benar' => $question->poin_benar ?? null,
+               'poin_salah' => $question->poin_salah ?? 0,
                'id_batch' => $question->batch,
                'id_ujian' => null,
                'ujian' => 'Tidak ada ujian',
@@ -99,8 +108,35 @@ class QuestionController extends Controller
          'poin' => 'required|integer|min:1|max:100',
          'batch' => 'required|string|max:255',
          'gambar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
-         'durasi_soal' => 'nullable|integer|min:1',
+         'durasi_soal' => 'required|integer|min:1',
+         'jenis_penilaian' => 'required|in:normal,pengurangan_poin',
+         'poin_benar' => 'nullable|integer|min:1',
+         'poin_salah' => 'required|integer',
+      ], [
+         'durasi_soal.required' => 'Durasi Soal (Menit) harus diisi',
+         'durasi_soal.integer' => 'Durasi Soal harus berupa angka',
+         'durasi_soal.min' => 'Durasi Soal minimal 1 menit',
+         'jenis_penilaian.required' => 'Jenis penilaian harus dipilih',
+         'jenis_penilaian.in' => 'Jenis penilaian harus normal atau pengurangan_poin',
+         'poin_salah.required' => 'Poin salah harus diisi',
+         'poin_salah.integer' => 'Poin salah harus berupa angka',
       ]);
+
+      // Validasi custom untuk poin_salah berdasarkan jenis_penilaian
+      if ($request->jenis_penilaian === 'pengurangan_poin') {
+         if ($request->poin_salah >= 0) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Validasi gagal',
+               'errors' => ['poin_salah' => ['Jika menggunakan pengurangan poin, poin salah harus negatif (contoh: -5, -10)']]
+            ], 400);
+         }
+      } else {
+         // Normal: poin_salah harus 0
+         if ($request->poin_salah != 0) {
+            $request->merge(['poin_salah' => 0]);
+         }
+      }
 
       if ($validator->fails()) {
          return response()->json([
@@ -167,8 +203,17 @@ class QuestionController extends Controller
             'level_kesulitan' => $request->level_kesulitan ?? 'sedang',
             'poin' => $request->poin ?? 1,
             'durasi_soal' => $request->durasi_soal ?? null,
-            'batch' => $batchName
+            'batch' => $batchName,
+            'jenis_penilaian' => $request->jenis_penilaian ?? 'normal',
+            'poin_benar' => $request->poin_benar ? (int)$request->poin_benar : null,
+            'poin_salah' => (int)($request->poin_salah ?? 0)
          ]);
+
+         // Auto-update durasi sesi ujian yang menggunakan batch dan mata pelajaran ini
+         SesiUjianController::updateDurasiSesiUjian($batchName, $request->mata_pelajaran);
+         
+         // Update semua durasi untuk memastikan konsistensi
+         SesiUjianController::updateAllDurasiSesiUjian();
 
          return response()->json([
             'success' => true,
@@ -215,7 +260,10 @@ class QuestionController extends Controller
          'poin' => 'required|integer|min:1|max:100',
          'batch' => 'nullable|string|max:255',
          'gambar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
-         'durasi_soal' => 'nullable|integer|min:1',
+         'durasi_soal' => 'required|integer|min:1',
+         'jenis_penilaian' => 'required|in:normal,pengurangan_poin',
+         'poin_benar' => 'nullable|integer|min:1',
+         'poin_salah' => 'required|integer',
       ], [
          'pertanyaan.required' => 'Pertanyaan harus diisi',
          'pertanyaan.max' => 'Pertanyaan maksimal 1000 karakter',
@@ -230,8 +278,32 @@ class QuestionController extends Controller
          'batch.max' => 'Batch maksimal 255 karakter',
          'gambar.image' => 'File harus berupa gambar',
          'gambar.mimes' => 'Format gambar harus jpeg, jpg, png, atau gif',
-         'gambar.max' => 'Ukuran gambar maksimal 2MB'
+         'gambar.max' => 'Ukuran gambar maksimal 2MB',
+         'durasi_soal.required' => 'Durasi Soal (Menit) harus diisi',
+         'durasi_soal.integer' => 'Durasi Soal harus berupa angka',
+         'durasi_soal.min' => 'Durasi Soal minimal 1 menit',
+         'jenis_penilaian.required' => 'Jenis penilaian harus dipilih',
+         'jenis_penilaian.in' => 'Jenis penilaian harus normal atau pengurangan_poin',
+         'poin_salah.required' => 'Poin salah harus diisi',
+         'poin_salah.integer' => 'Poin salah harus berupa angka',
+         'poin_salah.max' => 'Poin salah maksimal 0 (tidak boleh positif)'
       ]);
+
+      // Validasi custom untuk poin_salah berdasarkan jenis_penilaian
+      if ($request->jenis_penilaian === 'pengurangan_poin') {
+         if ($request->poin_salah >= 0) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Validasi gagal',
+               'errors' => ['poin_salah' => ['Jika menggunakan pengurangan poin, poin salah harus negatif (contoh: -5, -10)']]
+            ], 400);
+         }
+      } else {
+         // Normal: poin_salah harus 0
+         if ($request->poin_salah != 0) {
+            $request->merge(['poin_salah' => 0]);
+         }
+      }
 
       if ($validator->fails()) {
          return response()->json([
@@ -266,6 +338,10 @@ class QuestionController extends Controller
             $gambarPath = null;
          }
 
+         // Simpan batch lama untuk update durasi sesi ujian lama jika batch berubah
+         $oldBatchName = $question->batch;
+         $oldMataPelajaran = $question->mata_pelajaran;
+
          $question->update([
             'pertanyaan' => $request->pertanyaan,
             'gambar' => $gambarPath,
@@ -282,8 +358,22 @@ class QuestionController extends Controller
             'level_kesulitan' => $request->level_kesulitan ?? $question->level_kesulitan ?? 'sedang',
             'poin' => $request->poin ?? $question->poin ?? 1,
             'durasi_soal' => $request->has('durasi_soal') && $request->durasi_soal ? (int)$request->durasi_soal : null,
-            'batch' => $batchName
+            'batch' => $batchName,
+            'jenis_penilaian' => $request->jenis_penilaian ?? $question->jenis_penilaian ?? 'normal',
+            'poin_benar' => $request->poin_benar ? (int)$request->poin_benar : null,
+            'poin_salah' => (int)($request->poin_salah ?? $question->poin_salah ?? 0)
          ]);
+
+         // Auto-update durasi sesi ujian yang menggunakan batch dan mata pelajaran baru
+         SesiUjianController::updateDurasiSesiUjian($batchName, $request->mata_pelajaran);
+         
+         // Jika batch atau mata pelajaran berubah, update juga sesi ujian lama
+         if ($oldBatchName !== $batchName || $oldMataPelajaran !== $request->mata_pelajaran) {
+            SesiUjianController::updateDurasiSesiUjian($oldBatchName, $oldMataPelajaran);
+         }
+         
+         // Update semua durasi untuk memastikan konsistensi
+         SesiUjianController::updateAllDurasiSesiUjian();
 
          return response()->json([
             'success' => true,
@@ -305,7 +395,23 @@ class QuestionController extends Controller
    {
       try {
          $question = Soal::findOrFail($id);
+         
+         // Simpan batch dan mata pelajaran sebelum menghapus untuk update durasi sesi ujian
+         $batchName = $question->batch;
+         $mataPelajaran = $question->mata_pelajaran;
+         
+         // Hapus gambar jika ada
+         if ($question->gambar && file_exists(public_path($question->gambar))) {
+            unlink(public_path($question->gambar));
+         }
+         
          $question->delete();
+
+         // Auto-update durasi sesi ujian yang menggunakan batch dan mata pelajaran ini
+         SesiUjianController::updateDurasiSesiUjian($batchName, $mataPelajaran);
+         
+         // Update semua durasi untuk memastikan konsistensi
+         SesiUjianController::updateAllDurasiSesiUjian();
 
          return response()->json([
             'success' => true,

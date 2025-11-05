@@ -118,6 +118,139 @@
          min-height: 120px;
          resize: vertical;
       }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+         .exam-container {
+            padding: 10px;
+         }
+
+         .exam-header {
+            padding: 15px;
+            margin-bottom: 20px;
+         }
+
+         .exam-header h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+         }
+
+         .exam-header p {
+            font-size: 0.875rem;
+         }
+
+         .timer {
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-top: 10px;
+         }
+
+         .question-card {
+            padding: 15px;
+            margin-bottom: 15px;
+         }
+
+         .question-number {
+            width: 35px;
+            height: 35px;
+            font-size: 0.875rem;
+            margin-right: 10px;
+            flex-shrink: 0;
+         }
+
+         .question-card h5 {
+            font-size: 1rem;
+            line-height: 1.5;
+         }
+
+         .form-check {
+            padding: 8px;
+            margin-bottom: 8px;
+         }
+
+         .form-check-label {
+            font-size: 0.9rem;
+            line-height: 1.4;
+         }
+
+         .options img {
+            max-width: 100%;
+            height: auto;
+         }
+
+         #navigationButtons {
+            padding: 15px 0;
+         }
+
+         #navigationButtons .btn {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 14px;
+         }
+
+         #navigationButtons .d-flex {
+            gap: 10px;
+         }
+
+         .container-fluid {
+            padding: 0;
+         }
+      }
+
+      @media (max-width: 576px) {
+         .exam-container {
+            padding: 8px;
+         }
+
+         .exam-header {
+            padding: 12px;
+         }
+
+         .exam-header .row {
+            flex-direction: column;
+         }
+
+         .exam-header .col-md-8,
+         .exam-header .col-md-4 {
+            width: 100%;
+            text-align: center;
+         }
+
+         .exam-header .col-md-4 {
+            margin-top: 10px;
+         }
+
+         .question-card {
+            padding: 12px;
+         }
+
+         .question-card h5 {
+            font-size: 0.95rem;
+         }
+
+         .form-check {
+            padding: 6px;
+         }
+
+         .form-check-label {
+            font-size: 0.85rem;
+         }
+
+         .timer {
+            font-size: 12px;
+            padding: 6px 12px;
+         }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         .exam-container {
+            padding: 15px;
+         }
+
+         .question-card {
+            padding: 20px;
+         }
+      }
    </style>
 </head>
 
@@ -126,31 +259,32 @@
       <div class="exam-container">
          <div class="exam-header">
             <div class="row align-items-center">
-               <div class="col-md-8">
+               <div class="col-md-8 col-12 mb-3 mb-md-0">
                   @if(!$sesiUjian->hide_mata_pelajaran)
-                     <h2 class="mb-2">
+                     <h2 class="mb-2" style="font-size: clamp(1.1rem, 4vw, 1.5rem);">
                         <i class="bi bi-file-text me-2"></i>
                         {{ $sesiUjian->ujian->nama_ujian ?? 'Ujian' }}
                      </h2>
-                     <p class="mb-0">
+                     <p class="mb-0" style="font-size: clamp(0.85rem, 3vw, 1rem); word-wrap: break-word;">
                         <i class="bi bi-book me-2"></i>
-                        {{ $sesiUjian->mata_pelajaran }} |
+                        <span class="d-inline d-sm-inline">{{ $sesiUjian->mata_pelajaran }}</span>
+                        <span class="d-none d-sm-inline"> | </span><br class="d-sm-none">
                         <i class="bi bi-person me-2"></i>
                         {{ $peserta->nama_peserta ?? $peserta->nama ?? 'Peserta' }}
                      </p>
                   @else
-                     <h2 class="mb-2">
+                     <h2 class="mb-2" style="font-size: clamp(1.1rem, 4vw, 1.5rem);">
                         <i class="bi bi-file-text me-2"></i>
-                      Selamat Mengerjakan
+                        Selamat Mengerjakan
                      </h2>
-                     <p class="mb-0">
+                     <p class="mb-0" style="font-size: clamp(0.85rem, 3vw, 1rem);">
                         <i class="bi bi-person me-2"></i>
                         {{ $peserta->nama_peserta ?? $peserta->nama ?? 'Peserta' }}
                      </p>
                   @endif
                </div>
-               <div class="col-md-4 text-end">
-                  <div class="timer" id="timer">
+               <div class="col-md-4 col-12 text-md-end text-center">
+                  <div class="timer" id="timer" style="display: inline-block;">
                      <i class="bi bi-clock me-2"></i>
                      <span id="timeDisplay">00:00:00</span>
                   </div>
@@ -158,25 +292,48 @@
             </div>
          </div>
 
-         <div id="examRoot" data-sesi-id="{{ $sesiUjian['id_sesi'] ?? '' }}" data-soal='@json($soal->map(function($item, $index) { return ['id' => $item->id_soal, 'durasi_soal' => $item->durasi_soal ?? null, 'pertanyaan' => $item->pertanyaan, 'tipe_soal' => $item->tipe_soal, 'opsi_a' => $item->opsi_a, 'opsi_b' => $item->opsi_b, 'opsi_c' => $item->opsi_c, 'opsi_d' => $item->opsi_d, 'opsi_e' => $item->opsi_e ?? null, 'opsi_f' => $item->opsi_f ?? null, 'gambar' => $item->gambar, 'poin' => $item->poin, 'index' => $index]; }))'></div>
+         @php
+            $soalData = $soal->map(function($item, $index) {
+               return [
+                  'id' => $item->id_soal,
+                  'durasi_soal' => $item->durasi_soal ?? null,
+                  'pertanyaan' => $item->pertanyaan ?? '',
+                  'tipe_soal' => $item->tipe_soal ?? '',
+                  'opsi_a' => $item->opsi_a ?? '',
+                  'opsi_b' => $item->opsi_b ?? '',
+                  'opsi_c' => $item->opsi_c ?? '',
+                  'opsi_d' => $item->opsi_d ?? '',
+                  'opsi_e' => $item->opsi_e ?? null,
+                  'opsi_f' => $item->opsi_f ?? null,
+                  'gambar' => $item->gambar ?? null,
+                  'poin' => $item->poin ?? 0,
+                  'index' => $index
+               ];
+            })->toArray();
+            $soalJson = json_encode($soalData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+         @endphp
+         <div id="examRoot" data-sesi-id="{{ $sesiUjian['id_sesi'] ?? '' }}"></div>
+         <script type="application/json" id="soalDataJson">{!! $soalJson !!}</script>
 
          <form id="examForm">
             @csrf
             <div class="exam-container" id="questionContainer">
-               <!-- Question will be dynamically loaded here -->
+               
             </div>
 
-            <!-- Navigation Buttons -->
+            
             <div class="text-center mt-4" id="navigationButtons" style="display: none;">
-               <button type="button" class="btn btn-secondary me-2" id="prevBtn" style="padding: 10px 30px; font-size: 16px;">
-                  <i class="bi bi-arrow-left me-1"></i> Sebelumnya
-               </button>
-               <button type="button" class="btn btn-primary me-2" id="nextBtn" style="padding: 10px 30px; font-size: 16px;">
-                  Selanjutnya <i class="bi bi-arrow-right ms-1"></i>
-               </button>
-               <button type="button" class="btn btn-success" id="finishBtn" style="padding: 10px 30px; font-size: 16px; display: none;">
-                  <i class="bi bi-check-circle me-2"></i> Selesai
-               </button>
+               <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                  <button type="button" class="btn btn-secondary" id="prevBtn" style="padding: 10px 30px; font-size: 16px;">
+                     <i class="bi bi-arrow-left me-1"></i> <span class="d-none d-sm-inline">Sebelumnya</span><span class="d-sm-none">Sebelum</span>
+                  </button>
+                  <button type="button" class="btn btn-primary" id="nextBtn" style="padding: 10px 30px; font-size: 16px;">
+                     <span class="d-none d-sm-inline">Selanjutnya</span><span class="d-sm-none">Lanjut</span> <i class="bi bi-arrow-right ms-1"></i>
+                  </button>
+                  <button type="button" class="btn btn-success" id="finishBtn" style="padding: 10px 30px; font-size: 16px; display: none;">
+                     <i class="bi bi-check-circle me-2"></i> Selesai
+                  </button>
+               </div>
             </div>
          </form>
       </div>
@@ -186,7 +343,8 @@
    <script>
       const examRoot = document.getElementById('examRoot');
       const sesiId = examRoot ? examRoot.dataset.sesiId : '';
-      const soalData = JSON.parse(examRoot ? examRoot.dataset.soal : '[]');
+      const soalDataJson = document.getElementById('soalDataJson');
+      const soalData = soalDataJson ? JSON.parse(soalDataJson.textContent) : [];
       const hideNomorUrut = {{ $sesiUjian->hide_nomor_urut ? 'true' : 'false' }};
       const hidePoin = {{ $sesiUjian->hide_poin ? 'true' : 'false' }};
       
@@ -197,7 +355,6 @@
       let isSubmitting = false;
       let startTime = Date.now();
 
-      // Load saved answers from localStorage
       function loadSavedAnswers() {
          const backup = localStorage.getItem('exam_backup_' + sesiId);
          if (backup) {
@@ -215,7 +372,6 @@
          }
       }
 
-      // Save answers to localStorage
       function saveAnswers() {
          const backupData = {
             answers: answers,
@@ -225,39 +381,33 @@
          localStorage.setItem('exam_backup_' + sesiId, JSON.stringify(backupData));
       }
 
-      // Render question
       function renderQuestion(index) {
          if (index < 0 || index >= soalData.length) return;
          
          const question = soalData[index];
          const container = document.getElementById('questionContainer');
          
-         // Save current answer before switching
          saveCurrentAnswer();
          
-         // Clear timer
          if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
          }
          
-         // Build HTML
          let html = '<div class="question-card">';
-         html += '<div class="d-flex align-items-start mb-3">';
+         html += '<div class="d-flex align-items-start mb-3 flex-wrap">';
          
          if (!hideNomorUrut) {
-            html += '<div class="question-number">' + (index + 1) + '</div>';
+            html += '<div class="question-number flex-shrink-0">' + (index + 1) + '</div>';
          }
          
-         html += '<div class="flex-grow-1">';
-         html += '<h5 class="fw-bold mb-3">' + escapeHtml(question.pertanyaan) + '</h5>';
+         html += '<div class="flex-grow-1" style="min-width: 0;">';
+         html += '<h5 class="fw-bold mb-3" style="word-wrap: break-word; overflow-wrap: break-word;">' + escapeHtml(question.pertanyaan) + '</h5>';
          
-         // Show image if exists
          if (question.gambar) {
-            html += '<div class="mb-3"><img src="/' + question.gambar + '" alt="Gambar Soal" class="img-fluid" style="max-width: 100%; height: auto;"></div>';
+            html += '<div class="mb-3"><img src="/' + question.gambar + '" alt="Gambar Soal" class="img-fluid" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>';
          }
          
-         // Render options based on question type
          if (question.tipe_soal === 'pilihan_ganda') {
             html += '<div class="options">';
             const options = {
@@ -274,7 +424,7 @@
                   const checked = answers[question.id] === key ? 'checked' : '';
                   html += '<div class="form-check mb-3">';
                   html += '<input class="form-check-input jawaban-radio" type="radio" name="jawaban_' + question.id + '" value="' + key + '" data-id="' + question.id + '" id="soal' + question.id + '_' + key + '" ' + checked + '>';
-                  html += '<label class="form-check-label" for="soal' + question.id + '_' + key + '">' + key + '. ' + escapeHtml(options[key]) + '</label>';
+                  html += '<label class="form-check-label" for="soal' + question.id + '_' + key + '" style="word-wrap: break-word; overflow-wrap: break-word; cursor: pointer;">' + key + '. ' + escapeHtml(options[key]) + '</label>';
                   html += '</div>';
                }
             });
@@ -307,13 +457,10 @@
          
          container.innerHTML = html;
          
-         // Update navigation buttons
          updateNavigationButtons();
          
-         // Start timer for this question
          startQuestionTimer(question);
          
-         // Add event listeners
          document.querySelectorAll('.jawaban-radio').forEach(function(r) {
             r.addEventListener('change', function() {
                saveCurrentAnswer();
@@ -326,7 +473,6 @@
          });
       }
 
-      // Save current answer
       function saveCurrentAnswer() {
          if (currentQuestionIndex >= 0 && currentQuestionIndex < soalData.length) {
             const question = soalData[currentQuestionIndex];
@@ -343,7 +489,6 @@
          }
       }
 
-      // Start timer for current question
       function startQuestionTimer(question) {
          if (!question.durasi_soal) {
             document.getElementById('timeDisplay').textContent = 'Tidak ada batas waktu';
@@ -371,11 +516,9 @@
             
             if (timeLeft <= 0) {
                clearInterval(timerInterval);
-               // Auto next to next question
                if (currentQuestionIndex < soalData.length - 1) {
                   nextQuestion();
                } else {
-                  // Last question, submit exam
                   submitExam();
                }
             }
@@ -386,7 +529,6 @@
          timerInterval = setInterval(updateTimer, 1000);
       }
 
-      // Update navigation buttons
       function updateNavigationButtons() {
          const prevBtn = document.getElementById('prevBtn');
          const nextBtn = document.getElementById('nextBtn');
@@ -400,7 +542,6 @@
          finishBtn.style.display = currentQuestionIndex === soalData.length - 1 ? 'inline-block' : 'none';
       }
 
-      // Next question
       function nextQuestion() {
          if (currentQuestionIndex < soalData.length - 1) {
             saveCurrentAnswer();
@@ -409,7 +550,6 @@
          }
       }
 
-      // Previous question
       function prevQuestion() {
          if (currentQuestionIndex > 0) {
             saveCurrentAnswer();
@@ -418,7 +558,6 @@
          }
       }
 
-      // Escape HTML
       function escapeHtml(text) {
          const map = {
             '&': '&amp;',
@@ -430,7 +569,6 @@
          return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
       }
 
-      // Collect all answers
       function collectAnswers() {
          saveCurrentAnswer(); // Save current question answer
          return {
@@ -439,7 +577,15 @@
          };
       }
 
-      // Submit exam
+      function confirmSubmitExam() {
+         if (isSubmitting) return;
+         
+         const confirmed = confirm('Apakah Anda yakin ingin menyelesaikan ujian sesi ini?');
+         if (confirmed) {
+            submitExam();
+         }
+      }
+
       function submitExam() {
          if (isSubmitting) return;
          isSubmitting = true;
@@ -482,15 +628,13 @@
          });
       }
 
-      // Initialize
       document.addEventListener('DOMContentLoaded', function() {
          loadSavedAnswers();
          renderQuestion(currentQuestionIndex);
          
-         // Event listeners for navigation
          document.getElementById('nextBtn').addEventListener('click', nextQuestion);
          document.getElementById('prevBtn').addEventListener('click', prevQuestion);
-         document.getElementById('finishBtn').addEventListener('click', submitExam);
+         document.getElementById('finishBtn').addEventListener('click', confirmSubmitExam);
       });
 
    </script>

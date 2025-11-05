@@ -7,15 +7,15 @@
    <title>@yield('title', 'Ujian Online')</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Favicon Global Admin -->
+   
    <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
 
-   <!-- Vite CSS -->
+   
    @vite(['resources/css/app.css', 'resources/css/exam/style.css'])
-   <!-- Bootstrap Icons CDN (temporary) -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
 
-   <!-- Google Fonts -->
+   
    <link rel="preconnect" href="https://fonts.googleapis.com">
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -224,7 +224,7 @@
 </head>
 
 <body>
-   <!-- Auto-save indicator -->
+   
    <div class="auto-save-indicator" id="autoSaveIndicator" style="display: none">
       <div class="alert alert-success alert-dismissible fade show" role="alert">
          <i class="bi bi-check-circle me-2"></i>
@@ -235,22 +235,22 @@
    <div class="container-fluid">
       <div class="row">
          @hasSection('sidebar')
-         <!-- Sidebar -->
+         
          <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
             @yield('sidebar')
          </nav>
          @endif
 
-         <!-- Main content -->
+         
          <main class="@hasSection('sidebar') col-md-9 ms-sm-auto col-lg-10 @else col-12 @endif px-md-4 main-content">
             @hasSection('navbar')
-            <!-- Top Navbar -->
+            
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                @yield('navbar')
             </div>
             @endif
 
-            <!-- Page Content -->
+            
             <div id="pageContent">
                @yield('content')
             </div>
@@ -259,13 +259,13 @@
    </div>
 
    @hasSection('footer')
-   <!-- Footer -->
+   
    <footer class="bg-dark text-light py-4 mt-5">
       @yield('footer')
    </footer>
    @endif
 
-   <!-- Vite JS -->
+   
    @vite(['resources/js/app.js'])
 
    @stack('scripts')

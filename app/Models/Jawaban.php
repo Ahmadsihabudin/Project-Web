@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id_soal
  * @property string|null $jawaban_dipilih
  * @property string $status
- * @property numeric|null $nilai_essay
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Peserta $peserta
@@ -27,7 +26,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Jawaban whereIdSoal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Jawaban whereIdUjian($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Jawaban whereJawabanDipilih($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Jawaban whereNilaiEssay($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Jawaban whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Jawaban whereUpdatedAt($value)
  * @mixin \Eloquent
@@ -42,12 +40,7 @@ class Jawaban extends Model
         'id_peserta',
         'id_soal',
         'jawaban_dipilih',
-        'status',
-        'nilai_essay'
-    ];
-
-    protected $casts = [
-        'nilai_essay' => 'decimal:2'
+        'status'
     ];
 
 

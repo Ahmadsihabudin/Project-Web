@@ -408,29 +408,28 @@ CREATE TABLE `jawaban` (
   `id_peserta` bigint UNSIGNED NOT NULL,
   `id_soal` bigint UNSIGNED NOT NULL,
   `jawaban_dipilih` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` enum('benar','salah','pending') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
-  `nilai_essay` decimal(5,2) DEFAULT NULL
+  `status` enum('benar','salah','pending') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `jawaban`
 --
 
-INSERT INTO `jawaban` (`id_jawaban`, `id_peserta`, `id_soal`, `jawaban_dipilih`, `status`, `nilai_essay`) VALUES
-(1, 27, 15, 'A', 'benar', NULL),
-(2, 27, 16, 'B', 'benar', NULL),
-(3, 27, 17, 'Fotosintesis itu yahh gitu', 'salah', 1.30),
-(4, 27, 18, 'Yahh gitu deh', 'salah', 0.00),
-(5, 27, 19, 'A', 'benar', NULL),
-(6, 26, 15, 'A', 'benar', NULL),
-(7, 26, 16, 'B', 'benar', NULL),
-(8, 26, 17, 'asdas', 'salah', 0.00),
-(9, 26, 18, 'asdas', 'salah', 0.00),
-(10, 26, 19, 'C', 'salah', NULL),
-(11, 24, 15, 'A', 'benar', NULL),
-(12, 24, 17, 'abc', 'salah', 0.00),
-(13, 24, 18, 'abc', 'salah', 0.00),
-(14, 24, 19, 'A', 'benar', NULL);
+INSERT INTO `jawaban` (`id_jawaban`, `id_peserta`, `id_soal`, `jawaban_dipilih`, `status`) VALUES
+(1, 27, 15, 'A', 'benar'),
+(2, 27, 16, 'B', 'benar'),
+(3, 27, 17, 'Fotosintesis itu yahh gitu', 'salah'),
+(4, 27, 18, 'Yahh gitu deh', 'salah'),
+(5, 27, 19, 'A', 'benar'),
+(6, 26, 15, 'A', 'benar'),
+(7, 26, 16, 'B', 'benar'),
+(8, 26, 17, 'asdas', 'salah'),
+(9, 26, 18, 'asdas', 'salah'),
+(10, 26, 19, 'C', 'salah'),
+(11, 24, 15, 'A', 'benar'),
+(12, 24, 17, 'abc', 'salah'),
+(13, 24, 18, 'abc', 'salah'),
+(14, 24, 19, 'A', 'benar');
 
 -- --------------------------------------------------------
 
@@ -476,8 +475,10 @@ CREATE TABLE `job_batches` (
 CREATE TABLE `laporan` (
   `id_laporan` bigint UNSIGNED NOT NULL,
   `id_peserta` bigint UNSIGNED NOT NULL,
+  `batch_saat_ujian` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `total_score` decimal(5,2) NOT NULL DEFAULT '0.00',
   `jumlah_benar` int NOT NULL DEFAULT '0',
+  `jumlah_salah` int NOT NULL DEFAULT '0',
   `waktu_pengerjaan` int NOT NULL DEFAULT '0',
   `status_submit` enum('manual','cheat','auto_submit') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'manual'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -486,10 +487,10 @@ CREATE TABLE `laporan` (
 -- Dumping data for table `laporan`
 --
 
-INSERT INTO `laporan` (`id_laporan`, `id_peserta`, `total_score`, `jumlah_benar`, `waktu_pengerjaan`, `status_submit`) VALUES
-(1, 27, 60.00, 3, 1, 'manual'),
-(2, 26, 40.00, 2, 1, 'manual'),
-(3, 24, 33.33, 2, 0, 'manual');
+INSERT INTO `laporan` (`id_laporan`, `id_peserta`, `batch_saat_ujian`, `total_score`, `jumlah_benar`, `jumlah_salah`, `waktu_pengerjaan`, `status_submit`) VALUES
+(1, 27, 'Batch 2', 60.00, 3, 2, 1, 'manual'),
+(2, 26, 'Batch 2', 40.00, 2, 3, 1, 'manual'),
+(3, 24, 'Batch 2', 33.33, 2, 2, 0, 'manual');
 
 -- --------------------------------------------------------
 
@@ -669,9 +670,10 @@ CREATE TABLE `soal` (
   `id_soal` bigint UNSIGNED NOT NULL,
   `batch` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `pertanyaan` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `gambar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `mata_pelajaran` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `level_kesulitan` enum('mudah','sedang','sulit') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'sedang',
-  `tipe_soal` enum('pilihan_ganda','essay','benar_salah') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pilihan_ganda',
+  `tipe_soal` enum('pilihan_ganda','benar_salah') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pilihan_ganda',
   `opsi_a` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `opsi_b` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `opsi_c` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -680,20 +682,24 @@ CREATE TABLE `soal` (
   `opsi_f` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `jawaban_benar` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `umpan_balik` text COLLATE utf8mb4_unicode_ci,
-  `poin` int NOT NULL DEFAULT '1'
+  `poin` int NOT NULL DEFAULT '1',
+  `jenis_penilaian` enum('normal','pengurangan_poin') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal',
+  `poin_benar` int DEFAULT NULL,
+  `poin_salah` int NOT NULL DEFAULT '0',
+  `durasi_soal` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `soal`
 --
 
-INSERT INTO `soal` (`id_soal`, `batch`, `pertanyaan`, `mata_pelajaran`, `level_kesulitan`, `tipe_soal`, `opsi_a`, `opsi_b`, `opsi_c`, `opsi_d`, `opsi_e`, `opsi_f`, `jawaban_benar`, `umpan_balik`, `poin`) VALUES
-(15, 'Batch 2', 'Apa ibukota Indonesia?', 'Geografi', 'sedang', 'pilihan_ganda', 'Jakarta', 'Bandung', 'Surabaya', 'Medan', 'Semarang', 'Yogyakarta', 'a', 'Ibukota Indonesia adalah Jakarta', 10),
-(16, 'Batch 2', '2 + 2 = ?', 'Matematika', 'sedang', 'pilihan_ganda', '3', '4', '5', '6', '', '', 'b', 'Hasil penjumlahan 2 + 2 adalah 4', 10),
-(17, 'Batch 2', 'Jelaskan proses fotosintesis', 'Biologi', 'sedang', 'essay', '', '', '', '', '', '', 'Fotosintesis adalah proses dimana tumbuhan menggunakan cahaya matahari, air, dan karbon dioksida untuk membuat glukosa dan oksigen.', 'Fotosintesis adalah proses pembuatan makanan oleh tumbuhan', 15),
-(18, 'Batch 2', 'Jelaskan kelebihan dan kekurangan sistem operasi Windows', 'Teknologi Informasi', 'sedang', 'essay', '', '', '', '', '', '', 'Windows memiliki kelebihan: user-friendly, kompatibilitas software tinggi, dukungan hardware luas. Kekurangan: rentan virus, lisensi berbayar, resource usage tinggi.', 'Windows memiliki kelebihan user-friendly tetapi rentan virus', 15),
-(19, 'Batch 2', 'Siapa presiden Indonesia?', 'Pendidikan Kewarganegaraan', 'sedang', 'pilihan_ganda', 'Joko Widodo', 'Prabowo Subianto', 'Megawati', 'Susilo Bambang Yudhoyono', '', '', 'a', 'Presiden Indonesia saat ini adalah Joko Widodo', 5),
-(20, 'Batch 2', '1 + 1', 'Matematika', 'sedang', 'pilihan_ganda', '2', '1', '3', '5', '4', '6', 'a', '', 10);
+INSERT INTO `soal` (`id_soal`, `batch`, `pertanyaan`, `gambar`, `mata_pelajaran`, `level_kesulitan`, `tipe_soal`, `opsi_a`, `opsi_b`, `opsi_c`, `opsi_d`, `opsi_e`, `opsi_f`, `jawaban_benar`, `umpan_balik`, `poin`, `jenis_penilaian`, `poin_benar`, `poin_salah`, `durasi_soal`) VALUES
+(15, 'Batch 2', 'Apa ibukota Indonesia?', NULL, 'Geografi', 'sedang', 'pilihan_ganda', 'Jakarta', 'Bandung', 'Surabaya', 'Medan', 'Semarang', 'Yogyakarta', 'a', 'Ibukota Indonesia adalah Jakarta', 10, 'normal', NULL, 0, NULL),
+(16, 'Batch 2', '2 + 2 = ?', NULL, 'Matematika', 'sedang', 'pilihan_ganda', '3', '4', '5', '6', '', '', 'b', 'Hasil penjumlahan 2 + 2 adalah 4', 10, 'normal', NULL, 0, NULL),
+(17, 'Batch 2', 'Jelaskan proses fotosintesis', NULL, 'Biologi', 'sedang', 'pilihan_ganda', '', '', '', '', '', '', 'Fotosintesis adalah proses dimana tumbuhan menggunakan cahaya matahari, air, dan karbon dioksida untuk membuat glukosa dan oksigen.', 'Fotosintesis adalah proses pembuatan makanan oleh tumbuhan', 15, 'normal', NULL, 0, NULL),
+(18, 'Batch 2', 'Jelaskan kelebihan dan kekurangan sistem operasi Windows', NULL, 'Teknologi Informasi', 'sedang', 'pilihan_ganda', '', '', '', '', '', '', 'Windows memiliki kelebihan: user-friendly, kompatibilitas software tinggi, dukungan hardware luas. Kekurangan: rentan virus, lisensi berbayar, resource usage tinggi.', 'Windows memiliki kelebihan user-friendly tetapi rentan virus', 15, 'normal', NULL, 0, NULL),
+(19, 'Batch 2', 'Siapa presiden Indonesia?', NULL, 'Pendidikan Kewarganegaraan', 'sedang', 'pilihan_ganda', 'Joko Widodo', 'Prabowo Subianto', 'Megawati', 'Susilo Bambang Yudhoyono', '', '', 'a', 'Presiden Indonesia saat ini adalah Joko Widodo', 5, 'normal', NULL, 0, NULL),
+(20, 'Batch 2', '1 + 1', NULL, 'Matematika', 'sedang', 'pilihan_ganda', '2', '1', '3', '5', '4', '6', 'a', '', 10, 'normal', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 

@@ -250,7 +250,7 @@
       }
 
       .no-exam-title {
-         font-size: 2rem;
+         font-size: 1.75rem;
       }
 
       .no-exam-subtitle {
@@ -259,7 +259,42 @@
 
       .info-grid {
          grid-template-columns: 1fr;
-         gap: 1rem;
+         gap: 15px;
+      }
+
+      .info-item {
+         padding: 12px;
+      }
+
+      .btn-primary {
+         width: 100%;
+         padding: 12px 20px;
+      }
+   }
+
+   @media (max-width: 576px) {
+      .no-exam-container {
+         padding: 0.75rem;
+      }
+
+      .no-exam-card {
+         padding: 1.5rem 1rem;
+      }
+
+      .no-exam-title {
+         font-size: 1.5rem;
+      }
+
+      .no-exam-subtitle {
+         font-size: 0.9rem;
+      }
+
+      .info-label {
+         font-size: 0.75rem;
+      }
+
+      .info-value {
+         font-size: 0.9rem;
       }
 
       .action-buttons {
@@ -277,22 +312,22 @@
 
 <div class="no-exam-container">
    <div class="no-exam-card">
-      <!-- Icon -->
+      
       <div class="no-exam-icon">
          <i class="bi bi-exclamation-triangle-fill"></i>
       </div>
 
-      <!-- Title -->
+      
       <h1 class="no-exam-title">Tidak Ada Ujian</h1>
 
-      <!-- Subtitle -->
+      
       <p class="no-exam-subtitle">
          Maaf, saat ini tidak ada jadwal ujian yang tersedia untuk batch Anda.
       </p>
 
-      <!-- Content Wrapper (Landscape Layout) -->
+      
       <div class="content-wrapper">
-         <!-- Left Section: Participant Info -->
+         
          <div class="left-section">
             <div class="participant-info">
                <h5><i class="bi bi-person-circle me-2"></i>Informasi Peserta</h5>
@@ -317,7 +352,7 @@
             </div>
          </div>
 
-         <!-- Right Section: Contact Info -->
+         
          <div class="right-section">
             <div class="contact-info">
                <h4><i class="bi bi-telephone-fill me-2"></i>Hubungi Staff Akti</h4>
@@ -330,7 +365,7 @@
          </div>
       </div>
 
-      <!-- Action Buttons -->
+      
       <div class="action-buttons">
          <a href="tel:+622112345678" class="btn-contact">
             <i class="bi bi-telephone me-2"></i>Hubungi Sekarang

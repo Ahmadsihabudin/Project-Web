@@ -7,13 +7,13 @@
    <title>Manajemen Laporan - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Chart.js -->
+   
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -32,20 +32,21 @@
       }
 
       .stats-card {
-         background: white;
-         border-radius: 15px;
-         padding: 1.5rem;
-         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+         background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+         border-radius: 16px;
+         padding: 1.75rem;
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
          margin-bottom: 1.5rem;
-         border: none;
-         transition: transform 0.3s ease, box-shadow 0.3s ease;
+         border: 1px solid rgba(0, 0, 0, 0.05);
+         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
          position: relative;
          overflow: hidden;
+         height: 100%;
       }
 
       .stats-card:hover {
-         transform: translateY(-5px);
-         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+         transform: translateY(-8px);
+         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
       .stats-card::before {
@@ -54,38 +55,82 @@
          top: 0;
          left: 0;
          right: 0;
-         height: 4px;
-         background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+         height: 5px;
+         background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6);
+         border-radius: 16px 16px 0 0;
       }
 
       .stats-card .icon-wrapper {
-         width: 60px;
-         height: 60px;
-         border-radius: 50%;
+         width: 70px;
+         height: 70px;
+         border-radius: 16px;
          display: flex;
          align-items: center;
          justify-content: center;
-         margin-bottom: 1rem;
+         margin-bottom: 1.25rem;
+         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+         transition: transform 0.3s ease;
+      }
+
+      .stats-card:hover .icon-wrapper {
+         transform: scale(1.1) rotate(5deg);
       }
 
       .stats-card.primary .icon-wrapper {
-         background: linear-gradient(135deg, #3498db, #2980b9);
+         background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      }
+
+      .stats-card.primary .icon-wrapper i {
+         color: #ffffff !important;
       }
 
       .stats-card.success .icon-wrapper {
-         background: linear-gradient(135deg, #2ecc71, #27ae60);
+         background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      }
+
+      .stats-card.success .icon-wrapper i {
+         color: #ffffff !important;
       }
 
       .stats-card.warning .icon-wrapper {
-         background: linear-gradient(135deg, #f39c12, #e67e22);
+         background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      }
+
+      .stats-card.warning .icon-wrapper i {
+         color: #ffffff !important;
       }
 
       .stats-card.info .icon-wrapper {
-         background: linear-gradient(135deg, #17a2b8, #138496);
+         background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+      }
+
+      .stats-card.info .icon-wrapper i {
+         color: #ffffff !important;
       }
 
       .stats-card.danger .icon-wrapper {
-         background: linear-gradient(135deg, #e74c3c, #c0392b);
+         background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      }
+
+      .stats-card.danger .icon-wrapper i {
+         color: #ffffff !important;
+      }
+
+      .stats-card h3 {
+         font-size: 2rem;
+         font-weight: 700;
+         color: #2c3e50;
+         margin-bottom: 0.5rem;
+         line-height: 1.2;
+      }
+
+      .stats-card p {
+         font-size: 0.9rem;
+         font-weight: 600;
+         color: #6c757d;
+         margin-bottom: 0;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
       }
 
       .chart-container {
@@ -324,28 +369,28 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
             <div class="page-header">
                <h2><i class="bi bi-file-earmark-text me-2" style="color: #991B1B;"></i> Laporan Hasil Ujian</h2>
                <p class="mb-0">Data hasil ujian peserta yang telah diselesaikan</p>
             </div>
 
-            <!-- Statistics Cards -->
+            
             <div class="row mb-4" id="statsCards">
-               <!-- Stats will be loaded here -->
+               
             </div>
 
-            <!-- Charts Section -->
+            
             <div class="row mb-4">
                <div class="col-lg-8">
                   <div class="chart-container">
@@ -367,7 +412,7 @@
                </div>
             </div>
 
-            <!-- Performance Metrics -->
+            
             <div class="row mb-4">
                <div class="col-lg-6">
                   <div class="chart-container">
@@ -385,13 +430,13 @@
                         Top Performers
                      </div>
                      <div id="topPerformers">
-                        <!-- Top performers will be loaded here -->
+                        
                      </div>
                   </div>
                </div>
             </div>
 
-            <!-- Detailed Results Table -->
+            
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">
@@ -430,7 +475,7 @@
                            </tr>
                         </thead>
                         <tbody>
-                           <!-- Data will be loaded here -->
+                           
                         </tbody>
                      </table>
                   </div>
@@ -441,9 +486,10 @@
    </div>
 
    <script>
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      if (typeof csrfToken === 'undefined') {
+         var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      }
 
-      // Load statistics
       async function loadStats() {
          try {
             const response = await fetch('/admin/reports/stats', {
@@ -465,52 +511,53 @@
          }
       }
 
-      // Display statistics
       function displayStats(stats) {
+         const completionPercentage = stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(1) : 0;
+         
          const statsHtml = `
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card primary">
                   <div class="icon-wrapper">
-                     <i class="bi bi-file-earmark-text-fill" style="font-size: 1.5rem; color: #007bff;"></i>
+                     <i class="bi bi-file-earmark-text-fill" style="font-size: 2rem;"></i>
                   </div>
-                  <h3 class="mb-1">${stats.total}</h3>
-                  <p class="text-muted mb-0">Total Ujian</p>
+                  <h3>${stats.total || 0}</h3>
+                  <p>Total Ujian</p>
                </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card success">
                   <div class="icon-wrapper">
-                     <i class="bi bi-check-circle-fill" style="font-size: 1.5rem; color: #28a745;"></i>
+                     <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
                   </div>
-                  <h3 class="mb-1">${stats.completed}</h3>
-                  <p class="text-muted mb-0">Selesai</p>
+                  <h3>${completionPercentage}%</h3>
+                  <p>Selesai</p>
                </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card warning">
                   <div class="icon-wrapper">
-                     <i class="bi bi-graph-up" style="font-size: 1.5rem; color: #ffc107;"></i>
+                     <i class="bi bi-graph-up-arrow" style="font-size: 2rem;"></i>
                   </div>
-                  <h3 class="mb-1">${stats.average_score}%</h3>
-                  <p class="text-muted mb-0">Rata-rata Skor</p>
+                  <h3>${parseFloat(stats.average_score || 0).toFixed(2)}%</h3>
+                  <p>Rata-rata Skor</p>
                </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card info">
                   <div class="icon-wrapper">
-                     <i class="bi bi-clock-history" style="font-size: 1.5rem; color: #17a2b8;"></i>
+                     <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
                   </div>
-                  <h3 class="mb-1">${stats.average_time || 0}</h3>
-                  <p class="text-muted mb-0">Rata-rata Waktu (menit)</p>
+                  <h3>${stats.average_time || 0}</h3>
+                  <p>Rata-rata Waktu (menit)</p>
                </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                <div class="stats-card danger">
                   <div class="icon-wrapper">
-                     <i class="bi bi-people-fill" style="font-size: 1.5rem; color: #007bff;"></i>
+                     <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
                   </div>
-                  <h3 class="mb-1">${stats.participants}</h3>
-                  <p class="text-muted mb-0">Peserta</p>
+                  <h3>${stats.participants || 0}</h3>
+                  <p>Peserta</p>
                </div>
             </div>
          `;
@@ -518,7 +565,6 @@
          document.getElementById('statsCards').innerHTML = statsHtml;
       }
 
-      // Load reports data
       async function loadReports() {
          try {
             const response = await fetch('/admin/reports/data', {
@@ -540,15 +586,24 @@
          }
       }
 
-      // Display reports
       function displayReports(reports) {
          const tbody = document.querySelector('#reportsTable tbody');
          tbody.innerHTML = '';
 
          reports.forEach((report, index) => {
             const row = document.createElement('tr');
-            const scoreClass = report.total_score >= 80 ? 'success' : report.total_score >= 60 ? 'warning' : 'danger';
+            let scoreClass = 'danger';
+            if (report.total_score >= 80) {
+               scoreClass = 'success';
+            } else if (report.total_score >= 60) {
+               scoreClass = 'warning';
+            } else if (report.total_score >= 0) {
+               scoreClass = 'danger';
+            } else {
+               scoreClass = 'danger';
+            }
             const statusClass = report.status_submit === 'auto_submit' ? 'success' : 'info';
+            const scoreDisplay = parseFloat(report.total_score).toFixed(2) + '%';
 
             row.innerHTML = `
                <td>
@@ -567,7 +622,7 @@
                   </div>
                </td>
                <td>
-                  <span class="badge bg-${scoreClass} fs-6">${report.total_score}%</span>
+                  <span class="badge bg-${scoreClass} fs-6">${scoreDisplay}</span>
                </td>
                <td>
                   <div class="d-flex align-items-center">
@@ -610,11 +665,9 @@
             tbody.appendChild(row);
          });
 
-         // Initialize charts after data is loaded
          initializeCharts(reports);
       }
 
-      // Get tipe laporan text
       function getTipeLaporanText(tipeLaporan) {
          const tipeMap = {
             'hasil_ujian': 'Hasil Ujian',
@@ -626,8 +679,6 @@
          return tipeMap[tipeLaporan] || tipeLaporan;
       }
 
-
-      // Format date range
       function formatDateRange(startDate, endDate) {
          if (!startDate && !endDate) return '-';
          if (!startDate) return `Sampai ${formatDate(endDate)}`;
@@ -635,14 +686,12 @@
          return `${formatDate(startDate)} - ${formatDate(endDate)}`;
       }
 
-      // Format date
       function formatDate(dateString) {
          if (!dateString) return '-';
          const date = new Date(dateString);
          return date.toLocaleDateString('id-ID');
       }
 
-      // Generate report
       async function generateReport(id) {
          try {
             const response = await fetch(`/admin/reports/${id}/generate`, {
@@ -669,7 +718,6 @@
          }
       }
 
-      // Delete report
       async function deleteReport(id) {
          const confirmed = await Swal.fire({
             title: 'Hapus Laporan?',
@@ -720,9 +768,7 @@
          }
       }
 
-      // Initialize charts
       function initializeCharts(reports) {
-         // Score Distribution Chart
          const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
          const scores = reports.map(r => r.total_score);
          const scoreRanges = {
@@ -775,7 +821,6 @@
             }
          });
 
-         // Status Chart
          const statusCtx = document.getElementById('statusChart').getContext('2d');
          const statusCounts = reports.reduce((acc, r) => {
             acc[r.status_submit] = (acc[r.status_submit] || 0) + 1;
@@ -806,41 +851,65 @@
             }
          });
 
-         // Time Chart
          const timeCtx = document.getElementById('timeChart').getContext('2d');
-         const timeData = reports.map(r => ({
-            x: r.nama_peserta,
-            y: r.waktu_pengerjaan
-         }));
+         
+         const batchTimeMap = {};
+         reports.forEach(r => {
+            const batch = r.batch_saat_ujian || 'Unknown';
+            if (!batchTimeMap[batch]) {
+               batchTimeMap[batch] = {
+                  total: 0,
+                  count: 0
+               };
+            }
+            batchTimeMap[batch].total += parseFloat(r.waktu_pengerjaan) || 0;
+            batchTimeMap[batch].count += 1;
+         });
+
+         const batchLabels = Object.keys(batchTimeMap).sort();
+         const batchAverages = batchLabels.map(batch => {
+            const data = batchTimeMap[batch];
+            return data.count > 0 ? (data.total / data.count).toFixed(1) : 0;
+         });
 
          new Chart(timeCtx, {
-            type: 'line',
+            type: 'bar',
             data: {
-               labels: reports.map(r => r.nama_peserta),
+               labels: batchLabels,
                datasets: [{
-                  label: 'Waktu Pengerjaan (menit)',
-                  data: reports.map(r => r.waktu_pengerjaan),
+                  label: 'Rata-rata Waktu Pengerjaan (menit)',
+                  data: batchAverages,
                   borderColor: 'rgba(52, 152, 219, 1)',
-                  backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                  tension: 0.4,
-                  fill: true
+                  backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                  borderWidth: 2
                }]
             },
             options: {
                responsive: true,
+               plugins: {
+                  legend: {
+                     display: true,
+                     position: 'top'
+                  }
+               },
                scales: {
                   y: {
                      beginAtZero: true,
                      title: {
                         display: true,
-                        text: 'Waktu (menit)'
+                        text: 'Rata-rata Waktu (menit)'
+                     }
+                  },
+                  x: {
+                     title: {
+                        display: true,
+                        text: 'Batch'
                      }
                   }
                }
             }
          });
 
-         // Top Performers
          const topPerformers = reports
             .sort((a, b) => b.total_score - a.total_score)
             .slice(0, 5);
@@ -863,7 +932,6 @@
          document.getElementById('topPerformers').innerHTML = topPerformersHtml || '<p class="text-muted text-center">Belum ada data</p>';
       }
 
-      // View details
       async function viewDetails(id) {
          await Swal.fire({
             icon: 'info',
@@ -874,7 +942,6 @@
          });
       }
 
-      // Download report
       async function downloadReport(id) {
          await Swal.fire({
             icon: 'info',
@@ -885,7 +952,6 @@
          });
       }
 
-      // Export functions
       async function exportToPDF() {
          await Swal.fire({
             icon: 'info',
@@ -906,7 +972,6 @@
          });
       }
 
-      // Checkbox functions
       function toggleSelectAll() {
          const selectAllCheckbox = document.getElementById('selectAll');
          const checkboxes = document.querySelectorAll('.report-checkbox');
@@ -931,7 +996,6 @@
          }
       }
 
-      // Delete selected reports
       async function deleteSelected() {
          const checkboxes = document.querySelectorAll('.report-checkbox:checked');
          const selectedIds = Array.from(checkboxes).map(cb => cb.value);
@@ -1004,7 +1068,6 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
          loadStats();

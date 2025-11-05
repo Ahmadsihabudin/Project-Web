@@ -7,11 +7,11 @@
    <title>Tambah Peserta - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -74,17 +74,17 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
@@ -100,12 +100,12 @@
                </div>
             </div>
 
-            <!-- Form -->
+            
             <div class="card">
                <div class="card-body">
                   <form id="createParticipantForm">
                      <div class="row">
-                        <!-- Personal Information -->
+                        
                         <div class="col-md-6">
                            <div class="form-section">
                               <h6 class="mb-3"><i class="bi bi-person me-2"></i>Informasi Pribadi</h6>
@@ -130,7 +130,7 @@
                            </div>
                         </div>
 
-                        <!-- Academic Information -->
+                        
                         <div class="col-md-6">
                            <div class="form-section">
                               <h6 class="mb-3"><i class="bi bi-mortarboard me-2"></i>Informasi Akademik</h6>
@@ -168,7 +168,7 @@
                         </div>
                      </div>
 
-                     <!-- Additional Information -->
+                     
                      <div class="row">
                         <div class="col-12">
                            <div class="form-section">
@@ -240,11 +240,9 @@
    <script>
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-      // Handle form submission
       async function handleCreateForm(event) {
          event.preventDefault();
 
-         // Validasi form sebelum submit
          const form = event.target;
          if (!form.checkValidity()) {
             console.log('Form validation failed');
@@ -252,7 +250,6 @@
             return;
          }
 
-         // Validasi manual untuk field yang diperlukan
          const nama = form.querySelector('#nama').value.trim();
          const email = form.querySelector('#email').value.trim();
          const kodeAkses = form.querySelector('#kode_akses').value.trim();
@@ -339,7 +336,6 @@
          try {
             const formData = new FormData(event.target);
 
-            // Debug: Log all form data
             console.log('All form data:');
             for (let [key, value] of formData.entries()) {
                console.log(`  ${key}: ${value}`);
@@ -357,7 +353,6 @@
                nik: formData.get('nik'),
                kota_kabupaten: formData.get('kota_kabupaten'),
                provinsi: formData.get('provinsi')
-               // Note: kode_peserta is now user input, not auto-generated
             };
 
             console.log('Participant Data to be sent:', participantData);
@@ -375,11 +370,9 @@
             alertSystem.hide(loadingAlert);
 
             if (result.success) {
-               // Show success message with user input kode peserta
                const kodePeserta = result.data.kode_peserta;
                alertSystem.createSuccess('Peserta');
 
-               // Show SweetAlert success
                await Swal.fire({
                   icon: 'success',
                   title: 'Berhasil!',
@@ -388,10 +381,8 @@
                   confirmButtonColor: '#991B1B'
                });
 
-               // Redirect to index page
                window.location.href = '{{ route("admin.participants.index") }}';
             } else {
-               // Show validation errors or error message
                let errorMessage = result.message || 'Terjadi kesalahan';
                if (result.errors) {
                   const errorList = Object.values(result.errors).flat().join('<br>');
@@ -419,18 +410,15 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
 
-         // Add form listeners
          const createForm = document.getElementById('createParticipantForm');
 
          if (createForm) {
             createForm.addEventListener('submit', handleCreateForm);
          }
 
-         // Add real-time validation for form fields
          const requiredFields = ['nama', 'email', 'kode_akses', 'asal_smk', 'batch'];
 
          requiredFields.forEach(fieldName => {
@@ -448,7 +436,6 @@
             }
          });
 
-         // Email validation
          const emailField = document.getElementById('email');
          if (emailField) {
             emailField.addEventListener('blur', function() {
@@ -463,7 +450,6 @@
             });
          }
 
-         // Validasi No HP - hanya angka
          const noHpField = document.getElementById('no_hp');
          if (noHpField) {
             noHpField.addEventListener('input', function() {
@@ -474,7 +460,6 @@
             });
          }
 
-         // Validasi NIK - hanya angka, 16 digit
          const nikField = document.getElementById('nik');
          if (nikField) {
             nikField.addEventListener('input', function() {
@@ -485,7 +470,6 @@
             });
          }
 
-         // Populate Provinsi dropdown
          const provinsiSelect = document.getElementById('provinsi');
          if (provinsiSelect && typeof provincesIndonesia !== 'undefined') {
             provincesIndonesia.forEach(province => {
@@ -496,7 +480,6 @@
             });
          }
 
-         // Handle Provinsi change - update Kabupaten/Kota
          if (provinsiSelect) {
             provinsiSelect.addEventListener('change', function() {
                const kotaKabupatenSelect = document.getElementById('kota_kabupaten');
@@ -504,7 +487,6 @@
                   kotaKabupatenSelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>';
                   
                   if (this.value) {
-                     // Find province ID
                      const selectedProvince = provincesIndonesia.find(p => p.name === this.value);
                      if (selectedProvince) {
                         const regencies = getRegenciesByProvince(selectedProvince.id);

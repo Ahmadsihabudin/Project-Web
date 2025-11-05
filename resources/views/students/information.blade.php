@@ -29,7 +29,6 @@
       }
    }
 
-
    .info-card {
       background: white;
       border-radius: 15px;
@@ -257,7 +256,6 @@
       font-weight: bold;
    }
 
-
    .btn-primary {
       background: linear-gradient(135deg, #991B1B, #B91C1C);
       border: none;
@@ -370,15 +368,84 @@
 
    /* Mobile: Single column layout */
    @media (max-width: 576px) {
+      .info-container {
+         padding: 10px 8px;
+      }
+
       .col-md-6 {
          flex: 0 0 100%;
          max-width: 100%;
+      }
+
+      .welcome-section {
+         padding: 12px;
+      }
+
+      .welcome-title {
+         font-size: 1.1rem;
+      }
+
+      .welcome-subtitle {
+         font-size: 0.85rem;
+      }
+
+      .info-card {
+         padding: 15px;
+      }
+
+      .info-title {
+         font-size: 1.25rem;
+      }
+
+      .info-subtitle {
+         font-size: 0.85rem;
+      }
+
+      .info-section {
+         padding: 12px;
+      }
+
+      .info-item {
+         padding: 8px;
+         flex-wrap: wrap;
+      }
+
+      .info-icon {
+         width: 30px;
+         height: 30px;
+         font-size: 0.9rem;
+         margin-right: 8px;
+      }
+
+      .info-label {
+         font-size: 0.7rem;
+      }
+
+      .info-value {
+         font-size: 0.9rem;
+      }
+
+      .btn-primary {
+         width: 100%;
+         padding: 12px;
+         font-size: 0.9rem;
+      }
+   }
+
+   /* Tablet */
+   @media (min-width: 577px) and (max-width: 768px) {
+      .info-container {
+         padding: 15px 12px;
+      }
+
+      .info-card {
+         padding: 20px 15px;
       }
    }
 </style>
 
 <div class="info-container">
-   <!-- Welcome Section -->
+   
    <div class="welcome-section" id="welcomeSection">
       <h1 class="welcome-title">
          <i class="bi bi-person-circle me-3"></i>
@@ -389,7 +456,7 @@
       </p>
    </div>
 
-   <!-- Student Information Only -->
+   
    <div class="info-card">
       <div class="info-header">
          <h2 class="info-title">
@@ -476,7 +543,7 @@
       </div>
    </div>
 
-   <!-- Next to Exam Info Button -->
+   
    <div class="text-center mt-3 mb-3">
       @if(isset($initialExamInfoUrl) && !empty($initialExamInfoUrl) && $initialExamInfoUrl !== '#')
       <a id="nextExamBtn" href="{{ $initialExamInfoUrl }}" class="btn btn-primary" role="button">
@@ -516,7 +583,6 @@
          const result = await response.json();
 
          if (result.success && result.peserta) {
-            // Update student info
             document.getElementById('studentName').textContent = result.peserta.nama || 'Peserta';
             document.getElementById('studentCode').textContent = result.peserta.kode_peserta || 'N/A';
             document.getElementById('studentBatch').textContent = result.peserta.batch || 'N/A';
@@ -525,7 +591,6 @@
             document.getElementById('studentMajor').textContent = result.peserta.jurusan || 'N/A';
          }
       } catch (error) {
-         // Error loading user info
       }
    }
 </script>
@@ -538,7 +603,6 @@
 
 <script>
    document.addEventListener('DOMContentLoaded', function() {
-      // Check for error message from session
       const errorDataElement = document.getElementById('session-error-data');
       if (errorDataElement) {
          const errorMessage = JSON.parse(errorDataElement.textContent);
@@ -547,15 +611,12 @@
          }
       }
 
-      // Load user and exam data first
       loadUserInfo();
 
-      // Ensure Next button has valid URL
       const nextBtn = document.getElementById('nextExamBtn');
       if (nextBtn) {
          const currentHref = nextBtn.getAttribute('href');
 
-         // Function to update button URL
          const updateButtonUrl = (url) => {
             nextBtn.href = url;
          };
@@ -581,7 +642,6 @@
             nextBtn.style.opacity = '0.6';
             nextBtn.style.pointerEvents = 'none';
             nextBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Memuat...';
-
 
             fetch('/student/exam/data')
                .then(response => {

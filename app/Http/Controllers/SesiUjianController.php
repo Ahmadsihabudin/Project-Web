@@ -732,4 +732,152 @@ class SesiUjianController extends Controller
          ], 500);
       }
    }
+
+   /**
+    * Update semua durasi sesi ujian berdasarkan soal yang ada
+    * Method ini untuk recalculate semua durasi dari awal
+    */
+   public static function updateAllDurasiSesiUjian()
+   {
+      try {
+         $allSesiUjian = SesiUjian::all();
+         $updatedCount = 0;
+         
+         foreach ($allSesiUjian as $sesiUjian) {
+            $batch = Batch::find($sesiUjian->id_batch);
+            if (!$batch) {
+               continue;
+            }
+            
+            // Parse mata pelajaran dari sesi ujian
+            $mataPelajaranArray = [];
+            if (!empty($sesiUjian->mata_pelajaran)) {
+               $mataPelajaranArray = array_map('trim', explode(',', $sesiUjian->mata_pelajaran));
+            }
+            
+            // Hitung total durasi dari semua soal yang sesuai
+            $soalQuery = Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batch->nama_batch))]);
+            
+            if (!empty($mataPelajaranArray)) {
+               $soalQuery->where(function ($query) use ($mataPelajaranArray) {
+                  $first = true;
+                  foreach ($mataPelajaranArray as $mp) {
+                     $mpNormalized = strtolower(trim($mp));
+                     if ($first) {
+                        $query->whereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                        $first = false;
+                     } else {
+                        $query->orWhereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                     }
+                  }
+               });
+            }
+            
+            $soal = $soalQuery->get();
+            $totalDuration = $soal->sum('durasi_soal');
+            
+            // Update durasi sesi ujian
+            $sesiUjian->update([
+               'durasi_menit' => $totalDuration > 0 ? $totalDuration : null
+            ]);
+            
+            $updatedCount++;
+         }
+         
+         return [
+            'success' => true,
+            'message' => "Berhasil update durasi {$updatedCount} sesi ujian",
+            'updated_count' => $updatedCount
+         ];
+      } catch (\Exception $e) {
+         \Log::error('Error updating all durasi sesi ujian: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+         ]);
+         return [
+            'success' => false,
+            'message' => 'Gagal update durasi: ' . $e->getMessage()
+         ];
+      }
+   }
+
+   /**
+    * Update durasi sesi ujian berdasarkan batch dan mata pelajaran
+    * Method ini dipanggil ketika ada perubahan pada soal
+    * 
+    * @param string $batchName Nama batch
+    * @param string|null $mataPelajaran Mata pelajaran spesifik (optional, jika null akan update semua sesi ujian di batch tersebut)
+    */
+   public static function updateDurasiSesiUjian($batchName, $mataPelajaran = null)
+   {
+      try {
+         if (empty($batchName)) {
+            return;
+         }
+
+         // Cari batch berdasarkan nama
+         $batch = Batch::whereRaw('LOWER(TRIM(nama_batch)) = ?', [strtolower(trim($batchName))])->first();
+         
+         if (!$batch) {
+            return;
+         }
+
+         // Cari semua sesi ujian yang menggunakan batch ini
+         $sesiUjianList = SesiUjian::where('id_batch', $batch->id_batch)->get();
+         
+         foreach ($sesiUjianList as $sesiUjian) {
+            // Parse mata pelajaran dari sesi ujian (format: "Matematika, Geografi" atau "Matematika")
+            $mataPelajaranArray = [];
+            if (!empty($sesiUjian->mata_pelajaran)) {
+               $mataPelajaranArray = array_map('trim', explode(',', $sesiUjian->mata_pelajaran));
+            }
+            
+            // Jika mata pelajaran spesifik diberikan, hanya update jika sesi ujian mengandung mata pelajaran tersebut
+            if ($mataPelajaran !== null && !empty($mataPelajaranArray)) {
+               $mataPelajaranNormalized = strtolower(trim($mataPelajaran));
+               $isMatching = false;
+               foreach ($mataPelajaranArray as $mp) {
+                  if (strtolower(trim($mp)) === $mataPelajaranNormalized) {
+                     $isMatching = true;
+                     break;
+                  }
+               }
+               if (!$isMatching) {
+                  continue; // Skip jika mata pelajaran tidak cocok
+               }
+            }
+            
+            // Hitung total durasi dari semua soal yang sesuai dengan batch dan mata pelajaran di sesi ujian
+            $soalQuery = Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batchName))]);
+            
+            if (!empty($mataPelajaranArray)) {
+               $soalQuery->where(function ($query) use ($mataPelajaranArray) {
+                  $first = true;
+                  foreach ($mataPelajaranArray as $mp) {
+                     $mpNormalized = strtolower(trim($mp));
+                     if ($first) {
+                        $query->whereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                        $first = false;
+                     } else {
+                        $query->orWhereRaw('LOWER(TRIM(mata_pelajaran)) = ?', [$mpNormalized]);
+                     }
+                  }
+               });
+            }
+            
+            $soal = $soalQuery->get();
+            $totalDuration = $soal->sum('durasi_soal');
+            
+            // Update durasi sesi ujian
+            $sesiUjian->update([
+               'durasi_menit' => $totalDuration > 0 ? $totalDuration : null
+            ]);
+         }
+      } catch (\Exception $e) {
+         \Log::error('Error updating durasi sesi ujian: ' . $e->getMessage(), [
+            'batch' => $batchName,
+            'mata_pelajaran' => $mataPelajaran,
+            'trace' => $e->getTraceAsString()
+         ]);
+      }
+   }
 }

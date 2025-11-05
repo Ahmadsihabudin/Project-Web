@@ -58,12 +58,17 @@ class Soal extends Model
         'jawaban_benar',
         'umpan_balik',
         'poin',
-        'durasi_soal'
+        'durasi_soal',
+        'jenis_penilaian',
+        'poin_benar',
+        'poin_salah'
     ];
 
     protected $casts = [
         'poin' => 'integer',
-        'durasi_soal' => 'integer'
+        'durasi_soal' => 'integer',
+        'poin_benar' => 'integer',
+        'poin_salah' => 'integer'
     ];
 
     /**

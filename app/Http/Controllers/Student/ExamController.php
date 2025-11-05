@@ -569,7 +569,6 @@ class ExamController extends Controller
                 \Log::warning('No mata pelajaran found for composition calculation');
                 $composition = [
                     'pilihan_ganda' => 0,
-                    'essay' => 0,
                     'true_false' => 0,
                     'total' => 0
                 ];
@@ -640,15 +639,12 @@ class ExamController extends Controller
                 ]);
 
                 $pilihanGanda = 0;
-                $essay = 0;
                 $trueFalse = 0;
 
                 foreach ($soal as $s) {
                     $tipe = strtolower(trim($s->tipe_soal ?? ''));
                     if ($tipe === 'pilihan_ganda') {
                         $pilihanGanda++;
-                    } elseif ($tipe === 'essay') {
-                        $essay++;
                     } elseif (in_array($tipe, ['benar_salah', 'true_false'])) {
                         $trueFalse++;
                     }
@@ -656,9 +652,8 @@ class ExamController extends Controller
 
                 $composition = [
                     'pilihan_ganda' => $pilihanGanda,
-                    'essay' => $essay,
                     'true_false' => $trueFalse,
-                    'total' => $pilihanGanda + $essay + $trueFalse
+                    'total' => $pilihanGanda + $trueFalse
                 ];
 
                 \Log::info('Question composition calculated:', [
@@ -669,7 +664,6 @@ class ExamController extends Controller
                     'total_soal' => $soal->count(),
                     'composition' => $composition,
                     'pilihan_ganda_count' => $pilihanGanda,
-                    'essay_count' => $essay,
                     'true_false_count' => $trueFalse,
                     'missing_mata_pelajaran' => array_values(array_diff(
                         $mataPelajaranList,
@@ -713,12 +707,32 @@ class ExamController extends Controller
                 $statusLabel = 'Sedang Berlangsung';
             }
 
+            // Get info ujian from settings
+            $warningKeys = [
+                'warning_waktu' => 'exam.warning.waktu',
+                'warning_integritas' => 'exam.warning.integritas',
+                'warning_navigasi' => 'exam.warning.navigasi',
+                'warning_konfirmasi' => 'exam.warning.konfirmasi'
+            ];
+
+            $defaults = [
+                'warning_waktu' => 'Waktu Terbatas: Ujian memiliki batas waktu yang ketat. Pastikan koneksi internet stabil dan tidak ada gangguan.',
+                'warning_integritas' => 'Integritas Ujian: Dilarang keras melakukan kecurangan, membuka tab lain, atau menggunakan bantuan eksternal.',
+                'warning_navigasi' => 'Navigasi Terbatas: Setelah memulai ujian, Anda tidak dapat kembali ke halaman sebelumnya atau mengubah jawaban yang sudah dikirim.',
+                'warning_konfirmasi' => 'Konfirmasi Jawaban: Pastikan semua jawaban sudah benar sebelum mengirim. Tidak ada kesempatan untuk mengubah setelah submit.'
+            ];
+
+            $warnings = [];
+            foreach ($warningKeys as $key => $settingKey) {
+                $setting = \App\Models\Setting::where('key', $settingKey)->first();
+                $warnings[$key] = $setting ? $setting->value : $defaults[$key];
+            }
+
             \Log::info('Rendering exam-info-warning view', [
                 'status' => $statusLabel,
                 'composition' => $composition,
                 'composition_total' => $composition['total'] ?? 0,
                 'composition_pilihan_ganda' => $composition['pilihan_ganda'] ?? 0,
-                'composition_essay' => $composition['essay'] ?? 0,
                 'composition_true_false' => $composition['true_false'] ?? 0
             ]);
 
@@ -730,6 +744,7 @@ class ExamController extends Controller
                 'startDateTime' => $startDateTime,
                 'endDateTime' => $endDateTime,
                 'canStart' => true,
+                'warnings' => $warnings,
             ]);
         } catch (\Exception $e) {
             \Log::error('Error loading exam info warning: ' . $e->getMessage(), [
@@ -1077,33 +1092,55 @@ class ExamController extends Controller
             $soal = \App\Models\Soal::whereIn('mata_pelajaran', $mataPelajaranArray)->get();
             $totalQuestions = $soal->count();
             $correctAnswers = 0;
+            $totalPoints = 0;
+            $maxPoints = 0;
             $jawabanData = $request->jawaban;
+            
             foreach ($soal as $soalItem) {
                 $soalId = $soalItem->id_soal;
                 $jawabanPeserta = $jawabanData[$soalId] ?? null;
 
+                // Hitung poin maksimal untuk soal ini
+                $poinBenarSoal = $soalItem->poin_benar ?? $soalItem->poin;
+                $maxPoints += $poinBenarSoal;
+
                 if ($jawabanPeserta) {
                     if ($soalItem->tipe_soal === 'pilihan_ganda') {
                         $isCorrect = strtolower(trim($soalItem->jawaban_benar)) === strtolower(trim($jawabanPeserta));
-                        $nilaiEssay = null;
+                    } elseif (in_array($soalItem->tipe_soal, ['benar_salah', 'true_false'])) {
+                        $isCorrect = strtolower(trim($soalItem->jawaban_benar)) === strtolower(trim($jawabanPeserta));
                     } else {
-                        $nilaiEssay = $this->calculateEssayScore($jawabanPeserta, $soalItem->jawaban_benar, $soalItem->poin);
-                        $isCorrect = $nilaiEssay >= ($soalItem->poin * 0.8);
+                        $isCorrect = false;
                     }
 
+                    // Hitung poin berdasarkan jenis penilaian
                     if ($isCorrect) {
                         $correctAnswers++;
+                        $poinBenar = $soalItem->poin_benar ?? $soalItem->poin;
+                        $totalPoints += $poinBenar;
+                    } else {
+                        // Jika salah, kurangi poin jika jenis_penilaian = pengurangan_poin
+                        $poinSalah = $soalItem->poin_salah ?? 0;
+                        $totalPoints += $poinSalah; // poinSalah sudah negatif jika pengurangan
                     }
+                    
                     \App\Models\Jawaban::create([
                         'id_peserta' => $peserta->id_peserta,
                         'id_soal' => $soalId,
                         'jawaban_dipilih' => $jawabanPeserta,
-                        'status' => $isCorrect ? 'benar' : 'salah',
-                        'nilai_essay' => $nilaiEssay
+                        'status' => $isCorrect ? 'benar' : 'salah'
                     ]);
+                } else {
+                    // Jika tidak dijawab, tidak dapat poin (atau kurangi jika pengurangan)
+                    $poinSalah = $soalItem->poin_salah ?? 0;
+                    if ($soalItem->jenis_penilaian === 'pengurangan_poin') {
+                        $totalPoints += $poinSalah; // Kurangi poin jika tidak dijawab
+                    }
                 }
             }
-            $totalScore = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
+            
+            // Hitung skor dalam persentase (bisa minus jika pengurangan poin)
+            $totalScore = $maxPoints > 0 ? ($totalPoints / $maxPoints) * 100 : 0;
             $waktuPengerjaan = $request->input('waktu_pengerjaan', $sesiUjian->durasi_menit);
 
             \Log::info('Waktu pengerjaan calculated:', [
@@ -1155,55 +1192,6 @@ class ExamController extends Controller
         }
     }
 
-    /**
-     * Calculate essay score based on keyword similarity
-     */
-    private function calculateEssayScore($jawabanPeserta, $jawabanBenar, $poinMaksimal)
-    {
-        $jawabanPeserta = strtolower(trim($jawabanPeserta));
-        $jawabanBenar = strtolower(trim($jawabanBenar));
-        if (empty($jawabanPeserta)) {
-            return 0;
-        }
-        if ($jawabanPeserta === $jawabanBenar) {
-            return $poinMaksimal;
-        }
-        $kataKunciBenar = $this->extractKeywords($jawabanBenar);
-        $kataKunciPeserta = $this->extractKeywords($jawabanPeserta);
-
-        if (empty($kataKunciBenar)) {
-            return 0;
-        }
-
-        $kataSama = 0;
-        foreach ($kataKunciBenar as $kata) {
-            if (in_array($kata, $kataKunciPeserta)) {
-                $kataSama++;
-            }
-        }
-
-        $persentaseKataSama = $kataSama / count($kataKunciBenar);
-        $skor = round($persentaseKataSama * $poinMaksimal, 1);
-        $skor = max(0, min($skor, $poinMaksimal));
-
-        return $skor;
-    }
-
-    /**
-     * Extract keywords from text
-     */
-    private function extractKeywords($text)
-    {
-        $text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $text);
-        $text = strtolower($text);
-        $words = preg_split('/\s+/', $text);
-        $stopWords = ['yang', 'dan', 'atau', 'dari', 'dengan', 'untuk', 'pada', 'adalah', 'adalah', 'ini', 'itu', 'dia', 'mereka', 'kita', 'kami', 'saya', 'anda'];
-
-        $keywords = array_filter($words, function ($word) use ($stopWords) {
-            return strlen($word) > 3 && !in_array($word, $stopWords);
-        });
-        return array_values(array_unique($keywords));
-    }
 
     /**
      * Show peserta selesai page
