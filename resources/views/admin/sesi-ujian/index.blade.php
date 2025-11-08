@@ -7,11 +7,11 @@
    <title>Sesi Ujian - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -302,17 +302,17 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Statistics Cards -->
+            
             <div class="row mb-4">
                <div class="col-md-3">
                   <div class="stats-card">
@@ -368,7 +368,7 @@
                </div>
             </div>
 
-            <!-- Sessions Table -->
+            
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">Daftar Sesi Ujian</h6>
@@ -395,7 +395,7 @@
                            </tr>
                         </thead>
                         <tbody>
-                           <!-- Data will be loaded here -->
+                           
                         </tbody>
                      </table>
                   </div>
@@ -412,7 +412,6 @@
 
       async function loadStats() {
          try {
-            console.log('Loading stats...');
             const response = await fetch('/admin/sesi-ujian/stats', {
                method: 'GET',
                headers: {
@@ -421,21 +420,13 @@
                }
             });
 
-            console.log('Stats response status:', response.status);
-
             if (response.ok) {
                const result = await response.json();
-               console.log('Stats data:', result);
                if (result.success) {
                   displayStats(result.data);
-               } else {
-                  console.error('Stats API returned error:', result.message);
                }
-            } else {
-               console.error('Stats HTTP error:', response.status, response.statusText);
             }
          } catch (error) {
-            console.error('Error loading stats:', error);
          }
       }
 
@@ -448,7 +439,6 @@
 
       async function loadSesiUjian() {
          try {
-            console.log('Loading sesi ujian...');
             const response = await fetch('/admin/sesi-ujian/data', {
                method: 'GET',
                headers: {
@@ -457,25 +447,18 @@
                }
             });
 
-            console.log('Response status:', response.status);
-
             if (response.ok) {
                const result = await response.json();
-               console.log('SesiUjian data:', result);
                if (result.success) {
                   displaySesiUjian(result.data);
                } else {
-                  console.error('API returned error:', result.message);
                   alertSystem.error('Gagal memuat data', result.message);
                }
             } else {
-               console.error('HTTP error:', response.status, response.statusText);
                const errorText = await response.text();
-               console.error('Error response:', errorText);
                alertSystem.error('Gagal memuat data', `HTTP ${response.status}: ${response.statusText}`);
             }
          } catch (error) {
-            console.error('Error loading sesi ujian:', error);
             alertSystem.error('Gagal memuat data', 'Terjadi kesalahan jaringan');
          }
       }
@@ -488,7 +471,6 @@
             const maxDisplay = 2;
 
             if (subjects.length <= maxDisplay) {
-               // Show all subjects if 2 or less
                return `
                   <div class="nama-ujian-title">${namaUjian}</div>
                   <div class="mata-pelajaran-badges">
@@ -498,7 +480,6 @@
                   </div>
                `;
             } else {
-               // Show first 2 subjects + "..."
                const displaySubjects = subjects.slice(0, maxDisplay);
                const remainingCount = subjects.length - maxDisplay;
 
@@ -517,7 +498,6 @@
                `;
             }
          } else {
-            // Single subject or no subjects
             return `
                <div class="nama-ujian-title">${namaUjian}</div>
                ${mataPelajaranString ? `<div class="mata-pelajaran-badges"><span class="badge bg-primary me-1 mb-1">${mataPelajaranString.toLowerCase()}</span></div>` : ''}
@@ -525,9 +505,7 @@
          }
       }
 
-      // Display sesi ujian
       function displaySesiUjian(sesiUjian) {
-         console.log('Displaying sesi ujian:', sesiUjian);
          const tbody = document.querySelector('#sesiUjianTable tbody');
          tbody.innerHTML = '';
 
@@ -572,11 +550,9 @@
             tbody.appendChild(row);
          });
 
-         // Add click event listeners for preview functionality
          addPreviewEventListeners();
       }
 
-      // Add preview event listeners
       function addPreviewEventListeners() {
          const clickableSubjects = document.querySelectorAll('.clickable-subject');
          clickableSubjects.forEach(element => {
@@ -587,7 +563,6 @@
                const mataPelajaranString = cell.getAttribute('data-mata-pelajaran');
 
                if (this.textContent.includes('lainnya')) {
-                  // Show all subjects
                   const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
                   const allSubjectsHtml = subjects.map(subject =>
                      `<span class="badge bg-primary me-1 mb-1">${subject}</span>`
@@ -605,10 +580,8 @@
                      </div>
                   `;
 
-                  // Re-add event listeners
                   addPreviewEventListeners();
                } else {
-                  // Show truncated view
                   const subjects = mataPelajaranString.split(',').map(s => s.trim().toLowerCase());
                   const maxDisplay = 2;
                   const displaySubjects = subjects.slice(0, maxDisplay);
@@ -628,22 +601,18 @@
                      </div>
                   `;
 
-                  // Re-add event listeners
                   addPreviewEventListeners();
                }
             });
          });
       }
 
-      // Format date for display
       function formatDate(dateString) {
          if (!dateString) return '-';
 
          try {
-            // Handle different date formats
             let cleanDateString = dateString.toString().trim();
 
-            // If it's in YYYY-MM-DD format
             if (cleanDateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
                const date = new Date(cleanDateString);
                if (!isNaN(date.getTime())) {
@@ -655,7 +624,6 @@
                }
             }
 
-            // If it's a full datetime string, extract just the date part
             if (cleanDateString.includes('T')) {
                const datePart = cleanDateString.split('T')[0];
                const date = new Date(datePart);
@@ -668,7 +636,6 @@
                }
             }
 
-            // Try to parse as is
             const date = new Date(cleanDateString);
             if (!isNaN(date.getTime())) {
                return date.toLocaleDateString('id-ID', {
@@ -680,24 +647,20 @@
 
             return cleanDateString; // Return as is if can't parse
          } catch (error) {
-            console.error('Error formatting date:', error, 'Input:', dateString);
             return dateString || '-';
          }
       }
 
-      // Format time for display
       function formatTime(timeString) {
          if (!timeString) return '-';
 
          try {
             let cleanTimeString = timeString.toString().trim();
 
-            // If it's in HH:MM:SS format
             if (cleanTimeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
                return cleanTimeString.substring(0, 5); // Return HH:MM
             }
 
-            // If it's a full datetime string, extract just the time part
             if (cleanTimeString.includes('T')) {
                const timePart = cleanTimeString.split('T')[1];
                if (timePart) {
@@ -710,22 +673,17 @@
 
             return cleanTimeString; // Return as is if can't parse
          } catch (error) {
-            console.error('Error formatting time:', error, 'Input:', timeString);
             return timeString || '-';
          }
       }
 
-      // Format datetime for display
       function formatDateTime(dateTimeString) {
          if (!dateTimeString) return '-';
 
          try {
-            // Clean the date string first
             let cleanDateString = dateTimeString.toString().trim();
 
-            // If it's already in YYYY-MM-DD HH:MM:SS format
             if (cleanDateString.includes(' ') && !cleanDateString.includes('T')) {
-               // Already in correct format
                const date = new Date(cleanDateString);
                if (!isNaN(date.getTime())) {
                   const formattedDate = date.toLocaleDateString('id-ID', {
@@ -741,7 +699,6 @@
                   return `${formattedDate} ${formattedTime}`;
                }
             }
-            // If it's in YYYY-MM-DDTHH:MM:SS format
             else if (cleanDateString.includes('T')) {
                const date = new Date(cleanDateString);
                if (!isNaN(date.getTime())) {
@@ -758,7 +715,6 @@
                   return `${formattedDate} ${formattedTime}`;
                }
             }
-            // If it's just date (YYYY-MM-DD)
             else if (cleanDateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
                const date = new Date(cleanDateString);
                if (!isNaN(date.getTime())) {
@@ -769,12 +725,10 @@
                   });
                }
             }
-            // If it's just time (HH:MM:SS)
             else if (cleanDateString.match(/^\d{2}:\d{2}:\d{2}$/)) {
                return cleanDateString.substring(0, 5); // Return HH:MM
             }
 
-            // If all else fails, try to parse as is
             const date = new Date(cleanDateString);
             if (!isNaN(date.getTime())) {
                const formattedDate = date.toLocaleDateString('id-ID', {
@@ -790,15 +744,12 @@
                return `${formattedDate} ${formattedTime}`;
             }
 
-            console.warn('Invalid date string:', dateTimeString);
             return 'Format tanggal tidak valid';
          } catch (error) {
-            console.error('Error formatting datetime:', error, 'Input:', dateTimeString);
             return 'Format tanggal tidak valid';
          }
       }
 
-      // Delete sesi ujian
       async function deleteSesiUjian(id) {
          const confirmed = await Swal.fire({
             title: 'Hapus Sesi Ujian?',
@@ -849,9 +800,7 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
-         console.log('DOM Content Loaded');
          loadStats();
          loadSesiUjian();
       });

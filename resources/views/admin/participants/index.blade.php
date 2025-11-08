@@ -7,11 +7,11 @@
    <title>Manajemen Peserta - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -284,25 +284,24 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
 
-
-            <!-- Statistics Cards -->
+            
             <div class="row mb-4" id="statsCards">
-               <!-- Stats will be loaded here -->
+               
             </div>
 
-            <!-- Participants Table -->
+            
             <div class="card">
                <div class="card-header">
                   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -319,7 +318,7 @@
                      </div>
                   </div>
 
-                  <!-- Filter dan Search -->
+                  
                   <div class="row g-3">
                      <div class="col-md-4">
                         <label for="batchFilter" class="form-label small fw-semibold">Filter Batch:</label>
@@ -366,7 +365,7 @@
                   </div>
                </div>
                <div class="card-body">
-                  <!-- Filtered count display -->
+                  
                   <div class="d-flex justify-content-between align-items-center mb-3">
                      <span id="filteredCount" class="text-muted small">Memuat data...</span>
                      <div class="d-flex gap-2">
@@ -395,7 +394,7 @@
                            </tr>
                         </thead>
                         <tbody>
-                           <!-- Data will be loaded here -->
+                           
                         </tbody>
                      </table>
                   </div>
@@ -405,7 +404,7 @@
       </div>
    </div>
 
-   <!-- Import Modal -->
+   
    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
          <div class="modal-content">
@@ -414,7 +413,7 @@
                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-               <!-- Template Download Section -->
+               
                <div class="alert alert-info">
                   <h6><i class="bi bi-info-circle me-2"></i>Panduan Import</h6>
                   <p class="mb-2">Download template Excel terlebih dahulu, isi data peserta sesuai format, kemudian upload file tersebut.</p>
@@ -423,7 +422,7 @@
                   </a>
                </div>
 
-               <!-- Format Example -->
+               
                <div class="mb-3">
                   <h6>Format Data yang Diperlukan:</h6>
                   <div class="table-responsive">
@@ -478,7 +477,7 @@
                   </div>
                </div>
 
-               <!-- Upload Form -->
+               
                <form id="importForm" enctype="multipart/form-data">
                   @csrf
                   <div class="mb-3">
@@ -508,13 +507,11 @@
    </div>
 
    <script>
-      // Use existing csrfToken from layout or create new one
       if (typeof csrfToken === 'undefined') {
          var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       }
       console.log('CSRF Token loaded:', csrfToken);
 
-      // Load statistics
       async function loadStats() {
          try {
             const response = await fetch('/admin/participants/stats', {
@@ -536,7 +533,6 @@
          }
       }
 
-      // Display statistics
       function displayStats(stats) {
          const statsHtml = `
             <div class="col-md-3">
@@ -596,7 +592,6 @@
          document.getElementById('statsCards').innerHTML = statsHtml;
       }
 
-      // Load participants data
       async function loadParticipants() {
          try {
             console.log('Loading participants...');
@@ -614,7 +609,6 @@
                const result = await response.json();
                console.log('API result:', result);
                if (result.success) {
-                  // Store all participants for filtering
                   allParticipants = result.data;
                   filteredParticipants = [...allParticipants];
                   console.log('Participants loaded:', allParticipants.length);
@@ -622,31 +616,26 @@
                   displayParticipants(filteredParticipants);
                } else {
                   console.error('API returned success: false', result);
-                  // Fallback data jika API gagal
                   allParticipants = [];
                   filteredParticipants = [];
                   displayParticipants([]);
                }
             } else {
-               // Fallback data jika response tidak ok
                allParticipants = [];
                filteredParticipants = [];
                displayParticipants([]);
             }
          } catch (error) {
             console.error('Error loading participants:', error);
-            // Fallback data jika terjadi error
             displayParticipants([]);
          }
       }
 
-      // Display participants
       function displayParticipants(participants) {
          console.log('Displaying participants:', participants.length);
          const tbody = document.querySelector('#participantsTable tbody');
          tbody.innerHTML = '';
 
-         // Hitung statistik berdasarkan data participants
          const uniqueSchools = new Set(participants.map(p => p.asal_smk).filter(school => school));
          const uniqueMajors = new Set(participants.map(p => p.jurusan).filter(major => major));
          const uniqueBatches = new Set(participants.map(p => p.batch).filter(batch => batch));
@@ -658,10 +647,8 @@
             batches: uniqueBatches.size
          };
 
-         // Update statistik
          displayStats(stats);
 
-         // Show filtered count
          updateFilteredCount(participants.length);
 
          participants.forEach((participant, index) => {
@@ -695,7 +682,6 @@
          });
       }
 
-      // Delete participant
       async function deleteParticipant(id) {
          const confirmed = await Swal.fire({
             title: 'Hapus Peserta?',
@@ -745,7 +731,6 @@
          }
       }
 
-      // Import participants function
       async function importParticipants() {
          try {
             console.log('Starting import process...');
@@ -774,7 +759,6 @@
             console.log('Form data prepared');
             console.log('CSRF Token being sent:', csrfToken);
 
-            // Show loading
             const importBtn = document.querySelector('[onclick="importParticipants()"]');
             const originalText = importBtn.innerHTML;
             importBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Importing...';
@@ -790,7 +774,6 @@
             console.log('Response received:', response.status);
 
             if (!response.ok) {
-               // Get response body for error details
                const errorText = await response.text();
                console.error('Error response body:', errorText);
 
@@ -831,7 +814,6 @@
                   alertSystem.warning(`${result.errors.length} baris memiliki error dan dilewati.`);
                }
 
-               // Close modal and reload data
                const modal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
                if (modal) {
                   modal.hide();
@@ -848,7 +830,6 @@
             console.error('Error in importParticipants:', error);
             console.error('Error stack:', error.stack);
 
-            // Show more specific error message
             let errorMessage = 'Terjadi kesalahan jaringan';
             if (error.message.includes('HTTP error')) {
                errorMessage = 'Server error: ' + error.message;
@@ -860,7 +841,6 @@
 
             alertSystem.error('Import gagal', errorMessage);
          } finally {
-            // Reset button
             const importBtn = document.querySelector('[onclick="importParticipants()"]');
             if (importBtn) {
                importBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Import Data';
@@ -869,20 +849,16 @@
          }
       }
 
-      // Global variables for filtering
       let allParticipants = [];
       let filteredParticipants = [];
 
-      // Filter and search functions
       function filterParticipants() {
          const batchFilter = document.getElementById('batchFilter').value;
          const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
 
          filteredParticipants = allParticipants.filter(participant => {
-            // Filter by batch
             const batchMatch = !batchFilter || participant.batch === batchFilter;
 
-            // Filter by search term (nama or kode_peserta)
             const searchMatch = !searchTerm ||
                participant.nama.toLowerCase().includes(searchTerm) ||
                participant.kode_peserta.toLowerCase().includes(searchTerm);
@@ -893,7 +869,6 @@
          displayParticipants(filteredParticipants);
       }
 
-      // Clear all filters
       function clearFilters() {
          document.getElementById('batchFilter').value = '';
          document.getElementById('globalSearch').value = '';
@@ -901,7 +876,6 @@
          displayParticipants(filteredParticipants);
       }
 
-      // Update filtered count display
       function updateFilteredCount(count) {
          const totalCount = allParticipants.length;
          const countElement = document.getElementById('filteredCount');
@@ -918,7 +892,6 @@
             }
          }
 
-         // Update badges
          if (totalCountBadge) {
             totalCountBadge.textContent = `Total: ${totalCount}`;
          }
@@ -932,12 +905,10 @@
          }
       }
 
-      // Event listeners for filters
       document.getElementById('batchFilter').addEventListener('change', filterParticipants);
       document.getElementById('globalSearch').addEventListener('input', filterParticipants);
       document.getElementById('clearFilters').addEventListener('click', clearFilters);
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
          loadParticipants(); // loadParticipants sudah menghitung statistik dari data tabel

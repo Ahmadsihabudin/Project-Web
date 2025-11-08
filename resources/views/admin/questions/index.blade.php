@@ -7,11 +7,11 @@
    <title>Manajemen Soal - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -384,25 +384,24 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
 
-
-            <!-- Statistics Cards -->
+            
             <div class="row mb-4" id="statsCards">
-               <!-- Stats will be loaded here -->
+               
             </div>
 
-            <!-- Questions Table -->
+            
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">Daftar Soal</h6>
@@ -420,7 +419,7 @@
                <div class="card-body">
                   <div class="questions-container" id="questionsTable">
                      <div class="questions-list">
-                        <!-- Data will be loaded here -->
+                        
                      </div>
                   </div>
                </div>
@@ -430,10 +429,8 @@
    </div>
 
    <script>
-      // Use var instead of const to avoid redeclaration error if included in layout
       var csrfToken = typeof csrfToken !== 'undefined' ? csrfToken : document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      // Load statistics
       async function loadStats() {
          try {
             const response = await fetch('/admin/questions/stats', {
@@ -451,11 +448,9 @@
                }
             }
          } catch (error) {
-            console.error('Error loading stats:', error);
          }
       }
 
-      // Display statistics
       function displayStats(stats) {
          const statsHtml = `
             <div class="col-md-3">
@@ -515,7 +510,6 @@
          document.getElementById('statsCards').innerHTML = statsHtml;
       }
 
-      // Load questions data
       async function loadQuestions() {
          try {
             const response = await fetch('/admin/questions/data', {
@@ -533,23 +527,19 @@
                }
             }
          } catch (error) {
-            console.error('Error loading questions:', error);
          }
       }
 
-      // Display questions
       function displayQuestions(questions) {
          const container = document.querySelector('.questions-list');
          container.innerHTML = '';
 
          questions.forEach((question, index) => {
-            // Generate question content based on type
             let questionContent = '';
             if (question.tipe_soal === 'pilihan_ganda') {
                questionContent = generateMultipleChoiceDisplay(question);
             }
 
-            // Add umpan balik if exists
             if (question.umpan_balik && question.umpan_balik.trim() !== '') {
                questionContent += `
                   <div class="umpan-balik-section mt-3">
@@ -574,7 +564,8 @@
                            <span class="badge bg-secondary me-2">${question.mata_pelajaran || 'Umum'}</span>
                            <span class="badge bg-info me-2">${getTipeSoalText(question.tipe_soal)}</span>
                            <span class="badge bg-warning me-2">${question.batch || 'Batch'}</span>
-                           <span class="badge bg-success">${question.poin} Poin</span>
+                           <span class="badge bg-success me-2">${question.poin} Poin</span>
+                           ${question.durasi_soal ? `<span class="badge bg-dark">${question.durasi_soal} Menit</span>` : ''}
                         </div>
                   <div class="action-buttons">
                            <a href="/admin/questions/${question.id}/edit" class="btn btn-warning btn-sm" title="Edit">
@@ -595,7 +586,6 @@
          });
       }
 
-      // Generate multiple choice display
       function generateMultipleChoiceDisplay(question) {
          const options = [{
                key: 'A',
@@ -634,7 +624,21 @@
             `;
          }).join('');
 
+         let imageHtml = '';
+         if (question.gambar && question.gambar.trim() !== '' && question.gambar !== null && question.gambar !== 'null') {
+            let imagePath = question.gambar;
+            if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+               imagePath = '/' + imagePath;
+            }
+            imageHtml = `
+               <div class="mb-3">
+                  <img src="${imagePath}" alt="Gambar Soal" class="img-fluid rounded" style="max-width: 100%; height: auto; max-height: 400px; border: 1px solid #dee2e6;" onerror="this.style.display='none';">
+               </div>
+            `;
+         }
+
          return `
+            ${imageHtml}
             <div class="question-text mb-3">
                <strong>${question.pertanyaan}</strong>
             </div>
@@ -644,11 +648,24 @@
          `;
       }
 
-
-      // Generate true/false display
       function generateTrueFalseDisplay(question) {
          const isTrue = question.jawaban_benar.toLowerCase() === 'benar' || question.jawaban_benar.toLowerCase() === 'true';
+         
+         let imageHtml = '';
+         if (question.gambar && question.gambar.trim() !== '' && question.gambar !== null && question.gambar !== 'null') {
+            let imagePath = question.gambar;
+            if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+               imagePath = '/' + imagePath;
+            }
+            imageHtml = `
+               <div class="mb-3">
+                  <img src="${imagePath}" alt="Gambar Soal" class="img-fluid rounded" style="max-width: 100%; height: auto; max-height: 400px; border: 1px solid #dee2e6;" onerror="this.style.display='none';">
+               </div>
+            `;
+         }
+         
          return `
+            ${imageHtml}
             <div class="question-text mb-3">
                <strong>${question.pertanyaan}</strong>
             </div>
@@ -663,7 +680,6 @@
          `;
       }
 
-      // Get tipe soal text
       function getTipeSoalText(tipeSoal) {
          const tipeMap = {
             'pilihan_ganda': 'Pilihan Ganda',
@@ -672,8 +688,6 @@
          return tipeMap[tipeSoal] || tipeSoal;
       }
 
-
-      // Delete question
       async function deleteQuestion(id) {
          const confirmed = await Swal.fire({
             title: 'Hapus Soal?',
@@ -724,19 +738,15 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
-         console.log('DOM Content Loaded');
          loadStats();
          loadQuestions();
       });
 
-      // Download template function
       function downloadTemplate() {
          window.location.href = '{{ route("admin.questions.import.template") }}';
       }
 
-      // Import soal function
       async function importSoal() {
          const fileInput = document.getElementById('importFile');
          const file = fileInput.files[0];
@@ -771,11 +781,9 @@
                loadQuestions();
                loadStats();
 
-               // Close modal
                const modal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
                modal.hide();
 
-               // Reset form
                document.getElementById('importForm').reset();
             } else {
                if (result.errors && result.errors.length > 0) {
@@ -800,7 +808,6 @@
                }
             }
          } catch (error) {
-            console.error('Error importing questions:', error);
             alertSystem.error('Import Gagal!', 'Terjadi kesalahan jaringan');
          } finally {
             alertSystem.hide(loadingAlert);
@@ -809,7 +816,7 @@
    </script>
    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-   <!-- Import Modal -->
+   
    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content">
@@ -826,9 +833,10 @@
                   <ul class="mb-0 mt-2">
                      <li><strong>1. Klik "Download Template"</strong> untuk mendapatkan file Excel</li>
                      <li><strong>2. Isi data</strong> sesuai dengan format template</li>
-                     <li><strong>3. Pertanyaan tidak boleh sama (duplikasi)</strong></li>
+                     <li><strong>3. Field wajib (ditandai dengan *)</strong> harus diisi: Poin *, Durasi Soal (Menit) *, Pertanyaan *, Mata Pelajaran *, Tipe Soal *, Jawaban Benar *</li>
+                     <li><strong>4. Pertanyaan tidak boleh sama (duplikasi)</strong></li>
                      <li>Sistem akan mengecek duplikasi dalam file dan database</li>
-                     <li><strong>4. Upload file Excel</strong> yang sudah diisi</li>
+                     <li><strong>5. Upload file Excel</strong> yang sudah diisi</li>
                      <li>Maksimal ukuran file: 10MB</li>
                   </ul>
                </div>

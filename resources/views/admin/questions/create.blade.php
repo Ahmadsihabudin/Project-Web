@@ -7,11 +7,11 @@
    <title>Tambah Soal - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -71,17 +71,17 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
@@ -97,12 +97,12 @@
                </div>
             </div>
 
-            <!-- Form -->
+            
             <div class="card">
                <div class="card-body">
                   <form id="createQuestionForm">
                      <div class="row">
-                        <!-- Left Column -->
+                        
                         <div class="col-md-6">
                            <div class="form-section">
                               <h6 class="mb-3"><i class="bi bi-question-circle me-2"></i>Informasi Soal</h6>
@@ -141,7 +141,7 @@
                            </div>
                         </div>
 
-                        <!-- Right Column -->
+                        
                         <div class="col-md-6">
                            <div class="form-section">
                               <h6 class="mb-3"><i class="bi bi-gear me-2"></i>Pengaturan</h6>
@@ -150,10 +150,37 @@
                                  <input type="number" class="form-control" id="poin" name="poin" min="1" max="100" value="10" required>
                               </div>
                               <div class="mb-3">
-                                 <label for="durasi_soal" class="form-label fw-bold">Durasi Soal (Menit)</label>
-                                 <input type="number" class="form-control" id="durasi_soal" name="durasi_soal" min="1" placeholder="Contoh: 5" value="">
-                                 <div class="form-text">Waktu maksimal untuk mengerjakan soal ini (dalam menit). Kosongkan jika tidak ada batas waktu.</div>
+                                 <label for="durasi_soal" class="form-label fw-bold">Durasi Soal (Menit) <span class="text-danger">*</span></label>
+                                 <input type="number" class="form-control" id="durasi_soal" name="durasi_soal" min="1" placeholder="Contoh: 5" value="" required>
+                                 <div class="form-text">Waktu maksimal untuk mengerjakan soal ini (dalam menit).</div>
                               </div>
+                              
+                              
+                              <div class="mb-3" style="background: #f0f0f0; padding: 15px; border-radius: 8px; border-left: 4px solid #991B1B;">
+                                 <h6 class="mb-3 fw-bold"><i class="bi bi-star me-2"></i>Pengaturan Penilaian</h6>
+                                 
+                                 <div class="mb-3">
+                                    <label for="jenis_penilaian" class="form-label fw-bold">Jenis Penilaian <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="jenis_penilaian" name="jenis_penilaian" required>
+                                       <option value="normal" selected>Normal (tidak mengurangi poin)</option>
+                                       <option value="pengurangan_poin">Pengurangan Poin (mengurangi poin jika salah)</option>
+                                    </select>
+                                    <div class="form-text">Pilih sistem penilaian untuk soal ini.</div>
+                                 </div>
+                                 
+                                 <div class="mb-3">
+                                    <label for="poin_benar" class="form-label fw-bold">Poin Saat Benar</label>
+                                    <input type="number" class="form-control" id="poin_benar" name="poin_benar" min="1" placeholder="Kosongkan untuk menggunakan poin default">
+                                    <div class="form-text">Poin yang didapat jika jawaban benar. Kosongkan untuk menggunakan poin di atas.</div>
+                                 </div>
+                                 
+                                 <div class="mb-3" id="poinSalahContainer">
+                                    <label for="poin_salah" class="form-label fw-bold">Poin Saat Salah</label>
+                                    <input type="number" class="form-control" id="poin_salah" name="poin_salah" value="0" min="-100" max="0">
+                                    <div class="form-text" id="poinSalahHelp">Poin yang didapat jika jawaban salah. 0 untuk normal, negatif untuk pengurangan poin.</div>
+                                 </div>
+                              </div>
+                              
                               <div class="mb-3">
                                  <label for="umpan_balik" class="form-label fw-bold">Umpan Balik</label>
                                  <textarea class="form-control" id="umpan_balik" name="umpan_balik" rows="3" placeholder="Masukkan umpan balik untuk soal ini (opsional)..."></textarea>
@@ -163,7 +190,7 @@
                         </div>
                      </div>
 
-                     <!-- Answer Options (for multiple choice) -->
+                     
                      <div class="row" id="answerOptionsSection" style="display: none;">
                         <div class="col-12">
                            <div class="form-section">
@@ -223,7 +250,7 @@
                                  </div>
                               </div>
 
-                              <!-- Jawaban Benar untuk Pilihan Ganda -->
+                              
                               <div class="row mb-3" id="jawabanPilihanGanda">
                                  <div class="col-md-12">
                                     <label class="form-label fw-bold">Jawaban Benar <span class="text-danger">*</span></label>
@@ -295,9 +322,32 @@
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       let answerOptionCount = 0;
 
+      document.getElementById('jenis_penilaian').addEventListener('change', function() {
+         const jenisPenilaian = this.value;
+         const poinSalahInput = document.getElementById('poin_salah');
+         const poinSalahHelp = document.getElementById('poinSalahHelp');
+         
+         if (jenisPenilaian === 'pengurangan_poin') {
+            poinSalahInput.required = true;
+            poinSalahInput.value = poinSalahInput.value || '-5';
+            poinSalahInput.min = '-100';
+            poinSalahInput.max = '0';
+            poinSalahHelp.textContent = 'Poin yang akan dikurangi jika jawaban salah. Harus negatif (contoh: -5, -10).';
+            poinSalahHelp.style.color = '#dc3545';
+         } else {
+            poinSalahInput.required = false;
+            poinSalahInput.value = '0';
+            poinSalahInput.min = '0';
+            poinSalahInput.max = '0';
+            poinSalahHelp.textContent = 'Poin yang didapat jika jawaban salah. 0 untuk normal (tidak mengurangi poin).';
+            poinSalahHelp.style.color = '#6c757d';
+         }
+      });
 
+      document.addEventListener('DOMContentLoaded', function() {
+         document.getElementById('jenis_penilaian').dispatchEvent(new Event('change'));
+      });
 
-      // Generate answer options for multiple choice
       function generateAnswerOptions() {
          const tipeSoal = document.getElementById('tipe_soal').value;
          const answerOptionsSection = document.getElementById('answerOptionsSection');
@@ -312,12 +362,9 @@
          }
       }
 
-
-      // Handle form submission
       async function handleCreateForm(event) {
          event.preventDefault();
 
-         // Validasi form sebelum submit
          const form = event.target;
          if (!form.checkValidity()) {
             console.log('Form validation failed');
@@ -325,7 +372,6 @@
             return;
          }
 
-         // Validasi manual untuk field yang diperlukan
          const pertanyaan = form.querySelector('#pertanyaan').value.trim();
          const mataPelajaran = form.querySelector('#mata_pelajaran').value.trim();
          const tipeSoal = form.querySelector('#tipe_soal').value;
@@ -379,8 +425,23 @@
             return;
          }
 
+         const jenisPenilaian = form.querySelector('#jenis_penilaian').value;
+         const poinSalah = form.querySelector('#poin_salah').value;
+         
+         if (jenisPenilaian === 'pengurangan_poin') {
+            if (!poinSalah || parseInt(poinSalah) >= 0) {
+               await Swal.fire({
+                  icon: 'warning',
+                  title: 'Validasi Gagal',
+                  text: 'Jika menggunakan pengurangan poin, poin salah harus negatif (contoh: -5, -10)!',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#991B1B'
+               });
+               form.querySelector('#poin_salah').focus();
+               return;
+            }
+         }
 
-         // Validasi untuk pilihan ganda
          if (tipeSoal === 'pilihan_ganda') {
             const opsiA = form.querySelector('#opsi_a').value.trim();
             const opsiB = form.querySelector('#opsi_b').value.trim();
@@ -411,7 +472,6 @@
             }
          }
 
-
          console.log('Form validation passed');
 
          const loadingAlert = alertSystem.loading('Menambahkan soal...');
@@ -419,17 +479,13 @@
          try {
             const formData = new FormData(event.target);
 
-            // Add image if exists
             const gambarInput = document.getElementById('gambar');
             if (gambarInput && gambarInput.files.length > 0) {
                formData.append('gambar', gambarInput.files[0]);
             }
 
-            // Ensure durasi_soal is included
             const durasiSoal = document.getElementById('durasi_soal').value;
-            if (durasiSoal) {
-               formData.append('durasi_soal', durasiSoal);
-            }
+            formData.append('durasi_soal', durasiSoal || '');
 
             console.log('Form Data to be sent:', formData);
 
@@ -447,7 +503,6 @@
             if (result.success) {
                alertSystem.createSuccess('Soal');
 
-               // Redirect to index page
                window.location.href = '{{ route("admin.questions.index") }}';
             } else {
                alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
@@ -459,13 +514,9 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
 
-         // Load data
-
-         // Add form listeners
          const createForm = document.getElementById('createQuestionForm');
          const tipeSoalSelect = document.getElementById('tipe_soal');
 
@@ -481,7 +532,6 @@
          if (tipeSoalSelect) {
             tipeSoalSelect.addEventListener('change', function() {
                generateAnswerOptions();
-               // Show/hide gambar field based on tipe soal
                if (gambarContainer) {
                   if (this.value === 'pilihan_ganda') {
                      gambarContainer.style.display = 'block';
@@ -494,7 +544,6 @@
             });
          }
 
-         // Preview gambar when file is selected
          if (gambarInput && gambarPreview && gambarPreviewImg) {
             gambarInput.addEventListener('change', function(e) {
                const file = e.target.files[0];
@@ -511,7 +560,6 @@
             });
          }
 
-         // Add real-time validation for form fields
          const requiredFields = ['pertanyaan', 'tipe_soal', 'poin'];
 
          requiredFields.forEach(fieldName => {

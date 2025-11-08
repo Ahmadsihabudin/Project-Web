@@ -7,7 +7,7 @@
    <title>Login - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Favicon -->
+   
    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
    <link rel="icon" type="image/png" href="{{ asset('images/Favicon_akti.png') }}">
    <style>
@@ -24,6 +24,51 @@
          align-items: center;
          justify-content: center;
          position: relative;
+         background: #f8f9fa;
+      }
+
+      /* Background Pattern Batik Peta Indonesia Abu-Abu Transparan */
+      body::before {
+         content: '';
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background-image: 
+            /* Motif pulau-pulau utama Indonesia (bentuk memanjang vertikal) */
+            radial-gradient(ellipse 80% 20% at 15% 25%, rgba(108, 117, 125, 0.07) 0%, rgba(108, 117, 125, 0.04) 30%, transparent 60%),
+            radial-gradient(ellipse 70% 25% at 20% 50%, rgba(108, 117, 125, 0.06) 0%, rgba(108, 117, 125, 0.03) 35%, transparent 65%),
+            radial-gradient(ellipse 60% 30% at 25% 75%, rgba(108, 117, 125, 0.065) 0%, rgba(108, 117, 125, 0.035) 40%, transparent 70%),
+            /* Pulau-pulau kecil (Kepulauan) */
+            radial-gradient(circle at 85% 20%, rgba(108, 117, 125, 0.05) 0%, transparent 45%),
+            radial-gradient(ellipse 40% 15% at 80% 35%, rgba(108, 117, 125, 0.045) 0%, transparent 50%),
+            radial-gradient(ellipse 35% 20% at 75% 55%, rgba(108, 117, 125, 0.05) 0%, transparent 55%),
+            radial-gradient(circle at 90% 70%, rgba(108, 117, 125, 0.045) 0%, transparent 40%),
+            radial-gradient(ellipse 30% 25% at 85% 85%, rgba(108, 117, 125, 0.04) 0%, transparent 60%),
+            /* Garis pantai dan detail (motif batik garis) */
+            repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(108, 117, 125, 0.03) 2px, rgba(108, 117, 125, 0.03) 3px, transparent 3px, transparent 8px),
+            repeating-linear-gradient(90deg, transparent 0px, transparent 2px, rgba(108, 117, 125, 0.03) 2px, rgba(108, 117, 125, 0.03) 3px, transparent 3px, transparent 8px),
+            /* Garis diagonal untuk efek batik tradisional */
+            repeating-linear-gradient(45deg, transparent 0px, transparent 4px, rgba(108, 117, 125, 0.035) 4px, rgba(108, 117, 125, 0.035) 5px, transparent 5px, transparent 10px),
+            repeating-linear-gradient(-45deg, transparent 0px, transparent 4px, rgba(108, 117, 125, 0.035) 4px, rgba(108, 117, 125, 0.035) 5px, transparent 5px, transparent 10px),
+            /* Pola tambahan untuk kompleksitas */
+            radial-gradient(ellipse 50% 15% at 50% 10%, rgba(108, 117, 125, 0.035) 0%, transparent 50%),
+            radial-gradient(ellipse 45% 18% at 45% 90%, rgba(108, 117, 125, 0.04) 0%, transparent 55%);
+         background-size: 
+            100% 100%, 100% 100%, 100% 100%,
+            100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+            40px 40px, 40px 40px,
+            80px 80px, 80px 80px,
+            100% 100%, 100% 100%;
+         background-position: 
+            0 0, 0 0, 0 0,
+            0 0, 0 0, 0 0, 0 0, 0 0,
+            0 0, 0 0,
+            0 0, 0 0,
+            0 0, 0 0;
+         z-index: -2;
+         opacity: 0.7;
       }
 
       body::after {
@@ -89,7 +134,6 @@
          color: #666;
          font-size: 14px;
       }
-
 
       .login-tabs {
          display: flex;
@@ -317,7 +361,6 @@
          animation-delay: 0.8s;
       }
 
-
       @keyframes fadeInDown {
          from {
             opacity: 0;
@@ -539,7 +582,6 @@
          }
       }
 
-
       /* Professional Footer */
       .login-footer {
          margin-top: 40px;
@@ -547,7 +589,6 @@
          border-top: 1px solid #e9ecef;
          animation: fadeInUp 1s ease-out 1.2s both;
       }
-
 
       .footer-bottom {
          text-align: center;
@@ -652,7 +693,6 @@
          }
       }
 
-
       @media (max-width: 480px) {
          .login-container {
             margin: 20px;
@@ -663,7 +703,7 @@
 </head>
 
 <body>
-   <!-- Animated Background Particles -->
+   
    <div class="particles">
       <div class="particle"></div>
       <div class="particle"></div>
@@ -679,7 +719,7 @@
          <p>Sistem Ujian Online yang Aman & Terpercaya</p>
       </div>
 
-      <!-- Unified Login Form -->
+      
       <form id="loginForm">
          <div class="form-group">
             <label for="username" id="usernameLabel">Username / Email / Kode Peserta</label>
@@ -710,12 +750,12 @@
          <p>Memproses login...</p>
       </div>
 
-      <!-- Notification Span -->
+      
       <div class="notification-container">
          <span class="notification-text">Harap pastikan username dan password anda benar!!</span>
       </div>
 
-      <!-- Professional Footer -->
+      
       <div class="login-footer">
          <div class="footer-bottom">
             <p><strong style="color: #800000; border: 2px solid #fff; padding: 2px 8px; border-radius: 4px;">AKADEMI TOYOTA INDONESIA</strong><strong>&copy; 2025</strong></p>
@@ -725,19 +765,14 @@
    </div>
 
    <script>
-      // CSRF Token
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-      // Auto-detect user type based on input
       function detectUserType(username) {
-         // Check if it's an email (contains @)
          if (username.includes('@')) {
             return 'admin';
          }
-         // Check if it's admin username
          if (username.toLowerCase() === 'admin') {
             return 'admin';
          }
-         // Default to peserta
          return 'peserta';
       }
 
@@ -761,22 +796,18 @@
       }
 
       function showAlert(message, type = 'error') {
-         // Remove existing alerts
          const existingAlert = document.querySelector('.alert');
          if (existingAlert) {
             existingAlert.remove();
          }
 
-         // Create new alert
          const alert = document.createElement('div');
          alert.className = `alert alert-${type}`;
          alert.textContent = message;
 
-         // Insert after logo
          const logo = document.querySelector('.logo');
          logo.insertAdjacentElement('afterend', alert);
 
-         // Auto remove after 5 seconds
          setTimeout(() => {
             if (alert.parentNode) {
                alert.remove();
@@ -797,7 +828,6 @@
          }
       }
 
-      // Unified Login
       document.getElementById('loginForm').addEventListener('submit', async function(e) {
          e.preventDefault();
 
@@ -805,7 +835,6 @@
          const username = formData.get('username');
          const password = formData.get('password');
 
-         // Detect user type
          const userType = detectUserType(username);
 
          showLoading(true);
@@ -814,14 +843,12 @@
             let endpoint, data;
 
             if (userType === 'admin') {
-               // Admin login
                endpoint = '/auth/admin/login';
                data = {
                   email: username,
                   password: password
                };
             } else {
-               // Peserta login
                endpoint = '/auth/peserta/login';
                data = {
                   kode_peserta: username,
@@ -829,11 +856,15 @@
                };
             }
 
-            console.log('Login attempt:', {
-               userType,
-               endpoint,
-               data
-            });
+            const DEBUG_MODE = false;
+
+            if (DEBUG_MODE) {
+               console.log('Login attempt:', {
+                  userType,
+                  endpoint,
+                  data
+               });
+            }
 
             const response = await fetch(endpoint, {
                method: 'POST',
@@ -845,47 +876,73 @@
                body: JSON.stringify(data)
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-            // Check if response is JSON
             const contentType = response.headers.get('content-type');
+            let result;
+            
             if (!contentType || !contentType.includes('application/json')) {
                const text = await response.text();
-               console.error('Non-JSON response:', text);
+               
+               if (DEBUG_MODE) {
+                  console.error('Non-JSON response:', text);
+                  console.log('Response status:', response.status);
+               }
+               
+               if (response.status === 401) {
+                  showAlert('Akun sedang digunakan di browser lain. Silakan logout terlebih dahulu atau tunggu beberapa saat.');
+                  showLoading(false);
+                  return;
+               }
+               
                throw new Error('Server returned non-JSON response');
             }
 
-            const result = await response.json();
-            console.log('=== LOGIN RESULT ===');
-            console.log('Response Status:', response.status);
-            console.log('Result Object:', result);
-            console.log('User Type:', userType);
-            console.log('Success:', result.success);
-            console.log('Wrong Batch:', result.wrong_batch);
-            console.log('Redirect:', result.redirect);
-            console.log('===================');
+            result = await response.json();
+            
+            if (DEBUG_MODE) {
+               console.log('=== LOGIN RESULT ===');
+               console.log('Response Status:', response.status);
+               console.log('Result Object:', result);
+               console.log('User Type:', userType);
+               console.log('Success:', result.success);
+               console.log('Wrong Batch:', result.wrong_batch);
+               console.log('Redirect:', result.redirect);
+               console.log('===================');
+            }
 
             if (response.status === 419) {
                showAlert('Session expired. Silakan refresh halaman dan coba lagi.');
-               // Refresh CSRF token
                location.reload();
                return;
             }
 
             if (response.status === 409) {
-               showAlert(result.message || 'Akun sedang digunakan di browser lain.');
+               const errorMessage = result.message || 'Akun sedang digunakan di browser lain. Silakan logout terlebih dahulu atau tunggu beberapa saat.';
+               showAlert(errorMessage);
+               showLoading(false);
                return;
             }
 
-            // Check for wrong_batch FIRST before anything else
-            if (result.wrong_batch === true) {
-               console.log('🔴 WRONG BATCH DETECTED - Redirecting immediately');
-               const redirectUrl = result.redirect || '/student/peserta-wrong';
-               console.log('Redirect URL:', redirectUrl);
-               console.log('Peserta data:', result.peserta);
+            if (response.status === 401) {
+               const errorMessage = result.message || 'Username atau password salah.';
+               
+               if (userType === 'admin' && (errorMessage.includes('browser lain') || errorMessage.includes('sedang digunakan'))) {
+                  showAlert('Akun sedang digunakan di browser lain. Silakan logout terlebih dahulu atau tunggu beberapa saat.');
+               } else {
+                  showAlert(errorMessage);
+               }
+               showLoading(false);
+               return;
+            }
 
-               // Simpan data peserta ke localStorage untuk ditampilkan di halaman peserta-wrong
+            if (result.wrong_batch === true) {
+               if (DEBUG_MODE) {
+                  console.log('🔴 WRONG BATCH DETECTED - Redirecting immediately');
+                  console.log('Redirect URL:', result.redirect || '/student/peserta-wrong');
+                  console.log('Peserta data:', result.peserta);
+               }
+
+               const redirectUrl = result.redirect || '/student/peserta-wrong';
+
                if (result.peserta) {
                   localStorage.setItem('peserta_wrong_data', JSON.stringify(result.peserta));
                }
@@ -893,15 +950,13 @@
                showLoading(false);
 
                try {
-                  console.log('Attempting redirect NOW...');
-                  // Force immediate redirect without browser navigation history
                   window.location.replace(redirectUrl);
-                  console.log('Redirect command executed');
 
-                  // Prevent any further code execution
                   throw new Error('Redirecting to peserta-wrong');
                } catch (err) {
-                  console.log('Redirect initiated:', err.message);
+                  if (DEBUG_MODE) {
+                     console.log('Redirect initiated:', err.message);
+                  }
                }
                return;
             }
@@ -909,36 +964,46 @@
             if (result.success) {
                showAlert('Login berhasil! Mengalihkan ke dashboard...', 'success');
 
-               // Redirect based on user type
                setTimeout(() => {
                   if (userType === 'admin') {
                      window.location.href = '/admin/dashboard';
                   } else {
-                     // Allow backend to specify redirect, fallback to information
                      window.location.href = result.redirect || '/student/information';
                   }
                }, 1500);
             } else {
-               // Login failed - show error
-               showAlert(result.message || 'Login gagal! Periksa kembali kredensial Anda.');
+               const errorMessage = result.message || 'Login gagal! Periksa kembali kredensial Anda.';
+               
+               if (errorMessage.includes('browser lain') || errorMessage.includes('sedang digunakan')) {
+                  showAlert('Akun sedang digunakan di browser lain. Silakan logout terlebih dahulu atau tunggu beberapa saat.');
+               } else {
+                  showAlert(errorMessage);
+               }
+               showLoading(false);
             }
          } catch (error) {
-            showAlert('Terjadi kesalahan. Silakan coba lagi.');
-            console.error('Error:', error);
+            if (DEBUG_MODE) {
+               console.error('Login Error:', error);
+            }
+            
+            let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+            
+            if (error.message && !error.message.includes('non-JSON')) {
+               errorMessage = error.message;
+            }
+            
+            showAlert(errorMessage);
             showLoading(false);
          }
       });
 
-      // Update form labels based on input
       document.getElementById('username').addEventListener('input', function() {
          const userType = detectUserType(this.value);
          updateFormLabels(userType);
       });
 
-      // Initialize with default labels
       updateFormLabels('peserta');
 
-      // Password toggle functionality
       const passwordToggle = document.getElementById('passwordToggle');
       const passwordInput = document.getElementById('password');
       const eyeIcon = document.getElementById('eyeIcon');
@@ -947,16 +1012,13 @@
          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
          passwordInput.setAttribute('type', type);
          
-         // Change icon - Eye open (show) vs Eye slash (hide)
          if (type === 'password') {
-            // Show password - Eye open icon
             eyeIcon.innerHTML = `
                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             `;
             passwordToggle.setAttribute('title', 'Show password');
          } else {
-            // Hide password - Eye slash icon
             eyeIcon.innerHTML = `
                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
             `;

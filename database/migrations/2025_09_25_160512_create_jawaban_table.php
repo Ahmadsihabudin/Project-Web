@@ -17,7 +17,6 @@ return new class extends Migration
             $table->unsignedBigInteger('id_soal');
             $table->string('jawaban_dipilih')->nullable();
             $table->enum('status', ['benar', 'salah', 'pending'])->default('pending');
-            $table->decimal('nilai_essay', 5, 2)->nullable();
             $table->timestamps();
         });
     }

@@ -7,11 +7,11 @@
     <title>Ujian Selesai - Ujian Online</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Bootstrap CSS -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
@@ -76,177 +76,53 @@
         }
 
         .success-icon {
-            width: 200px;
-            height: 200px;
+            width: 180px;
+            height: 180px;
             margin: 0 auto 3rem;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: bounceIn 1s ease-out;
+            animation: fadeInScale 1s ease-out;
         }
 
-        .cartoon-celebration {
-            position: relative;
+        .success-circle {
             width: 100%;
             height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .party-face {
-            font-size: 6rem;
-            animation: partyBounce 1.5s ease-in-out infinite, partyRotate 3s ease-in-out infinite;
+            box-shadow: 0 10px 40px rgba(40, 167, 69, 0.3), 0 0 0 20px rgba(40, 167, 69, 0.1);
             position: relative;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .success-circle i {
+            font-size: 6rem;
+            color: #ffffff;
             z-index: 2;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            position: relative;
         }
 
-        @keyframes partyBounce {
-
-            0%,
-            100% {
-                transform: translateY(0) scale(1);
-            }
-
-            50% {
-                transform: translateY(-20px) scale(1.1);
-            }
-        }
-
-        @keyframes partyRotate {
-
-            0%,
-            100% {
-                transform: rotate(0deg);
-            }
-
-            25% {
-                transform: rotate(-10deg);
-            }
-
-            75% {
-                transform: rotate(10deg);
-            }
-        }
-
-        .party-emoji {
-            position: absolute;
-            font-size: 2rem;
-            animation: floatAround 3s ease-in-out infinite;
-            opacity: 0.9;
-        }
-
-        .party-emoji-1 {
-            top: -20px;
-            left: 50%;
-            animation-delay: 0s;
-            animation: floatUp 2s ease-out infinite;
-        }
-
-        .party-emoji-2 {
-            top: 50%;
-            right: -30px;
-            animation-delay: 0.5s;
-            animation: floatRight 2.5s ease-out infinite;
-        }
-
-        .party-emoji-3 {
-            bottom: -20px;
-            left: 30%;
-            animation-delay: 1s;
-            animation: floatDown 2s ease-out infinite;
-        }
-
-        .party-emoji-4 {
-            top: 20%;
-            left: -30px;
-            animation-delay: 1.5s;
-            animation: floatLeft 2.5s ease-out infinite;
-        }
-
-        @keyframes floatUp {
+        @keyframes fadeInScale {
             0% {
-                transform: translateY(0) rotate(0deg);
+                transform: scale(0.8);
                 opacity: 0;
             }
-
-            50% {
+            100% {
+                transform: scale(1);
                 opacity: 1;
             }
-
-            100% {
-                transform: translateY(-60px) rotate(360deg);
-                opacity: 0;
-            }
         }
 
-        @keyframes floatRight {
-            0% {
-                transform: translateX(0) rotate(0deg);
-                opacity: 0;
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(40, 167, 69, 0.3), 0 0 0 20px rgba(40, 167, 69, 0.1);
             }
-
             50% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateX(60px) rotate(-360deg);
-                opacity: 0;
-            }
-        }
-
-        @keyframes floatDown {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-
-            50% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(60px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        @keyframes floatLeft {
-            0% {
-                transform: translateX(0) rotate(0deg);
-                opacity: 0;
-            }
-
-            50% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateX(-60px) rotate(-360deg);
-                opacity: 0;
-            }
-        }
-
-        @keyframes floatAround {
-
-            0%,
-            100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-
-            25% {
-                transform: translate(20px, -20px) rotate(90deg);
-            }
-
-            50% {
-                transform: translate(-20px, -20px) rotate(180deg);
-            }
-
-            75% {
-                transform: translate(-20px, 20px) rotate(270deg);
+                box-shadow: 0 10px 40px rgba(40, 167, 69, 0.4), 0 0 0 25px rgba(40, 167, 69, 0.15);
             }
         }
 
@@ -273,7 +149,6 @@
             }
         }
 
-
         @keyframes bounceIn {
             0% {
                 transform: scale(0.3);
@@ -295,24 +170,23 @@
         }
 
         .completion-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: #991B1B;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2c3e50;
             margin-bottom: 1rem;
             animation: fadeInUp 0.8s ease-out 0.2s both;
             text-align: center;
-            text-shadow: 0 2px 10px rgba(153, 27, 27, 0.2);
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
         .completion-subtitle {
-            font-size: 1.5rem;
-            color: #666;
+            font-size: 1.3rem;
+            color: #6c757d;
             margin-bottom: 3rem;
             animation: fadeInUp 0.8s ease-out 0.4s both;
             text-align: center;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            line-height: 1.6;
         }
 
         .completion-message {
@@ -559,49 +433,115 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
             .completion-container {
-                padding: 3rem 2rem;
-                margin: 1rem;
+                padding: 2.5rem 1.5rem;
+                margin: 0.5rem;
             }
 
             .completion-title {
-                font-size: 2.5rem;
+                font-size: 2rem;
             }
 
             .completion-subtitle {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
 
             .completion-message {
-                padding: 2rem 1.5rem;
-                font-size: 1.1rem;
+                padding: 1.5rem;
+                font-size: 1rem;
             }
 
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
+                margin-top: 2rem;
             }
 
             .btn-custom {
                 width: 100%;
-                max-width: 300px;
+                max-width: 100%;
                 justify-content: center;
+                padding: 1rem 2rem;
+            }
+
+            .success-icon {
+                width: 140px;
+                height: 140px;
+                margin-bottom: 2rem;
+            }
+
+            .success-circle i {
+                font-size: 4.5rem;
+            }
+
+            .footer-message {
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+
+            .completion-container {
+                padding: 2rem 1rem;
+                margin: 0;
+            }
+
+            .completion-title {
+                font-size: 1.75rem;
+            }
+
+            .completion-subtitle {
+                font-size: 1rem;
+            }
+
+            .completion-message {
+                padding: 1.25rem;
+                font-size: 0.95rem;
+            }
+
+            .completion-message p {
+                font-size: 1.1rem !important;
             }
 
             .success-icon {
                 width: 120px;
                 height: 120px;
+                margin-bottom: 1.5rem;
             }
 
-            .success-icon i {
-                font-size: 3rem;
+            .success-circle i {
+                font-size: 4rem;
+            }
+
+            .btn-custom {
+                padding: 0.9rem 1.5rem;
+                font-size: 0.95rem;
+            }
+
+            .footer-message {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .completion-container {
+                padding: 3rem 2.5rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- Floating Background Elements -->
+    
     <div class="floating-elements">
         <div class="floating-circle"></div>
         <div class="floating-circle"></div>
@@ -609,29 +549,28 @@
     </div>
 
     <div class="completion-container">
-        <!-- Success Icon - Cartoon Animation -->
+        
         <div class="success-icon">
-            <div class="cartoon-celebration">
-                <div class="party-face">🎉</div>
-                <div class="party-emoji party-emoji-1">⭐</div>
-                <div class="party-emoji party-emoji-2">✨</div>
-                <div class="party-emoji party-emoji-3">🎊</div>
-                <div class="party-emoji party-emoji-4">🎈</div>
+            <div class="success-circle">
+                <i class="bi bi-check-circle-fill"></i>
             </div>
         </div>
 
-        <!-- Title -->
-        <h1 class="completion-title">🎉 Ujian Selesai! 🎉</h1>
-        <p class="completion-subtitle">Selamat anda telah mengerjakan ujian online dengan baik dan jujur</p>
+        
+        <h1 class="completion-title">Ujian Selesai</h1>
+        <p class="completion-subtitle">Terima kasih telah menyelesaikan ujian dengan baik dan jujur</p>
 
-        <!-- Thank You Message -->
+        
         <div class="completion-message">
-            <p class="mb-0" style="font-size: 1.5rem; font-weight: 700; color: #991B1B; text-align: center;">
-                ✨ Terima kasih telah menyelesaikan ujian! ✨
+            <p class="mb-3" style="font-size: 1.3rem; font-weight: 600; color: #2c3e50; text-align: center;">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>Jawaban Anda telah berhasil disimpan
+            </p>
+            <p class="mb-0 text-center" style="color: #666; font-size: 1.1rem;">
+                Hasil ujian akan segera diproses dan diumumkan melalui sistem
             </p>
         </div>
 
-        <!-- Action Buttons -->
+        
         <div class="action-buttons">
             <button class="btn-custom btn-primary-custom" onclick="logout()">
                 <i class="bi bi-box-arrow-right"></i>
@@ -639,7 +578,7 @@
             </button>
         </div>
 
-        <!-- Footer Message -->
+        
         <div class="footer-message">
             <p><i class="bi bi-info-circle me-1"></i> Hasil ujian akan segera diproses</p>
         </div>
@@ -675,28 +614,19 @@
 
        
         function logout() {
-            if (confirm('Apakah Anda yakin ingin keluar?')) {
-                
-                fetch('/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            window.location.href = '/login';
-                        } else {
-                          
-                            window.location.href = '/login';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Logout error:', error);
-                        window.location.href = '/login';
-                    });
-            }
+            fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => {
+                    window.location.href = '/login';
+                })
+                .catch(error => {
+                    window.location.href = '/login';
+                });
         }
 
     

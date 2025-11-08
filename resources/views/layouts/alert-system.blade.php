@@ -1,6 +1,6 @@
-<!-- Alert System Component -->
+
 <div id="alertContainer" class="position-fixed" style="top: 20px; right: 20px; z-index: 9999;">
-   <!-- Alerts will be dynamically inserted here -->
+   
 </div>
 
 <style>

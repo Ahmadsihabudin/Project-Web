@@ -7,11 +7,11 @@
    <title>Manajemen User - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -256,25 +256,24 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
 
-
-            <!-- Statistics Cards -->
+            
             <div class="row mb-4" id="statsCards">
-               <!-- Stats will be loaded here -->
+               
             </div>
 
-            <!-- Users Table -->
+            
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">Daftar User</h6>
@@ -297,7 +296,7 @@
                            </tr>
                         </thead>
                         <tbody>
-                           <!-- Data will be loaded here -->
+                           
                         </tbody>
                      </table>
                   </div>
@@ -308,9 +307,7 @@
    </div>
 
    <script>
-      // csrfToken is already declared in logout-script.blade.php
 
-      // Load statistics
       async function loadStats() {
          try {
             const response = await fetch('/admin/users/stats', {
@@ -326,7 +323,6 @@
                if (result.success) {
                   displayStats(result.data);
                } else {
-                  // Fallback data jika API gagal
                   displayStats({
                      total: 0,
                      staff: 0,
@@ -334,7 +330,6 @@
                   });
                }
             } else {
-               // Fallback data jika response tidak ok
                displayStats({
                   total: 0,
                   staff: 0,
@@ -343,7 +338,6 @@
             }
          } catch (error) {
             console.error('Error loading stats:', error);
-            // Fallback data jika terjadi error
             displayStats({
                total: 0,
                staff: 0,
@@ -352,7 +346,6 @@
          }
       }
 
-      // Display statistics
       function displayStats(stats) {
          const statsHtml = `
             <div class="col-md-4">
@@ -399,11 +392,9 @@
          document.getElementById('statsCards').innerHTML = statsHtml;
       }
 
-      // Load users data
       async function loadUsers() {
          try {
             console.log('Loading users...');
-
 
             const response = await fetch('/admin/users/data', {
                method: 'GET',
@@ -435,20 +426,17 @@
          }
       }
 
-      // Display users
       function displayUsers(users) {
          console.log('Displaying users:', users.length);
          const tbody = document.querySelector('#usersTable tbody');
          tbody.innerHTML = '';
 
-         // Hitung statistik berdasarkan data users
          const stats = {
             total: users.length,
             staff: users.filter(user => user.role === 'staff').length,
             admin: users.filter(user => user.role === 'admin').length
          };
 
-         // Update statistik
          displayStats(stats);
 
          users.forEach((user, index) => {
@@ -478,7 +466,6 @@
          });
       }
 
-      // Get role text
       function getRoleText(role) {
          const roleMap = {
             'admin': 'Administrator',
@@ -488,7 +475,6 @@
          return roleMap[role] || role;
       }
 
-      // Get role badge class
       function getRoleBadgeClass(role) {
          const classMap = {
             'admin': 'bg-danger',
@@ -498,7 +484,6 @@
          return classMap[role] || 'bg-secondary';
       }
 
-      // Format datetime
       function formatDateTime(dateTimeString) {
          if (!dateTimeString) return '-';
          const date = new Date(dateTimeString);
@@ -508,7 +493,6 @@
          });
       }
 
-      // Reset password
       async function resetPassword(id) {
          const confirmed = await Swal.fire({
             title: 'Reset Password?',
@@ -545,7 +529,6 @@
          }
       }
 
-      // Delete user
       async function deleteUser(id) {
          const confirmed = await Swal.fire({
             title: 'Hapus User?',
@@ -579,7 +562,6 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
          loadUsers(); // loadUsers sudah menghitung statistik dari data tabel

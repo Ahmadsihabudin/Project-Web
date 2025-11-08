@@ -4,19 +4,16 @@
 
 @section('content')
 @php
-// Format exam data (from controller)
 $subject = $exam->mata_pelajaran ?? optional($exam->ujian)->nama_ujian ?? '-';
 $duration = $exam->durasi_menit ?? 0;
 $startDateFormatted = $startDateTime ? $startDateTime->format('d/m/Y') : '-';
 $startTimeFormatted = $startDateTime ? $startDateTime->format('H:i') : '-';
 
-// URLs and other data
 $startExamUrl = route('student.exam.start', $exam->id_sesi);
 $backUrl = route('student.information');
 $statusText = $statusLabel ?? 'Siap Dimulai';
 $canStartExam = $canStart ?? false;
 
-// Participant data
 $participantName = $participant->nama_peserta ?? $participant->nama ?? 'Peserta';
 $participantCode = $participant->kode_peserta ?? 'N/A';
 $participantBatch = $participant->batch ?? 'N/A';
@@ -24,11 +21,8 @@ $participantEmail = $participant->email ?? 'N/A';
 $participantSchool = $participant->asal_smk ?? '-';
 $participantMajor = $participant->jurusan ?? '-';
 
-// Composition data from controller
-// Ensure composition exists and has the right structure
 $composition = $composition ?? [];
 $multipleChoiceCount = isset($composition['pilihan_ganda']) ? (int)$composition['pilihan_ganda'] : 0;
-$essayCount = isset($composition['essay']) ? (int)$composition['essay'] : 0;
 $trueFalseCount = isset($composition['true_false']) ? (int)$composition['true_false'] : 0;
 $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
 @endphp
@@ -397,6 +391,10 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
    }
 
    @media (max-width: 768px) {
+      .exam-container {
+         padding: 20px 15px;
+      }
+
       .grid-container {
          grid-template-columns: 1fr;
          gap: 20px;
@@ -407,13 +405,93 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
       }
 
       .exam-title {
-         font-size: 2rem;
+         font-size: 1.75rem;
+      }
+
+      .exam-subtitle {
+         font-size: 1rem;
+      }
+
+      .warning-card,
+      .composition-card {
+         padding: 20px 15px;
+      }
+
+      .card-title {
+         font-size: 1.25rem;
+      }
+
+      .warning-item,
+      .composition-item {
+         padding: 12px;
+         margin-bottom: 12px;
+      }
+
+      .warning-icon {
+         width: 40px;
+         height: 40px;
+         font-size: 1.2rem;
+      }
+
+      .btn-primary {
+         width: 100%;
+         padding: 12px 20px;
+         font-size: 1rem;
+      }
+   }
+
+   @media (max-width: 576px) {
+      .exam-container {
+         padding: 15px 10px;
+      }
+
+      .exam-title {
+         font-size: 1.5rem;
+      }
+
+      .exam-subtitle {
+         font-size: 0.9rem;
+      }
+
+      .warning-card,
+      .composition-card {
+         padding: 15px 12px;
+      }
+
+      .card-title {
+         font-size: 1.1rem;
+      }
+
+      .warning-item,
+      .composition-item {
+         padding: 10px;
+         flex-direction: column;
+         text-align: center;
+         align-items: center;
+      }
+
+      .warning-icon {
+         width: 35px;
+         height: 35px;
+         margin-bottom: 8px;
+         margin-right: 0;
+         flex-shrink: 0;
+      }
+
+      .warning-content {
+         width: 100%;
+         text-align: center;
+      }
+
+      .composition-item .badge {
+         font-size: 0.85rem;
+         padding: 6px 12px;
       }
    }
 </style>
 
 <div class="exam-container">
-   <!-- Header -->
+   
    <div class="exam-header">
       <h1 class="exam-title">
          <i class="bi bi-exclamation-triangle me-3"></i>
@@ -422,9 +500,9 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
       <p class="exam-subtitle">Silakan baca peringatan dan komposisi ujian sebelum memulai</p>
    </div>
 
-   <!-- Grid Layout -->
+   
    <div class="grid-container">
-      <!-- Warning Card -->
+      
       <div class="warning-card">
          <h2 class="card-title warning-title">
             <i class="bi bi-exclamation-triangle me-2"></i>
@@ -437,7 +515,7 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
             </div>
             <div class="warning-content">
                <div class="warning-text">
-                  <strong>Waktu Terbatas:</strong> Ujian memiliki batas waktu yang ketat. Pastikan koneksi internet stabil dan tidak ada gangguan.
+                  {!! $warnings['warning_waktu'] ?? 'Waktu Terbatas: Ujian memiliki batas waktu yang ketat. Pastikan koneksi internet stabil dan tidak ada gangguan.' !!}
                </div>
             </div>
          </div>
@@ -448,7 +526,7 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
             </div>
             <div class="warning-content">
                <div class="warning-text">
-                  <strong>Integritas Ujian:</strong> Dilarang keras melakukan kecurangan, membuka tab lain, atau menggunakan bantuan eksternal.
+                  {!! $warnings['warning_integritas'] ?? 'Integritas Ujian: Dilarang keras melakukan kecurangan, membuka tab lain, atau menggunakan bantuan eksternal.' !!}
                </div>
             </div>
          </div>
@@ -459,7 +537,7 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
             </div>
             <div class="warning-content">
                <div class="warning-text">
-                  <strong>Navigasi Terbatas:</strong> Setelah memulai ujian, Anda tidak dapat kembali ke halaman sebelumnya atau mengubah jawaban yang sudah dikirim.
+                  {!! $warnings['warning_navigasi'] ?? 'Navigasi Terbatas: Setelah memulai ujian, Anda tidak dapat kembali ke halaman sebelumnya atau mengubah jawaban yang sudah dikirim.' !!}
                </div>
             </div>
          </div>
@@ -470,25 +548,25 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
             </div>
             <div class="warning-content">
                <div class="warning-text">
-                  <strong>Konfirmasi Jawaban:</strong> Pastikan semua jawaban sudah benar sebelum mengirim. Tidak ada kesempatan untuk mengubah setelah submit.
+                  {!! $warnings['warning_konfirmasi'] ?? 'Konfirmasi Jawaban: Pastikan semua jawaban sudah benar sebelum mengirim. Tidak ada kesempatan untuk mengubah setelah submit.' !!}
                </div>
             </div>
          </div>
       </div>
 
-      <!-- Composition Card -->
+      
       <div class="composition-card">
          <h2 class="card-title composition-title">
             <i class="bi bi-list-check me-2"></i>
             Komposisi Ujian
          </h2>
 
-         <!-- Exam Status -->
+         
          <div class="text-center mb-4">
             <span class="exam-status" id="examStatus">Status: {{ $statusLabel }}</span>
          </div>
 
-         <!-- Basic Info -->
+         
          <div class="composition-section">
             <h3 class="section-title">
                <div class="section-icon">
@@ -516,7 +594,7 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
             </div>
          </div>
 
-         <!-- Question Composition -->
+         
          <div class="composition-section">
             <h3 class="section-title">
                <div class="section-icon">
@@ -528,10 +606,6 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
                <div class="question-item">
                   <span class="question-type">Pilihan Ganda</span>
                   <span class="question-count">{{ $multipleChoiceCount }} Soal</span>
-               </div>
-               <div class="question-item">
-                  <span class="question-type">Essay</span>
-                  <span class="question-count">{{ $essayCount }} Soal</span>
                </div>
                <div class="question-item">
                   <span class="question-type">True/False</span>
@@ -547,7 +621,7 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
       </div>
    </div>
 
-   <!-- Action Buttons -->
+   
    <div class="action-buttons">
       <a href="{{ $backUrl }}" class="btn-back">
          <i class="bi bi-arrow-left me-2"></i>
@@ -566,12 +640,10 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-   // Load exam data
    async function loadExamData() {
       try {
-         // Get exam ID from URL
          const pathParts = window.location.pathname.split('/');
-         const examId = pathParts[pathParts.length - 2]; // Get ID from /student/exam/{id}/info-warning
+         const examId = pathParts[pathParts.length - 2];
 
          const response = await fetch(`/student/exam/${examId}/data`, {
             method: 'GET',
@@ -590,11 +662,9 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
          if (result.success && result.data) {
             const exam = result.data;
 
-            // Update exam information
             document.getElementById('examSubject').textContent = exam.mata_pelajaran || 'N/A';
             document.getElementById('examDuration').textContent = (exam.durasi_menit || 60) + ' Menit';
 
-            // Format dates
             if (exam.tanggal_mulai) {
                const startDate = new Date(exam.tanggal_mulai);
                document.getElementById('examStartDate').textContent = startDate.toLocaleDateString('id-ID');
@@ -605,14 +675,12 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
                document.getElementById('examStartTime').textContent = startTime;
             }
 
-            // Set start exam button link
             const startBtn = document.getElementById('startExamBtn');
             if (startBtn) {
                const newHref = `/student/exam/${examId}/start`;
                startBtn.href = newHref;
             }
 
-            // Update exam status
             const statusElement = document.getElementById('examStatus');
             if (exam.status === 'aktif') {
                statusElement.textContent = 'Status: Siap Dimulai';
@@ -626,7 +694,6 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
 
          } else {
             if (result.error === 'EXAM_NOT_FOUND') {
-               // Redirect to information page if exam not found
                alert('Sesi ujian tidak ditemukan. Mungkin sudah dihapus. Anda akan diarahkan ke halaman informasi.');
                window.location.href = '/student/information';
             } else {
@@ -636,7 +703,6 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
 
       } catch (error) {
          if (error.message.includes('404')) {
-            // Handle 404 error specifically
             alert('Sesi ujian tidak ditemukan. Mungkin sudah dihapus. Anda akan diarahkan ke halaman informasi.');
             window.location.href = '/student/information';
          } else {
@@ -645,28 +711,21 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
       }
    }
 
-
    function showError(message) {
-      // Update exam status to show error
       const statusElement = document.getElementById('examStatus');
       statusElement.textContent = 'Status: Error - ' + message;
       statusElement.style.background = 'linear-gradient(135deg, #991B1B, #B91C1C)';
 
-      // Hide start button
       const startBtn = document.getElementById('startExamBtn');
       startBtn.style.display = 'none';
    }
 
-   // Initialize on page load
    document.addEventListener('DOMContentLoaded', function() {
-      // Get exam ID immediately
       const pathParts = window.location.pathname.split('/');
       const examId = pathParts[pathParts.length - 2];
 
-      // Load exam data
       loadExamData();
 
-      // Add click handler
       const startBtn = document.getElementById('startExamBtn');
       if (startBtn) {
          startBtn.addEventListener('click', function(e) {
@@ -678,7 +737,6 @@ $totalQuestions = isset($composition['total']) ? (int)$composition['total'] : 0;
       }
    });
 
-   // Also try immediate load if DOM is already ready
    if (document.readyState !== 'loading') {
       const pathParts = window.location.pathname.split('/');
       const examId = pathParts[pathParts.length - 2];

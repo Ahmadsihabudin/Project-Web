@@ -7,11 +7,11 @@
    <title>Tambah Sesi Ujian - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -89,17 +89,17 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
@@ -115,16 +115,16 @@
                </div>
             </div>
 
-            <!-- Form -->
+            
             <div class="card">
                <div class="card-body">
                   <form id="createSessionForm">
-                     <!-- Hidden inputs for datetime values -->
+                     
                      <input type="hidden" id="tanggal_mulai" name="tanggal_mulai">
                      <input type="hidden" id="tanggal_selesai" name="tanggal_selesai">
 
                      <div class="row">
-                        <!-- Basic Information -->
+                        
                         <div class="col-md-6">
                            <h6 class="mb-3">Informasi Dasar</h6>
                            <div class="mb-3">
@@ -185,7 +185,7 @@
                            </div>
                         </div>
 
-                        <!-- Schedule Information -->
+                        
                         <div class="col-md-6">
                            <h6 class="mb-3">Jadwal & Waktu</h6>
                            <div class="mb-3">
@@ -238,7 +238,7 @@
                         </div>
                      </div>
 
-                     <!-- Additional Settings -->
+                     
                      <div class="row mt-4">
                         <div class="col-12">
                            <h6 class="mb-3"><i class="bi bi-gear me-2"></i>Pengaturan Tampilan Peserta</h6>
@@ -279,7 +279,6 @@
                         </div>
                      </div>
 
-
                      <div class="row mt-4">
                         <div class="col-12 text-end">
                            <button type="button" class="btn btn-secondary me-2 theme-btn" onclick="window.history.back()">
@@ -302,25 +301,20 @@
    <script>
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-      // Global variables for mata pelajaran selection
       let selectedMataPelajaran = [];
       let mataPelajaranData = [];
 
-      // Global variables for datetime
       let tanggalMulaiValue = '';
       let tanggalSelesaiValue = '';
 
-      // Initialize selectedMataPelajaran on page load
       document.addEventListener('DOMContentLoaded', function() {
          selectedMataPelajaran = [];
          console.log('selectedMataPelajaran initialized:', selectedMataPelajaran);
       });
 
-      // Load mata pelajaran for form
       async function loadMataPelajaran() {
          console.log('=== LOAD MATA PELAJARAN START ===');
 
-         // Show loading indicator
          const refreshIcon = document.getElementById('refreshMataPelajaranIcon');
          const refreshSpinner = document.getElementById('refreshMataPelajaranSpinner');
          if (refreshIcon && refreshSpinner) {
@@ -357,7 +351,6 @@
             console.error('Error loading mata pelajaran:', error);
             alertSystem.error('Gagal memuat mata pelajaran', 'Terjadi kesalahan jaringan: ' + error.message);
          } finally {
-            // Hide loading indicator
             if (refreshIcon && refreshSpinner) {
                refreshIcon.classList.remove('d-none');
                refreshSpinner.classList.add('d-none');
@@ -366,11 +359,9 @@
          }
       }
 
-      // Load batches for form
       async function loadBatches() {
          console.log('=== LOAD BATCHES START ===');
 
-         // Show loading indicator
          const refreshIcon = document.getElementById('refreshIcon');
          const refreshSpinner = document.getElementById('refreshSpinner');
          if (refreshIcon && refreshSpinner) {
@@ -378,7 +369,6 @@
             refreshSpinner.classList.remove('d-none');
          }
 
-         // Check if batch element exists
          const batchElement = document.getElementById('id_batch');
          if (!batchElement) {
             console.error('Batch element not found!');
@@ -403,13 +393,10 @@
                console.log('Batches loaded:', result);
 
                if (result.success && result.data) {
-                  // Update form dropdown
                   const batchSelect = document.getElementById('id_batch');
                   if (batchSelect) {
-                     // Clear existing options except the first one
                      batchSelect.innerHTML = '<option value="">Pilih Batch</option>';
 
-                     // Add new options
                      result.data.forEach(batch => {
                         const option = document.createElement('option');
                         option.value = batch.id_batch;
@@ -427,7 +414,6 @@
          } catch (error) {
             console.error('Error loading batches:', error);
          } finally {
-            // Hide loading indicator
             if (refreshIcon && refreshSpinner) {
                refreshIcon.classList.remove('d-none');
                refreshSpinner.classList.add('d-none');
@@ -435,11 +421,9 @@
          }
       }
 
-      // Handle form submission
       async function handleCreateForm(event) {
          event.preventDefault();
 
-         // Validasi form sebelum submit
          const form = event.target;
          if (!form.checkValidity()) {
             console.log('Form validation failed');
@@ -447,7 +431,6 @@
             return;
          }
 
-         // Validasi manual untuk field yang diperlukan
          const idBatch = form.querySelector('#id_batch').value;
          const tanggalMulai = form.querySelector('#tanggal_mulai').value;
          const tanggalSelesai = form.querySelector('#tanggal_selesai').value;
@@ -505,7 +488,6 @@
             return;
          }
 
-         // Validasi waktu
          const startDateTime = new Date(tanggalMulai);
          const endDateTime = new Date(tanggalSelesai);
 
@@ -540,7 +522,6 @@
                hide_mata_pelajaran: document.getElementById('hide_mata_pelajaran').checked ? 1 : 0
             };
 
-            // Debug log untuk melihat data yang dikirim
             console.log('SesiUjian Data to be sent:', sesiUjianData);
             console.log('Request headers:', {
                'Content-Type': 'application/json',
@@ -558,7 +539,6 @@
                body: JSON.stringify(sesiUjianData)
             });
 
-            // Check if response is JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                const text = await response.text();
@@ -574,7 +554,6 @@
             if (result.success) {
                alertSystem.createSuccess('Sesi Ujian');
 
-               // Redirect to index page
                window.location.href = '{{ route("admin.sesi-ujian.index") }}';
             } else {
                alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
@@ -586,9 +565,6 @@
          }
       }
 
-
-
-      // Validate datetime
       function validateDateTime() {
          const tanggalMulai = document.getElementById('tanggal_mulai').value;
          const tanggalSelesai = document.getElementById('tanggal_selesai').value;
@@ -605,14 +581,11 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
          loadMataPelajaran();
          loadBatches();
 
-
-         // Add form listeners
          const createForm = document.getElementById('createSessionForm');
          const tanggalMulai = document.getElementById('tanggal_mulai');
          const tanggalSelesai = document.getElementById('tanggal_selesai');
@@ -641,7 +614,6 @@
             });
          }
 
-         // Set minimum date to today
          const today = new Date().toISOString().split('T')[0];
          const tanggalMulaiDate = document.getElementById('tanggal_mulai_date');
          const tanggalSelesaiDate = document.getElementById('tanggal_selesai_date');
@@ -653,9 +625,7 @@
             tanggalSelesaiDate.setAttribute('min', today);
          }
 
-         // Add real-time validation for form fields
          const idBatchSelect = document.getElementById('id_batch');
-
 
          if (idBatchSelect) {
             idBatchSelect.addEventListener('change', function() {
@@ -670,9 +640,6 @@
          }
       });
 
-      // ===== DATETIME INPUT FUNCTIONS =====
-
-      // Set tanggal mulai
       document.getElementById('setTanggalMulaiBtn').addEventListener('click', async function() {
          const date = document.getElementById('tanggal_mulai_date').value;
          const time = document.getElementById('tanggal_mulai_time').value;
@@ -688,14 +655,11 @@
             return;
          }
 
-         // Combine date and time
          const datetime = date + 'T' + time;
          tanggalMulaiValue = datetime;
 
-         // Update hidden input
          document.getElementById('tanggal_mulai').value = datetime;
 
-         // Update display
          const display = new Date(datetime).toLocaleString('id-ID', {
             weekday: 'long',
             year: 'numeric',
@@ -707,7 +671,6 @@
          document.getElementById('tanggalMulaiDisplay').textContent = display;
          document.getElementById('tanggalMulaiDisplay').className = 'ms-2 text-success fw-bold';
 
-         // Auto-fill tanggal selesai if not set
          if (!tanggalSelesaiValue) {
             const endDate = new Date(datetime);
             endDate.setHours(endDate.getHours() + 1); // Add 1 hour by default
@@ -722,7 +685,6 @@
          console.log('Tanggal mulai set:', datetime);
       });
 
-      // Set tanggal selesai
       document.getElementById('setTanggalSelesaiBtn').addEventListener('click', async function() {
          const date = document.getElementById('tanggal_selesai_date').value;
          const time = document.getElementById('tanggal_selesai_time').value;
@@ -738,14 +700,11 @@
             return;
          }
 
-         // Combine date and time
          const datetime = date + 'T' + time;
          tanggalSelesaiValue = datetime;
 
-         // Update hidden input
          document.getElementById('tanggal_selesai').value = datetime;
 
-         // Update display
          const display = new Date(datetime).toLocaleString('id-ID', {
             weekday: 'long',
             year: 'numeric',
@@ -757,7 +716,6 @@
          document.getElementById('tanggalSelesaiDisplay').textContent = display;
          document.getElementById('tanggalSelesaiDisplay').className = 'ms-2 text-success fw-bold';
 
-         // Validate that end time is after start time
          if (tanggalMulaiValue && new Date(datetime) <= new Date(tanggalMulaiValue)) {
             await Swal.fire({
                icon: 'warning',
@@ -774,9 +732,6 @@
          console.log('Tanggal selesai set:', datetime);
       });
 
-      // ===== MATA PELAJARAN CHECKBOX FUNCTIONS =====
-
-      // Render mata pelajaran list with checkboxes
       function renderMataPelajaranList(mataPelajaranList) {
          const container = document.getElementById('mataPelajaranListContainer');
 
@@ -805,27 +760,22 @@
 
          container.innerHTML = mataPelajaranHtml;
 
-         // Initialize selectedMataPelajaran after rendering
          updateMataPelajaranSelection();
       }
 
-      // Update mata pelajaran selection
       function updateMataPelajaranSelection() {
          const checkboxes = document.querySelectorAll('.mata-pelajaran-checkbox:checked');
          selectedMataPelajaran = Array.from(checkboxes).map(cb => cb.value);
 
          console.log('Selected mata pelajaran:', selectedMataPelajaran);
 
-         // Ensure selectedMataPelajaran is always an array
          if (!Array.isArray(selectedMataPelajaran)) {
             selectedMataPelajaran = [];
          }
          
-         // Calculate duration when mata pelajaran changes
          calculateDuration();
       }
       
-      // Calculate total duration based on batch and mata pelajaran
       async function calculateDuration() {
          const idBatch = document.getElementById('id_batch')?.value;
          const durasiInput = document.getElementById('durasi_menit');
@@ -883,7 +833,6 @@
          }
       }
 
-         // Select all mata pelajaran
          document.getElementById('selectAllMataPelajaranBtn').addEventListener('click', function() {
             document.querySelectorAll('.mata-pelajaran-checkbox').forEach(checkbox => {
                checkbox.checked = true;
@@ -891,7 +840,6 @@
             updateMataPelajaranSelection();
          });
 
-         // Deselect all mata pelajaran
          document.getElementById('deselectAllMataPelajaranBtn').addEventListener('click', function() {
             document.querySelectorAll('.mata-pelajaran-checkbox').forEach(checkbox => {
                checkbox.checked = false;
@@ -899,7 +847,6 @@
             updateMataPelajaranSelection();
          });
          
-         // Add event listener for batch change
          const idBatchSelect = document.getElementById('id_batch');
          if (idBatchSelect) {
             idBatchSelect.addEventListener('change', function() {

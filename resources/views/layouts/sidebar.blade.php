@@ -1,19 +1,25 @@
-<!-- Mobile Menu Toggle Button -->
 <button class="mobile-menu-toggle" onclick="toggleSidebar()">
    <i class="bi bi-list"></i>
 </button>
 
-<!-- Mobile Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- Admin Sidebar -->
 @if(session('user_type') === 'admin')
 <div class="sidebar" id="sidebar">
    <div class="p-3">
       <div class="d-flex justify-content-between align-items-center mb-4">
          <h4 class="text-white mb-0">
-            <i class="bi bi-mortarboard me-2"></i>
-            Ujian Online
+            @php
+               $appLogo = App\Models\Setting::where('key', 'app.logo')->first();
+               $appName = App\Models\Setting::where('key', 'app.name')->first();
+               $logoUrl = $appLogo ? $appLogo->value : null;
+               $name = $appName ? $appName->value : 'Ujian Online';
+            @endphp
+            @if($logoUrl)
+               <img src="{{ $logoUrl }}" alt="Logo" style="width: 32px; height: 32px; object-fit: contain; margin-right: 0.5rem;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            @endif
+            <i class="bi bi-mortarboard me-2" @if($logoUrl) style="display: none;" @endif></i>
+            {{ $name }}
          </h4>
          <button class="btn btn-link text-white p-0 d-md-none" onclick="toggleSidebar()">
             <i class="bi bi-x-lg"></i>
@@ -46,23 +52,54 @@
             Laporan
          </a>
 
-         <a class="nav-link {{ request()->is('admin/settings*') ? 'active' : '' }}" href="/admin/settings">
-            <i class="bi bi-gear me-2"></i>
-            Pengaturan
-         </a>
+         <div class="nav-item dropdown-nav">
+            <a class="nav-link dropdown-toggle {{ request()->is('admin/settings*') ? 'active' : '' }}" href="#" id="pengaturanDropdown" role="button" onclick="toggleDropdown(event, 'pengaturanSubmenu')">
+               <i class="bi bi-gear me-2"></i>
+               Pengaturan
+               <i class="bi bi-chevron-down ms-auto dropdown-icon" id="pengaturanIcon"></i>
+            </a>
+            <ul class="dropdown-submenu" id="pengaturanSubmenu">
+               <li>
+                  <a class="dropdown-item {{ request()->is('admin/settings/info-ujian*') ? 'active' : '' }}" href="/admin/settings/info-ujian">
+                     <i class="bi bi-info-circle me-2"></i>
+                     Info Ujian
+                  </a>
+               </li>
+               <li>
+                  <a class="dropdown-item {{ request()->is('admin/settings/backup*') ? 'active' : '' }}" href="/admin/settings/backup">
+                     <i class="bi bi-database me-2"></i>
+                     Backup Data
+                  </a>
+               </li>
+               <li>
+                  <a class="dropdown-item {{ request()->is('admin/settings/logo*') ? 'active' : '' }}" href="/admin/settings/logo">
+                     <i class="bi bi-palette me-2"></i>
+                     Logo & Tampilan
+                  </a>
+               </li>
+            </ul>
+         </div>
       </nav>
    </div>
 </div>
 @endif
 
-<!-- Staff Sidebar -->
 @if(session('user_type') === 'staff')
 <div class="sidebar" id="sidebar">
    <div class="p-3">
       <div class="d-flex justify-content-between align-items-center mb-4">
          <h4 class="text-white mb-0">
-            <i class="bi bi-person-badge me-2"></i>
-            Staff Panel
+            @php
+               $appLogo = App\Models\Setting::where('key', 'app.logo')->first();
+               $appName = App\Models\Setting::where('key', 'app.name')->first();
+               $logoUrl = $appLogo ? $appLogo->value : null;
+               $name = $appName ? $appName->value : 'Ujian Online';
+            @endphp
+            @if($logoUrl)
+               <img src="{{ $logoUrl }}" alt="Logo" style="width: 32px; height: 32px; object-fit: contain; margin-right: 0.5rem;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            @endif
+            <i class="bi bi-person-badge me-2" @if($logoUrl) style="display: none;" @endif></i>
+            {{ $name }}
          </h4>
          <button class="btn btn-link text-white p-0 d-md-none" onclick="toggleSidebar()">
             <i class="bi bi-x-lg"></i>
@@ -89,16 +126,39 @@
             <i class="bi bi-graph-up me-2"></i>
             Laporan
          </a>
-         <a class="nav-link {{ request()->is('admin/settings*') ? 'active' : '' }}" href="/admin/settings">
-            <i class="bi bi-gear me-2"></i>
-            Pengaturan
-         </a>
+         
+         <div class="nav-item dropdown-nav">
+            <a class="nav-link dropdown-toggle {{ request()->is('admin/settings*') ? 'active' : '' }}" href="#" id="pengaturanDropdownStaff" role="button" onclick="toggleDropdown(event, 'pengaturanSubmenuStaff')">
+               <i class="bi bi-gear me-2"></i>
+               Pengaturan
+               <i class="bi bi-chevron-down ms-auto dropdown-icon" id="pengaturanIconStaff"></i>
+            </a>
+            <ul class="dropdown-submenu" id="pengaturanSubmenuStaff">
+               <li>
+                  <a class="dropdown-item {{ request()->is('admin/settings/info-ujian*') ? 'active' : '' }}" href="/admin/settings/info-ujian">
+                     <i class="bi bi-info-circle me-2"></i>
+                     Info Ujian
+                  </a>
+               </li>
+               <li>
+                  <a class="dropdown-item {{ request()->is('admin/settings/backup*') ? 'active' : '' }}" href="/admin/settings/backup">
+                     <i class="bi bi-database me-2"></i>
+                     Backup Data
+                  </a>
+               </li>
+               <li>
+                  <a class="dropdown-item {{ request()->is('admin/settings/logo*') ? 'active' : '' }}" href="/admin/settings/logo">
+                     <i class="bi bi-palette me-2"></i>
+                     Logo & Tampilan
+                  </a>
+               </li>
+            </ul>
+         </div>
       </nav>
    </div>
 </div>
 @endif
 
-<!-- Candidate Sidebar -->
 @if(session('user_type') === 'peserta')
 <div class="sidebar" id="sidebar">
    <div class="p-3">
@@ -147,7 +207,6 @@
       }
    }
 
-   // Close sidebar when clicking outside on mobile
    document.addEventListener('click', function(event) {
       const sidebar = document.getElementById('sidebar');
       const toggleButton = document.querySelector('.mobile-menu-toggle');
@@ -161,7 +220,6 @@
       }
    });
 
-   // Close sidebar when window is resized to desktop
    window.addEventListener('resize', function() {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebarOverlay');
@@ -176,10 +234,54 @@
       }
    });
 
-   // Close sidebar when pressing Escape key
    document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
          closeSidebar();
+      }
+   });
+
+   function toggleDropdown(event, submenuId) {
+      event.preventDefault();
+      const submenu = document.getElementById(submenuId);
+      const icon = event.currentTarget.querySelector('.dropdown-icon');
+      
+      document.querySelectorAll('.dropdown-submenu').forEach(menu => {
+         if (menu.id !== submenuId) {
+            menu.classList.remove('show');
+         }
+      });
+      
+      if (submenu) {
+         submenu.classList.toggle('show');
+         if (icon) {
+            icon.classList.toggle('rotate');
+         }
+      }
+   }
+
+   document.addEventListener('click', function(event) {
+      if (!event.target.closest('.dropdown-nav')) {
+         document.querySelectorAll('.dropdown-submenu').forEach(menu => {
+            menu.classList.remove('show');
+         });
+         document.querySelectorAll('.dropdown-icon').forEach(icon => {
+            icon.classList.remove('rotate');
+         });
+      }
+   });
+
+   document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      if (currentPath.includes('/settings/info-ujian') || currentPath.includes('/settings/backup') || currentPath.includes('/settings/logo')) {
+         const pengaturanSubmenu = document.getElementById('pengaturanSubmenu') || document.getElementById('pengaturanSubmenuStaff');
+         const pengaturanIcon = document.getElementById('pengaturanIcon') || document.getElementById('pengaturanIconStaff');
+         
+         if (pengaturanSubmenu) {
+            pengaturanSubmenu.classList.add('show');
+         }
+         if (pengaturanIcon) {
+            pengaturanIcon.classList.add('rotate');
+         }
       }
    });
 </script>

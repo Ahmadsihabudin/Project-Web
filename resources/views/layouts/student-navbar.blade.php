@@ -6,9 +6,9 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>@yield('title', 'Ujian Online - Student Portal')</title>
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
    <style>
@@ -165,7 +165,7 @@
 <body>
    <nav class="navbar navbar-expand-lg student-navbar">
       <div class="container">
-         <!-- Brand/Logo -->
+         
          <a class="navbar-brand" href="{{ route('student.information') }}">
             <img src="{{ asset('images/Favicon_akti.png') }}" alt="Logo" class="navbar-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="navbar-brand-text" style="display: none;">
@@ -174,10 +174,9 @@
             </div>
          </a>
 
-         <!-- Navigation Links -->
+         
 
-
-         <!-- User Info & Logout -->
+         
          <div class="user-info">
             <div class="user-avatar" id="userAvatar">
                <i class="bi bi-person"></i>
@@ -194,23 +193,21 @@
       </div>
    </nav>
 
-   <!-- Main Content -->
+   
    <main>
       @yield('content')
    </main>
 
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
    <script>
-      // Load user info
       document.addEventListener('DOMContentLoaded', function() {
          loadUserInfo();
       });
 
       async function loadUserInfo() {
          try {
-            // First, check if peserta data is available from peserta-wrong page
             const pesertaDataElement = document.getElementById('peserta-data');
             if (pesertaDataElement) {
                const pesertaData = JSON.parse(pesertaDataElement.textContent);
@@ -220,17 +217,14 @@
                }
             }
 
-            // Otherwise, try to fetch from exam data endpoint
             const response = await fetch('/student/exam/data', {
                headers: {
                   'Accept': 'application/json'
                }
             });
 
-            // Check if response is JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-               // Not authenticated or got HTML redirect
                console.log('User not authenticated, skipping navbar data load');
                return;
             }
@@ -241,7 +235,6 @@
                updateNavbarInfo(result.peserta);
             }
          } catch (error) {
-            // Silently fail if user is not authenticated
             console.log('Could not load user info, user may not be authenticated');
          }
       }
@@ -254,7 +247,6 @@
          if (userNameEl) userNameEl.textContent = user.nama || 'Peserta';
          if (userBatchEl) userBatchEl.textContent = user.batch || '-';
 
-         // Update avatar with first letter of name
          if (avatarEl) {
             const firstName = (user.nama || 'P').charAt(0).toUpperCase();
             avatarEl.innerHTML = firstName;

@@ -236,6 +236,7 @@ class ReportController extends Controller
                'id_laporan' => $report->id_laporan,
                'id_peserta' => $report->id_peserta,
                'nama_peserta' => $report->peserta ? $report->peserta->nama_peserta : 'Unknown',
+               'batch_saat_ujian' => $report->batch_saat_ujian ?? 'Unknown',
                'total_score' => $report->total_score,
                'jumlah_benar' => $report->jumlah_benar,
                'jumlah_salah' => $report->jumlah_salah ?? 0,

@@ -7,11 +7,11 @@
    <title>Tambah User - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   <!-- Bootstrap CSS -->
+   
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Bootstrap Icons -->
+   
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   <!-- Bootstrap JS -->
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -58,17 +58,17 @@
 
 <body>
    <div class="container-fluid">
-      <!-- Sidebar -->
+      
       @include('layouts.sidebar')
 
-      <!-- Main Content -->
+      
       <div class="main-content">
-         <!-- Navbar -->
+         
          @include('layouts.navbar')
 
-         <!-- Content -->
+         
          <div class="p-4">
-            <!-- Page Header -->
+            
             <div class="page-header">
                <div class="row align-items-center">
                   <div class="col-md-8">
@@ -84,12 +84,12 @@
                </div>
             </div>
 
-            <!-- Form -->
+            
             <div class="card">
                <div class="card-body">
                   <form id="createUserForm">
                      <div class="row">
-                        <!-- User Information -->
+                        
                         <div class="col-md-6">
                            <div class="form-section">
                               <h6 class="mb-3"><i class="bi bi-person me-2"></i>Informasi User</h6>
@@ -116,7 +116,7 @@
                            </div>
                         </div>
 
-                        <!-- User Settings -->
+                        
                         <div class="col-md-6">
                            <div class="form-section">
                               <h6 class="mb-3"><i class="bi bi-gear me-2"></i>Pengaturan User</h6>
@@ -174,11 +174,9 @@
    <script>
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-      // Handle form submission
       async function handleCreateForm(event, createForm) {
          event.preventDefault();
 
-         // Validasi form sebelum submit
          const form = event.target;
          if (!form.checkValidity()) {
             console.log('Form validation failed');
@@ -186,7 +184,6 @@
             return;
          }
 
-         // Validasi manual untuk field yang diperlukan
          const name = form.querySelector('#name').value.trim();
          const email = form.querySelector('#email').value.trim();
          const username = form.querySelector('#username').value.trim();
@@ -302,7 +299,6 @@
             if (result.success) {
                alertSystem.createSuccess('User');
 
-               // Redirect to index page
                window.location.href = '{{ route("admin.users.index") }}';
             } else {
                alertSystem.error('Gagal menyimpan', result.message || 'Terjadi kesalahan');
@@ -314,11 +310,9 @@
          }
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
 
-         // Add form listeners
          const createForm = document.getElementById('createUserForm');
 
          if (createForm) {
@@ -327,7 +321,6 @@
             });
          }
 
-         // Add real-time validation for form fields
          const requiredFields = ['name', 'email', 'username', 'password', 'role'];
 
          requiredFields.forEach(fieldName => {
@@ -345,7 +338,6 @@
             }
          });
 
-         // Email validation
          const emailField = document.getElementById('email');
          if (emailField) {
             emailField.addEventListener('blur', function() {
@@ -360,7 +352,6 @@
             });
          }
 
-         // Password confirmation validation
          const passwordField = document.getElementById('password');
          const passwordConfirmationField = document.getElementById('password_confirmation');
 
