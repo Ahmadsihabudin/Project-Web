@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
-            $table->string('user_type');
-            $table->unsignedBigInteger('user_id');
-            $table->string('action');
-            $table->text('description');
-            $table->string('ip_address');
-            $table->text('user_agent');
-            $table->json('metadata')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('activity_logs')) {
+            Schema::create('activity_logs', function (Blueprint $table) {
+                $table->id();
+                $table->string('user_type');
+                $table->unsignedBigInteger('user_id');
+                $table->string('action');
+                $table->text('description');
+                $table->string('ip_address');
+                $table->text('user_agent');
+                $table->json('metadata')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
