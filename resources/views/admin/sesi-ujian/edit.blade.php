@@ -366,8 +366,16 @@
                      const tanggalMulai = sesiUjian.tanggal_mulai.split(' ')[0];
                      const jamMulai = sesiUjian.jam_mulai.substring(0, 5);
 
-                     document.getElementById('tanggal_mulai_date').value = tanggalMulai;
-                     document.getElementById('tanggal_mulai_time').value = jamMulai;
+                     const tanggalMulaiDateInput = document.getElementById('tanggal_mulai_date');
+                     const tanggalMulaiTimeInput = document.getElementById('tanggal_mulai_time');
+
+                     if (tanggalMulaiDateInput) {
+                        tanggalMulaiDateInput.value = tanggalMulai;
+                        tanggalMulaiDateInput.removeAttribute('min'); // Remove min restriction for editing
+                     }
+                     if (tanggalMulaiTimeInput) {
+                        tanggalMulaiTimeInput.value = jamMulai;
+                     }
 
                      const combinedDateTime = tanggalMulai + ' ' + jamMulai;
                      document.getElementById('tanggal_mulai').value = combinedDateTime;
@@ -379,8 +387,16 @@
                      const tanggalSelesai = sesiUjian.tanggal_selesai.split(' ')[0];
                      const jamSelesai = sesiUjian.jam_selesai.substring(0, 5);
 
-                     document.getElementById('tanggal_selesai_date').value = tanggalSelesai;
-                     document.getElementById('tanggal_selesai_time').value = jamSelesai;
+                     const tanggalSelesaiDateInput = document.getElementById('tanggal_selesai_date');
+                     const tanggalSelesaiTimeInput = document.getElementById('tanggal_selesai_time');
+
+                     if (tanggalSelesaiDateInput) {
+                        tanggalSelesaiDateInput.value = tanggalSelesai;
+                        tanggalSelesaiDateInput.removeAttribute('min'); // Remove min restriction for editing
+                     }
+                     if (tanggalSelesaiTimeInput) {
+                        tanggalSelesaiTimeInput.value = jamSelesai;
+                     }
 
                      const combinedDateTime = tanggalSelesai + ' ' + jamSelesai;
                      document.getElementById('tanggal_selesai').value = combinedDateTime;
@@ -669,8 +685,16 @@
          }
 
          const idBatch = form.querySelector('#id_batch').value;
-         const tanggalMulai = form.querySelector('#tanggal_mulai').value;
-         const tanggalSelesai = form.querySelector('#tanggal_selesai').value;
+
+         // Get tanggal and jam from date and time inputs directly
+         const tanggalMulaiDate = form.querySelector('#tanggal_mulai_date').value;
+         const tanggalMulaiTime = form.querySelector('#tanggal_mulai_time').value;
+         const tanggalSelesaiDate = form.querySelector('#tanggal_selesai_date').value;
+         const tanggalSelesaiTime = form.querySelector('#tanggal_selesai_time').value;
+
+         // Combine date and time - prioritize input values over hidden field
+         let tanggalMulai = (tanggalMulaiDate && tanggalMulaiTime) ? (tanggalMulaiDate + ' ' + tanggalMulaiTime) : form.querySelector('#tanggal_mulai').value;
+         let tanggalSelesai = (tanggalSelesaiDate && tanggalSelesaiTime) ? (tanggalSelesaiDate + ' ' + tanggalSelesaiTime) : form.querySelector('#tanggal_selesai').value;
 
          if (!idBatch) {
             await Swal.fire({
@@ -695,26 +719,35 @@
             return;
          }
 
-         if (!tanggalMulai) {
+         // Validate tanggal and jam from inputs
+         if (!tanggalMulaiDate || !tanggalMulaiTime) {
             await Swal.fire({
                icon: 'warning',
                title: 'Validasi Gagal',
-               text: 'Tanggal & Jam Mulai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.',
+               text: 'Tanggal & Jam Mulai harus diisi!',
                confirmButtonText: 'OK',
                confirmButtonColor: '#991B1B'
             });
             return;
          }
 
-         if (!tanggalSelesai) {
+         if (!tanggalSelesaiDate || !tanggalSelesaiTime) {
             await Swal.fire({
                icon: 'warning',
                title: 'Validasi Gagal',
-               text: 'Tanggal & Jam Selesai harus diisi! Klik tombol "Set" setelah memilih tanggal dan jam.',
+               text: 'Tanggal & Jam Selesai harus diisi!',
                confirmButtonText: 'OK',
                confirmButtonColor: '#991B1B'
             });
             return;
+         }
+
+         // Ensure we have the combined datetime values
+         if (!tanggalMulai) {
+            tanggalMulai = tanggalMulaiDate + ' ' + tanggalMulaiTime;
+         }
+         if (!tanggalSelesai) {
+            tanggalSelesai = tanggalSelesaiDate + ' ' + tanggalSelesaiTime;
          }
 
          const startDateTime = new Date(tanggalMulai);
@@ -796,17 +829,24 @@
                return;
             }
 
+            // Ensure tanggal_mulai and tanggal_selesai are properly formatted from date and time inputs
+            const finalTanggalMulai = tanggalMulai || (tanggalMulaiDate && tanggalMulaiTime ? (tanggalMulaiDate + ' ' + tanggalMulaiTime) : null);
+            const finalTanggalSelesai = tanggalSelesai || (tanggalSelesaiDate && tanggalSelesaiTime ? (tanggalSelesaiDate + ' ' + tanggalSelesaiTime) : null);
+
             const sesiUjianData = {
                deskripsi: formData.get('deskripsi') || '',
                id_batch: idBatch,
                mata_pelajaran: selectedMataPelajaran,
-               tanggal_mulai: tanggalMulai,
-               tanggal_selesai: tanggalSelesai,
+               tanggal_mulai: finalTanggalMulai,
+               tanggal_selesai: finalTanggalSelesai,
                durasi_menit: formData.get('durasi_menit') ? parseInt(formData.get('durasi_menit')) : null,
                hide_nomor_urut: document.getElementById('hide_nomor_urut').checked ? 1 : 0,
                hide_poin: document.getElementById('hide_poin').checked ? 1 : 0,
                hide_mata_pelajaran: document.getElementById('hide_mata_pelajaran').checked ? 1 : 0
             };
+
+            // Debug log
+            console.log('Data yang akan dikirim:', sesiUjianData);
 
             const response = await fetch(`/admin/sesi-ujian/${sesiUjianId}`, {
                method: 'PUT',
@@ -939,10 +979,12 @@
             setTanggalSelesaiBtn.addEventListener('click', setTanggalSelesai);
          }
 
-         const today = new Date().toISOString().split('T')[0];
+         // For edit form, allow past dates to be edited
+         // Remove min date restriction to allow editing existing dates
          const dateInputs = document.querySelectorAll('input[type="date"]');
          dateInputs.forEach(input => {
-            input.min = today;
+            // Remove min restriction to allow editing past dates
+            input.removeAttribute('min');
          });
 
 
