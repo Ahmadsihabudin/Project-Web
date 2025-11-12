@@ -7,11 +7,11 @@
    <title>Sesi Ujian - Ujian Online</title>
    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   
+
    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   
+
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-   
+
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
@@ -302,17 +302,17 @@
 
 <body>
    <div class="container-fluid">
-      
+
       @include('layouts.sidebar')
 
-      
+
       <div class="main-content">
-         
+
          @include('layouts.navbar')
 
-         
+
          <div class="p-4">
-            
+
             <div class="row mb-4">
                <div class="col-md-3">
                   <div class="stats-card">
@@ -368,7 +368,7 @@
                </div>
             </div>
 
-            
+
             <div class="card">
                <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold">Daftar Sesi Ujian</h6>
@@ -395,7 +395,7 @@
                            </tr>
                         </thead>
                         <tbody>
-                           
+
                         </tbody>
                      </table>
                   </div>
@@ -426,8 +426,7 @@
                   displayStats(result.data);
                }
             }
-         } catch (error) {
-         }
+         } catch (error) {}
       }
 
       function displayStats(stats) {
@@ -531,7 +530,7 @@
                <td>${formatDate(sesiUjianItem.tanggal_selesai)}</td>
                <td>${formatTime(sesiUjianItem.jam_selesai)}</td>
                <td>
-                  <span class="badge bg-info">${sesiUjianItem.durasi_menit ? sesiUjianItem.durasi_menit + ' menit' : '-'}</span>
+                  <span class="badge bg-info">${(sesiUjianItem.durasi_menit !== null && sesiUjianItem.durasi_menit !== undefined && sesiUjianItem.durasi_menit !== '') ? (sesiUjianItem.durasi_menit + ' menit') : '-'}</span>
                </td>
                <td>
                   <span class="badge ${sesiUjianItem.status === 'aktif' ? 'bg-success' : 'bg-warning'}">${sesiUjianItem.status || 'N/A'}</span>
@@ -698,8 +697,7 @@
                   });
                   return `${formattedDate} ${formattedTime}`;
                }
-            }
-            else if (cleanDateString.includes('T')) {
+            } else if (cleanDateString.includes('T')) {
                const date = new Date(cleanDateString);
                if (!isNaN(date.getTime())) {
                   const formattedDate = date.toLocaleDateString('id-ID', {
@@ -714,8 +712,7 @@
                   });
                   return `${formattedDate} ${formattedTime}`;
                }
-            }
-            else if (cleanDateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            } else if (cleanDateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
                const date = new Date(cleanDateString);
                if (!isNaN(date.getTime())) {
                   return date.toLocaleDateString('id-ID', {
@@ -724,8 +721,7 @@
                      year: 'numeric'
                   });
                }
-            }
-            else if (cleanDateString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+            } else if (cleanDateString.match(/^\d{2}:\d{2}:\d{2}$/)) {
                return cleanDateString.substring(0, 5); // Return HH:MM
             }
 

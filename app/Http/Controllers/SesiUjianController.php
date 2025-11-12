@@ -421,10 +421,14 @@ class SesiUjianController extends Controller
             'tanggal_mulai' => 'required|string',
             'tanggal_selesai' => 'required|string',
             'id_batch' => 'required|integer',
-            'durasi_menit' => 'nullable|integer|min:1',
+            'durasi_menit' => 'nullable|integer|min:0',
          ]);
 
          if ($validator->fails()) {
+            \Log::error('SesiUjian Update Validation Failed:', [
+               'errors' => $validator->errors()->toArray(),
+               'request_data' => $request->all()
+            ]);
             return response()->json([
                'success' => false,
                'message' => 'Validasi gagal',
@@ -495,9 +499,9 @@ class SesiUjianController extends Controller
                'tanggal_selesai' => $tanggalSelesai
             ]);
 
-            // Calculate durasi_menit automatically if not provided
+            // Calculate durasi_menit automatically if not provided or is 0
             $durasiMenit = $request->durasi_menit;
-            if (!$durasiMenit) {
+            if ($durasiMenit === null || $durasiMenit === '' || $durasiMenit === 0) {
                // Calculate from soal durasi_soal
                $batch = Batch::find($request->id_batch);
                if ($batch) {
@@ -517,7 +521,21 @@ class SesiUjianController extends Controller
                      });
                   }
                   $soal = $soalQuery->get();
-                  $durasiMenit = $soal->sum('durasi_soal');
+                  $calculatedDurasi = $soal->sum('durasi_soal');
+
+                  // If calculated durasi is 0, calculate from time difference
+                  if ($calculatedDurasi == 0) {
+                     $startDateTime = \Carbon\Carbon::parse($tanggalMulai . ' ' . $jamMulai);
+                     $endDateTime = \Carbon\Carbon::parse($tanggalSelesai . ' ' . $jamSelesai);
+                     $calculatedDurasi = $startDateTime->diffInMinutes($endDateTime);
+                  }
+
+                  $durasiMenit = $calculatedDurasi > 0 ? $calculatedDurasi : 0;
+               } else {
+                  // If no batch, calculate from time difference
+                  $startDateTime = \Carbon\Carbon::parse($tanggalMulai . ' ' . $jamMulai);
+                  $endDateTime = \Carbon\Carbon::parse($tanggalSelesai . ' ' . $jamSelesai);
+                  $durasiMenit = $startDateTime->diffInMinutes($endDateTime);
                }
             }
 
@@ -742,22 +760,22 @@ class SesiUjianController extends Controller
       try {
          $allSesiUjian = SesiUjian::all();
          $updatedCount = 0;
-         
+
          foreach ($allSesiUjian as $sesiUjian) {
             $batch = Batch::find($sesiUjian->id_batch);
             if (!$batch) {
                continue;
             }
-            
+
             // Parse mata pelajaran dari sesi ujian
             $mataPelajaranArray = [];
             if (!empty($sesiUjian->mata_pelajaran)) {
                $mataPelajaranArray = array_map('trim', explode(',', $sesiUjian->mata_pelajaran));
             }
-            
+
             // Hitung total durasi dari semua soal yang sesuai
             $soalQuery = Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batch->nama_batch))]);
-            
+
             if (!empty($mataPelajaranArray)) {
                $soalQuery->where(function ($query) use ($mataPelajaranArray) {
                   $first = true;
@@ -772,18 +790,25 @@ class SesiUjianController extends Controller
                   }
                });
             }
-            
+
             $soal = $soalQuery->get();
-            $totalDuration = $soal->sum('durasi_soal');
-            
+            $calculatedDurasi = $soal->sum('durasi_soal');
+
+            // If calculated durasi is 0, calculate from time difference
+            if ($calculatedDurasi == 0 && $sesiUjian->tanggal_mulai && $sesiUjian->jam_mulai && $sesiUjian->tanggal_selesai && $sesiUjian->jam_selesai) {
+               $startDateTime = Carbon::parse($sesiUjian->tanggal_mulai . ' ' . $sesiUjian->jam_mulai);
+               $endDateTime = Carbon::parse($sesiUjian->tanggal_selesai . ' ' . $sesiUjian->jam_selesai);
+               $calculatedDurasi = $startDateTime->diffInMinutes($endDateTime);
+            }
+
             // Update durasi sesi ujian
             $sesiUjian->update([
-               'durasi_menit' => $totalDuration > 0 ? $totalDuration : null
+               'durasi_menit' => $calculatedDurasi > 0 ? $calculatedDurasi : 0
             ]);
-            
+
             $updatedCount++;
          }
-         
+
          return [
             'success' => true,
             'message' => "Berhasil update durasi {$updatedCount} sesi ujian",
@@ -816,21 +841,21 @@ class SesiUjianController extends Controller
 
          // Cari batch berdasarkan nama
          $batch = Batch::whereRaw('LOWER(TRIM(nama_batch)) = ?', [strtolower(trim($batchName))])->first();
-         
+
          if (!$batch) {
             return;
          }
 
          // Cari semua sesi ujian yang menggunakan batch ini
          $sesiUjianList = SesiUjian::where('id_batch', $batch->id_batch)->get();
-         
+
          foreach ($sesiUjianList as $sesiUjian) {
             // Parse mata pelajaran dari sesi ujian (format: "Matematika, Geografi" atau "Matematika")
             $mataPelajaranArray = [];
             if (!empty($sesiUjian->mata_pelajaran)) {
                $mataPelajaranArray = array_map('trim', explode(',', $sesiUjian->mata_pelajaran));
             }
-            
+
             // Jika mata pelajaran spesifik diberikan, hanya update jika sesi ujian mengandung mata pelajaran tersebut
             if ($mataPelajaran !== null && !empty($mataPelajaranArray)) {
                $mataPelajaranNormalized = strtolower(trim($mataPelajaran));
@@ -845,10 +870,10 @@ class SesiUjianController extends Controller
                   continue; // Skip jika mata pelajaran tidak cocok
                }
             }
-            
+
             // Hitung total durasi dari semua soal yang sesuai dengan batch dan mata pelajaran di sesi ujian
             $soalQuery = Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batchName))]);
-            
+
             if (!empty($mataPelajaranArray)) {
                $soalQuery->where(function ($query) use ($mataPelajaranArray) {
                   $first = true;
@@ -863,10 +888,10 @@ class SesiUjianController extends Controller
                   }
                });
             }
-            
+
             $soal = $soalQuery->get();
             $totalDuration = $soal->sum('durasi_soal');
-            
+
             // Update durasi sesi ujian
             $sesiUjian->update([
                'durasi_menit' => $totalDuration > 0 ? $totalDuration : null
