@@ -103,6 +103,21 @@
                                  <input type="email" class="form-control" id="email" name="email" required>
                               </div>
                               <div class="mb-3">
+                                 <label for="foto" class="form-label fw-bold">Foto Profil</label>
+                                 <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewImage()">
+                                 <div class="form-text text-muted">Kosongkan jika tidak ingin mengubah foto. Format: JPG/PNG, Maks 2MB.</div>
+                                 
+                                 <!-- Preview Image Container -->
+                                 <div class="mt-2" style="width: 150px; height: 200px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px;">
+                                     <img id="frame" src="" class="img-fluid d-none" style="max-height: 100%; max-width: 100%; object-fit: cover; border-radius: 6px;">
+                                     <span id="placeholder-text" class="text-muted small">Preview</span>
+                                 </div>
+                             
+                                 @if($participant->foto)
+                                     <div class="mt-2"><small>Foto saat ini: <a href="{{ asset('storage/' . $participant->foto) }}" target="_blank">Lihat Foto</a></small></div>
+                                 @endif
+                             </div>
+                              <div class="mb-3">
                                  <label for="kode_peserta" class="form-label fw-bold">Kode Peserta <span class="text-danger">*</span></label>
                                  <input type="text" class="form-control" id="kode_peserta" name="kode_peserta" required readonly>
                               </div>
@@ -228,6 +243,21 @@
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       const participantId = document.querySelector('[data-participant-id]').getAttribute('data-participant-id');
 
+      function previewImage() {
+         const image = document.getElementById('foto');
+         const frame = document.getElementById('frame');
+         const placeholder = document.getElementById('placeholder-text');
+
+         if (image.files && image.files[0]) {
+            frame.src = URL.createObjectURL(image.files[0]);
+            frame.classList.remove('d-none');
+            if (placeholder) {
+               placeholder.classList.add('d-none');
+            }
+         }
+      }
+
+
       async function loadParticipantData(id) {
          try {
             const response = await fetch(`/admin/participants/${id}`, {
@@ -253,6 +283,18 @@
                   document.getElementById('status').value = participant.status || 'aktif';
                   document.getElementById('no_hp').value = participant.no_hp || '';
                   document.getElementById('nik').value = participant.nik || '';
+
+                  const frame = document.getElementById('frame');
+                  const placeholder = document.getElementById('placeholder-text');
+                  // Gunakan foto_url yang sudah lengkap dari controller
+                  if (participant.foto_url) {
+                     frame.src = participant.foto_url;
+                     frame.classList.remove('d-none');
+                     placeholder.classList.add('d-none');
+                  } else {
+                     frame.classList.add('d-none');
+                     if (placeholder) placeholder.classList.remove('d-none');
+                  }
                   
                   const provinsiSelect = document.getElementById('provinsi');
                   const kotaKabupatenSelect = document.getElementById('kota_kabupaten');
@@ -357,31 +399,17 @@
 
          try {
             const formData = new FormData(event.target);
-
-            const participantData = {
-               nama: formData.get('nama'),
-               email: formData.get('email'),
-               kode_akses: formData.get('kode_akses'),
-               asal_smk: formData.get('asal_smk'),
-               jurusan: formData.get('jurusan'),
-               batch: formData.get('batch'),
-               kode_peserta: formData.get('kode_peserta') || '',
-               status: formData.get('status') || 'aktif',
-               no_hp: formData.get('no_hp'),
-               nik: formData.get('nik'),
-               kota_kabupaten: formData.get('kota_kabupaten'),
-               provinsi: formData.get('provinsi')
-            };
-
-            console.log('Participant Data to be sent:', participantData);
+            formData.append('_method', 'PUT'); // Method spoofing untuk Laravel
 
             const response = await fetch(`/admin/participants/${participantId}`, {
-               method: 'PUT',
+               method: 'POST', // Gunakan POST untuk mengirim FormData
                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': csrfToken
+                  // 'Content-Type' jangan di-set, biarkan browser yang mengatur
+                  // agar boundary untuk multipart/form-data ditambahkan otomatis.
+                  'X-CSRF-TOKEN': csrfToken,
+                  'Accept': 'application/json',
                },
-               body: JSON.stringify(participantData)
+               body: formData
             });
 
             const result = await response.json();
@@ -393,7 +421,7 @@
                await Swal.fire({
                   icon: 'success',
                   title: 'Berhasil!',
-                  html: `Peserta berhasil diperbarui!<br><br><strong>Kode Peserta: ${result.data.kode_peserta}</strong><br><br>Data telah disimpan.`,
+                  html: `Peserta berhasil diperbarui!<br><br><strong>Kode Peserta: ${result.data.kode_peserta || participantData.kode_peserta}</strong><br><br>Data telah disimpan.`,
                   confirmButtonText: 'OK',
                   confirmButtonColor: '#991B1B'
                });

@@ -357,11 +357,12 @@ class ExamController extends Controller
             ]);
             $initialExamId = $firstActiveExam ? $firstActiveExam->id_sesi : null;
 
-            $initialExamInfoUrl = $initialExamId ? route('student.exam.info-warning', $initialExamId) : null;
+            // Mengarahkan ke halaman verifikasi terlebih dahulu
+            $nextUrl = $initialExamId ? route('student.exam.verify', $initialExamId) : null;
 
             \Log::info('Setting initialExamId and initialExamInfoUrl:', [
                 'initialExamId' => $initialExamId,
-                'initialExamInfoUrl' => $initialExamInfoUrl,
+                'nextUrl' => $nextUrl,
                 'first_exam_data' => $firstActiveExam ? [
                     'id_sesi' => $firstActiveExam->id_sesi,
                     'mata_pelajaran' => $firstActiveExam->mata_pelajaran,
@@ -400,11 +401,11 @@ class ExamController extends Controller
             }
             return view('students.information', [
                 'initialPeserta' => $initialPeserta,
-                'initialExamId' => null,
-                'initialExamInfoUrl' => null
+                'initialExamId' => null, // Nama variabel diubah untuk konsistensi
+                'nextUrl' => null
             ])->with('error', 'Terjadi kesalahan saat memuat data. Silakan refresh halaman atau hubungi administrator.');
         }
-        return view('students.information', compact('initialPeserta', 'initialExamId', 'initialExamInfoUrl'));
+        return view('students.information', compact('initialPeserta', 'initialExamId', 'nextUrl'));
     }
 
     /**
@@ -476,6 +477,13 @@ class ExamController extends Controller
                 'user_id' => $userId,
                 'user_type' => $userType
             ]);
+
+            // PENJAGA: Pastikan peserta sudah melewati verifikasi wajah untuk ujian ini.
+            if (!session('is_face_verified_for_exam_' . $id)) {
+                \Log::warning('Access to info-warning denied. Face not verified.', ['exam_id' => $id, 'user_id' => $userId]);
+                // Arahkan kembali ke halaman verifikasi jika belum terverifikasi.
+                return redirect()->route('student.exam.verify', ['id' => $id])->with('error', 'Anda harus melakukan verifikasi wajah terlebih dahulu.');
+            }
 
             if (!$userId || !$userType) {
                 return redirect('/auth/peserta/login')->with('error', 'Silakan login terlebih dahulu');
@@ -833,6 +841,13 @@ class ExamController extends Controller
                 return redirect('/auth/peserta/login')->with('error', 'Silakan login terlebih dahulu');
             }
 
+            // PENJAGA: Pastikan peserta sudah melewati verifikasi wajah untuk ujian ini.
+            if (!session('is_face_verified_for_exam_' . $id)) {
+                \Log::warning('Access to startExam denied. Face not verified.', ['exam_id' => $id, 'user_id' => $userId]);
+                // Arahkan kembali ke halaman verifikasi jika belum terverifikasi.
+                return redirect()->route('student.exam.verify', ['id' => $id])->with('error', 'Anda harus melakukan verifikasi wajah terlebih dahulu.');
+            }
+
             if ($userType === 'peserta') {
                 $peserta = Peserta::find($userId);
             } else {
@@ -1095,7 +1110,7 @@ class ExamController extends Controller
             $totalPoints = 0;
             $maxPoints = 0;
             $jawabanData = $request->jawaban;
-            
+
             foreach ($soal as $soalItem) {
                 $soalId = $soalItem->id_soal;
                 $jawabanPeserta = $jawabanData[$soalId] ?? null;
@@ -1123,7 +1138,7 @@ class ExamController extends Controller
                         $poinSalah = $soalItem->poin_salah ?? 0;
                         $totalPoints += $poinSalah; // poinSalah sudah negatif jika pengurangan
                     }
-                    
+
                     \App\Models\Jawaban::create([
                         'id_peserta' => $peserta->id_peserta,
                         'id_soal' => $soalId,
@@ -1138,7 +1153,7 @@ class ExamController extends Controller
                     }
                 }
             }
-            
+
             // Hitung skor dalam persentase (bisa minus jika pengurangan poin)
             $totalScore = $maxPoints > 0 ? ($totalPoints / $maxPoints) * 100 : 0;
             $waktuPengerjaan = $request->input('waktu_pengerjaan', $sesiUjian->durasi_menit);
@@ -1269,5 +1284,52 @@ class ExamController extends Controller
                 return redirect()->route('auth.peserta.login')->with('error', 'Terjadi kesalahan saat memuat halaman');
             }
         }
+    }
+
+    /**
+     * Menampilkan halaman verifikasi wajah sebelum ujian.
+     */
+    public function showVerificationPage(Request $request, $id)
+    {
+        try {
+            $userId = session('user_id');
+            $peserta = Peserta::find($userId);
+            $sesiUjian = SesiUjian::find($id);
+
+            if (!$peserta || !$sesiUjian) {
+                return redirect()->route('student.information')->with('error', 'Data peserta atau sesi ujian tidak ditemukan.');
+            }
+
+            // Pastikan peserta memiliki foto untuk perbandingan
+            if (empty($peserta->foto)) {
+                return redirect()->route('student.information')->with('error', 'Foto profil Anda tidak ditemukan. Silakan hubungi administrator.');
+            }
+
+            // Tandai bahwa verifikasi diperlukan untuk sesi ini
+            session(['needs_verification_for_exam_' . $id => true]);
+
+            return view('students.verify', [
+                'peserta' => $peserta,
+                'sesiUjian' => $sesiUjian,
+                'id_sesi' => $id
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error showing verification page: ' . $e->getMessage());
+            return redirect()->route('student.information')->with('error', 'Gagal memuat halaman verifikasi.');
+        }
+    }
+
+    /**
+     * Menangani callback setelah verifikasi wajah berhasil.
+     */
+    public function handleVerificationSuccess(Request $request)
+    {
+        $id_sesi = $request->input('id_sesi');
+
+        // Simpan status verifikasi ke dalam session
+        session(['is_face_verified_for_exam_' . $id_sesi => true]);
+        session()->forget('needs_verification_for_exam_' . $id_sesi);
+
+        return response()->json(['success' => true, 'message' => 'Verifikasi berhasil dicatat.']);
     }
 }

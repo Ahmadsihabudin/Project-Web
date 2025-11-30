@@ -545,13 +545,13 @@
 
    
    <div class="text-center mt-3 mb-3">
-      @if(isset($initialExamInfoUrl) && !empty($initialExamInfoUrl) && $initialExamInfoUrl !== '#')
-      <a id="nextExamBtn" href="{{ $initialExamInfoUrl }}" class="btn btn-primary" role="button">
+      @if(isset($nextUrl) && !empty($nextUrl) && $nextUrl !== '#')
+      <a id="nextExamBtn" href="{{ $nextUrl }}" class="btn btn-primary" role="button">
          <i class="bi bi-arrow-right-circle me-2"></i>
          Next
       </a>
-      @elseif(isset($initialExamId) && !empty($initialExamId))
-      <a id="nextExamBtn" href="{{ route('student.exam.info-warning', $initialExamId) }}" class="btn btn-primary" role="button">
+      @elseif(isset($initialExamId) && !empty($initialExamId)) 
+      <a id="nextExamBtn" href="{{ route('student.exam.verify', $initialExamId) }}" class="btn btn-primary" role="button">
          <i class="bi bi-arrow-right-circle me-2"></i>
          Next
       </a>
@@ -655,14 +655,13 @@
                      const firstExam = result.data[0];
                      let newUrl = null;
 
-                     if (firstExam.info_warning_url) {
-                        const url = new URL(firstExam.info_warning_url);
-                        newUrl = url.pathname;
+                     // Selalu arahkan ke halaman verifikasi
+                     const examId = firstExam.id || firstExam.id_sesi;
+                     if (examId) {
+                        // Ganti URL tujuan ke rute verifikasi
+                        newUrl = `/student/exam/${examId}/verify`;
                      } else {
-                        const examId = firstExam.id || firstExam.id_sesi;
-                        if (examId) {
-                           newUrl = `/student/exam/${examId}/info-warning`;
-                        }
+                        console.error("Exam ID not found in the first exam data.");
                      }
 
                      if (newUrl) {

@@ -72,6 +72,7 @@ class Peserta extends Authenticatable
         'nik',
         'kota_kabupaten',
         'provinsi',
+        'foto',
         'current_session_id',
         'is_logged_in',
         'last_activity_at'

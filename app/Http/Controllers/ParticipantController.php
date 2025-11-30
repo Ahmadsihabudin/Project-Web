@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * ParticipantController
@@ -50,13 +51,14 @@ class ParticipantController extends Controller
    public function index()
    {
       try {
-         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'kode_akses', 'asal_smk', 'jurusan', 'batch', 'status', 'no_hp', 'nik', 'kota_kabupaten', 'provinsi')
+         $participants = Peserta::select('id_peserta', 'nama_peserta', 'email', 'kode_peserta', 'kode_akses', 'asal_smk', 'jurusan', 'batch', 'status', 'no_hp', 'nik', 'kota_kabupaten', 'provinsi', 'foto')
             ->orderBy('id_peserta', 'desc')
             ->get();
          $transformedParticipants = $participants->map(function ($participant) {
             return [
                'id' => $participant->id_peserta,
                'nama' => $participant->nama_peserta,
+               'foto' => $participant->foto ? Storage::url($participant->foto) : null,
                'email' => $participant->email,
                'kode_peserta' => $participant->kode_peserta,
                'kode_akses' => $participant->kode_akses ?? '****',
@@ -158,7 +160,8 @@ class ParticipantController extends Controller
          'no_hp' => 'nullable|string|max:15|regex:/^[0-9]*$/',
          'nik' => 'nullable|string|max:16|regex:/^[0-9]*$/',
          'provinsi' => 'nullable|string|max:100',
-         'kota_kabupaten' => 'nullable|string|max:100'
+         'kota_kabupaten' => 'nullable|string|max:100',
+         'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048' // Validasi untuk foto
       ], [
          'nama.required' => 'Nama lengkap harus diisi',
          'nama.min' => 'Nama minimal 2 karakter',
@@ -174,6 +177,10 @@ class ParticipantController extends Controller
          'email.email' => 'Format email tidak valid',
          'no_hp.regex' => 'No HP hanya boleh berisi angka',
          'no_hp.max' => 'No HP maksimal 15 digit',
+         'foto.required' => 'Foto profil wajib diunggah.',
+         'foto.image' => 'File harus berupa gambar.',
+         'foto.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+         'foto.max' => 'Ukuran gambar maksimal 2MB.',
          'nik.regex' => 'NIK hanya boleh berisi angka',
          'nik.max' => 'NIK maksimal 16 digit'
       ]);
@@ -202,7 +209,14 @@ class ParticipantController extends Controller
             ]
          );
 
-         $participant = Peserta::create([
+         // Handle file upload
+         $fotoPath = null;
+         if ($request->hasFile('foto')) {
+            // Simpan foto baru dan dapatkan path-nya
+            $fotoPath = $request->file('foto')->store('photos/participants', 'public');
+         }
+
+         $participantData = [
             'nomor_urut' => $nextNomor,
             'nama_peserta' => $request->nama,
             'kode_peserta' => $kodePeserta,
@@ -215,8 +229,11 @@ class ParticipantController extends Controller
             'no_hp' => $request->no_hp ?: null,
             'nik' => $request->nik ?: null,
             'kota_kabupaten' => $request->kota_kabupaten ?: null,
-            'provinsi' => $request->provinsi ?: null
-         ]);
+            'provinsi' => $request->provinsi ?: null,
+            'foto' => $fotoPath // Simpan path foto ke database
+         ];
+
+         $participant = Peserta::create($participantData);
 
          return response()->json([
             'success' => true,
@@ -238,6 +255,11 @@ class ParticipantController extends Controller
    {
       try {
          $participant = Peserta::findOrFail($id);
+         // Tambahkan atribut foto_url jika foto ada
+         if ($participant->foto) {
+            $participant->foto_url = Storage::url($participant->foto);
+         }
+
          return response()->json([
             'success' => true,
             'data' => $participant
@@ -251,17 +273,36 @@ class ParticipantController extends Controller
    }
 
    /**
+    * Menampilkan form untuk mengedit peserta.
+    *
+    * @param  int  $id
+    * @return \Illuminate\View\View
+    */
+   public function edit($id)
+   {
+      // Cari peserta di database berdasarkan ID. Jika tidak ditemukan, akan gagal (404).
+      $participant = Peserta::findOrFail($id);
+
+      // Render view 'admin.participants.edit' dan kirimkan data peserta
+      // serta ID ke dalam view tersebut.
+      return view('admin.participants.edit', [
+         'participant' => $participant,
+         'id' => $id
+      ]);
+   }
+   /**
     * Update the specified participant
     */
    public function update(Request $request, $id)
    {
       $validator = Validator::make($request->all(), [
-         'nama' => 'required|string|max:255|min:2',
+         'nama' => 'sometimes|required|string|max:255|min:2',
          'email' => 'required|email|max:255|unique:peserta,email,' . $id . ',id_peserta',
          'asal_smk' => 'required|string|max:255',
          'jurusan' => 'nullable|string|max:255',
          'kode_peserta' => 'required|string|max:255|min:3|unique:peserta,kode_peserta,' . $id . ',id_peserta',
          'kode_akses' => 'nullable|string|min:3|max:255',
+         'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi untuk foto
          'batch' => 'required|string|max:255|min:1',
          'status' => 'required|in:aktif,tidak_aktif,berlangsung,selesai|string',
          'no_hp' => 'nullable|string|max:15|regex:/^[0-9]*$/',
@@ -277,6 +318,9 @@ class ParticipantController extends Controller
          'kode_akses.min' => 'Kode akses minimal 3 karakter',
          'batch.required' => 'Batch harus diisi',
          'asal_smk.required' => 'Asal SMK harus diisi',
+         'foto.image' => 'File harus berupa gambar.',
+         'foto.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+         'foto.max' => 'Ukuran gambar maksimal 2MB.',
          'email.required' => 'Email harus diisi',
          'email.unique' => 'Email sudah digunakan oleh peserta lain',
          'email.email' => 'Format email tidak valid',
@@ -320,6 +364,18 @@ class ParticipantController extends Controller
          ];
          if ($request->filled('kode_akses')) {
             $updateData['kode_akses'] = $request->kode_akses;
+         }
+
+         // Handle file upload
+         if ($request->hasFile('foto')) {
+            // Hapus foto lama jika ada
+            if ($participant->foto && Storage::disk('public')->exists($participant->foto)) {
+               Storage::disk('public')->delete($participant->foto);
+            }
+
+            // Simpan foto baru dan dapatkan path-nya
+            $path = $request->file('foto')->store('photos/participants', 'public');
+            $updateData['foto'] = $path;
          }
 
          $participant->update($updateData);
@@ -580,7 +636,7 @@ class ParticipantController extends Controller
          DB::beginTransaction();
 
          foreach ($dataRows as $index => $row) {
-            $rowNumber = $index + 2; 
+            $rowNumber = $index + 2;
             $isEmptyRow = true;
             for ($i = 0; $i < count($row); $i++) {
                if (!empty(trim($row[$i] ?? ''))) {
@@ -619,7 +675,8 @@ class ParticipantController extends Controller
                      'data' => $rowData,
                      'errors' => ['Nama harus diisi']
                   ];
-                  if (!$skipErrors) continue;
+                  if (!$skipErrors)
+                     continue;
                }
 
                if (empty(trim($rowData['kode_peserta']))) {
@@ -629,7 +686,8 @@ class ParticipantController extends Controller
                      'data' => $rowData,
                      'errors' => ['Kode Peserta harus diisi']
                   ];
-                  if (!$skipErrors) continue;
+                  if (!$skipErrors)
+                     continue;
                }
 
                if (empty(trim($rowData['kode_akses']))) {
@@ -639,7 +697,8 @@ class ParticipantController extends Controller
                      'data' => $rowData,
                      'errors' => ['Kode Akses harus diisi']
                   ];
-                  if (!$skipErrors) continue;
+                  if (!$skipErrors)
+                     continue;
                }
 
                if (empty(trim($rowData['batch']))) {
@@ -649,7 +708,8 @@ class ParticipantController extends Controller
                      'data' => $rowData,
                      'errors' => ['Batch harus diisi']
                   ];
-                  if (!$skipErrors) continue;
+                  if (!$skipErrors)
+                     continue;
                }
                $existingParticipant = Peserta::where('kode_peserta', $rowData['kode_peserta'])->first();
                if ($existingParticipant) {
@@ -659,7 +719,8 @@ class ParticipantController extends Controller
                      'data' => $rowData,
                      'errors' => ['Kode Peserta sudah ada di database']
                   ];
-                  if (!$skipErrors) continue;
+                  if (!$skipErrors)
+                     continue;
                }
                if (!empty($rowData['email']) && !filter_var($rowData['email'], FILTER_VALIDATE_EMAIL)) {
                   \Log::warning('Row ' . $rowNumber . ' failed validation: Format email tidak valid - ' . $rowData['email']);
@@ -668,13 +729,14 @@ class ParticipantController extends Controller
                      'data' => $rowData,
                      'errors' => ['Format email tidak valid']
                   ];
-                  if (!$skipErrors) continue;
+                  if (!$skipErrors)
+                     continue;
                }
                $batch = Batch::firstOrCreate(
                   ['nama_batch' => $rowData['batch']],
                   ['keterangan' => 'Batch untuk ' . $rowData['batch']]
                );
-               $nextNomor = !empty(trim($rowData['no'])) ? (int)$rowData['no'] : ((Peserta::max('nomor_urut') ?? 0) + 1);
+               $nextNomor = !empty(trim($rowData['no'])) ? (int) $rowData['no'] : ((Peserta::max('nomor_urut') ?? 0) + 1);
                $participantData = [
                   'nomor_urut' => $nextNomor,
                   'nama_peserta' => $rowData['nama'],
@@ -701,7 +763,8 @@ class ParticipantController extends Controller
                   'data' => $rowData ?? [],
                   'errors' => ['Terjadi kesalahan: ' . $e->getMessage()]
                ];
-               if (!$skipErrors) continue;
+               if (!$skipErrors)
+                  continue;
             }
          }
 

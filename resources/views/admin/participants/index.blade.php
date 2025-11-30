@@ -379,6 +379,7 @@
                         <thead>
                            <tr>
                               <th>No</th>
+                              <th>Foto</th>
                               <th>Nama</th>
                               <th>Email</th>
                               <th>No HP</th>
@@ -430,6 +431,7 @@
                         <thead class="table-light">
                            <tr>
                               <th>No</th>
+                              <th>Foto</th>
                               <th>Nama</th>
                               <th>Email</th>
                               <th>No HP</th>
@@ -446,6 +448,7 @@
                         <tbody>
                            <tr>
                               <td>1</td>
+                              <td></td>
                               <td>Ahmad Rizki Pratama</td>
                               <td>ahmad.rizki@smkn1.sch.id</td>
                               <td>081234567890</td>
@@ -460,6 +463,7 @@
                            </tr>
                            <tr>
                               <td>2</td>
+                              <td></td>
                               <td>Siti Nurhaliza</td>
                               <td>siti.nurhaliza@smkn2.sch.id</td>
                               <td>081234567891</td>
@@ -633,30 +637,21 @@
 
       function displayParticipants(participants) {
          console.log('Displaying participants:', participants.length);
-         const tbody = document.querySelector('#participantsTable tbody');
+         const tbody = document.getElementById('participantsTable').querySelector('tbody');
          tbody.innerHTML = '';
-
-         const uniqueSchools = new Set(participants.map(p => p.asal_smk).filter(school => school));
-         const uniqueMajors = new Set(participants.map(p => p.jurusan).filter(major => major));
-         const uniqueBatches = new Set(participants.map(p => p.batch).filter(batch => batch));
-
-         const stats = {
-            total: participants.length,
-            schools: uniqueSchools.size,
-            majors: uniqueMajors.size,
-            batches: uniqueBatches.size
-         };
-
-         displayStats(stats);
 
          updateFilteredCount(participants.length);
 
          participants.forEach((participant, index) => {
             console.log('Creating row for participant:', participant.nama);
+            // Perbaikan: Controller sudah memberikan URL lengkap.
+            // Jika participant.foto ada isinya, gunakan itu. Jika tidak, gunakan placeholder.
+            const photoUrl = participant.foto || 'https://via.placeholder.com/40';
             const row = document.createElement('tr');
             row.innerHTML = `
                <td>${index + 1}</td>
-               <td>${participant.nama || '-'}</td>
+               <td><img src="${photoUrl}" alt="Foto ${participant.nama || 'Peserta'}" width="40" height="40" style="border-radius: 50%; object-fit: cover;" onerror="this.onerror=null;this.src='https://via.placeholder.com/40';"></td>
+               <td>${participant.nama || '-'}</td> 
                <td>${participant.email || '-'}</td>
                <td>${participant.no_hp || '-'}</td>
                <td>${participant.nik || '-'}</td>
@@ -800,7 +795,7 @@
             let result;
             try {
                result = JSON.parse(responseText);
-               console.log('JSON parsed successfully:', result);
+               console.log('JSON parsed successfully:', result); 
             } catch (parseError) {
                console.error('JSON parse error:', parseError);
                console.error('Full response text:', responseText);
@@ -911,7 +906,8 @@
 
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
-         loadParticipants(); // loadParticipants sudah menghitung statistik dari data tabel
+         loadStats(); // Memuat statistik global dari server
+         loadParticipants(); // Memuat data peserta
       });
    </script>
    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

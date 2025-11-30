@@ -131,7 +131,7 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
         try {
             $idBatch = $request->input('id_batch');
             $mataPelajaran = $request->input('mata_pelajaran', []);
-            
+
             if (!$idBatch || empty($mataPelajaran)) {
                 return response()->json([
                     'success' => true,
@@ -139,7 +139,7 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
                     'total_soal' => 0
                 ]);
             }
-            
+
             // Get batch name
             $batch = App\Models\Batch::find($idBatch);
             if (!$batch) {
@@ -149,10 +149,10 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
                     'total_soal' => 0
                 ]);
             }
-            
+
             // Query soal berdasarkan batch dan mata pelajaran
             $soalQuery = App\Models\Soal::whereRaw('LOWER(TRIM(batch)) = ?', [strtolower(trim($batch->nama_batch))]);
-            
+
             if (is_array($mataPelajaran) && !empty($mataPelajaran)) {
                 $soalQuery->where(function ($query) use ($mataPelajaran) {
                     $first = true;
@@ -167,19 +167,19 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
                     }
                 });
             }
-            
+
             $soal = $soalQuery->get();
-            
+
             // Calculate total duration
             $totalDuration = 0;
             $totalSoal = $soal->count();
-            
+
             foreach ($soal as $s) {
                 if ($s->durasi_soal) {
                     $totalDuration += $s->durasi_soal;
                 }
             }
-            
+
             return response()->json([
                 'success' => true,
                 'total_duration' => $totalDuration,
@@ -227,9 +227,9 @@ Route::prefix('admin')->middleware(['custom.auth'])->group(function () {
             'jam_selesai' => $sesi->jam_selesai,
             'durasi_menit' => $sesi->durasi_menit,
             'status' => $sesi->status,
-            'hide_nomor_urut' => (bool)$sesi->hide_nomor_urut,
-            'hide_poin' => (bool)$sesi->hide_poin,
-            'hide_mata_pelajaran' => (bool)$sesi->hide_mata_pelajaran,
+            'hide_nomor_urut' => (bool) $sesi->hide_nomor_urut,
+            'hide_poin' => (bool) $sesi->hide_poin,
+            'hide_mata_pelajaran' => (bool) $sesi->hide_mata_pelajaran,
         ];
         return response()->json(['success' => true, 'data' => $payload]);
     })->name('admin.sesi-ujian.show');
@@ -422,6 +422,11 @@ Route::prefix('student')->middleware(['custom.auth'])->group(function () {
     Route::get('/exam/{id}/warning', [App\Http\Controllers\Student\ExamController::class, 'showExamWarning'])->name('student.exam.warning');
     Route::get('/exam/{id}/show', [App\Http\Controllers\Student\ExamController::class, 'showExam'])->name('student.exam.show');
     Route::post('/exam/{id}/submit', [App\Http\Controllers\Student\ExamController::class, 'submitExam'])->name('student.exam.submit');
+
+    // Rute untuk verifikasi wajah sebelum ujian
+    Route::get('/exam/{id}/verify', [App\Http\Controllers\Student\ExamController::class, 'showVerificationPage'])->name('student.exam.verify');
+    Route::post('/exam/verify/success', [App\Http\Controllers\Student\ExamController::class, 'handleVerificationSuccess'])->name('student.exam.verify.success');
+
     Route::get('/selesai', [App\Http\Controllers\Student\ExamController::class, 'pesertaSelesai'])->name('student.selesai');
 });
 

@@ -250,6 +250,54 @@
          .question-card {
             padding: 20px;
          }
+      }/* 1. KONFIGURASI VIDEO (KECIL DI POJOK) */
+      #video {
+        position: fixed; /* Melayang tetap di posisi */
+        bottom: 10px; /* Jarak dari bawah */
+        left: 10px; /* Jarak dari kiri */
+
+        width: 150px; /* Ukuran lebar kecil */
+        height: 115px; /* Ukuran tinggi proporsional */
+
+        border: 3px solid #333;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 1000; /* Selalu di atas konten soal */
+        background-color: black;
+      }
+
+      /* 2. KONFIGURASI LAYAR PERINGATAN (FULLSCREEN) */
+      #fullscreen-alert {
+        /* PENTING: Default-nya 'none' (sembunyi) */
+        display: none;
+
+        /* Membuat layer menutupi seluruh layar */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+
+        /* Warna Merah Transparan */
+        background-color: rgba(220, 20, 60, 0.95);
+        z-index: 9999; /* Paling atas menutupi segalanya */
+
+        /* Menengahkan teks */
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      #fullscreen-alert-text {
+        color: white;
+        font-size: 3em; /* Tulisan Besar */
+        font-weight: bold;
+        text-align: center;
+        padding: 20px;
+        text-transform: uppercase;
+        border: 5px solid white;
+        padding: 40px;
+         background-color: rgba(0, 0, 0, 0.2); 
       }
    </style>
 </head>
@@ -636,7 +684,124 @@
          document.getElementById('prevBtn').addEventListener('click', prevQuestion);
          document.getElementById('finishBtn').addEventListener('click', confirmSubmitExam);
       });
+   </script>
+   <!-- ========================================== -->
+   <!--       FITUR PENGAWASAN (CCTV ANTI-JOKI)    -->
+   <!-- ========================================== -->
 
+   <img id="ref-img-patrol" src="{{ asset('storage/' . $peserta->foto) }}" style="display: none;" crossorigin="anonymous">
+
+   <!-- 2. VIDEO CCTV (KECIL DI POJOK) -->
+   <video id="video-cctv" autoplay muted style="position: fixed; bottom: 10px; left: 10px; width: 150px; height: 115px; border: 3px solid #333; border-radius: 10px; z-index: 1000; object-fit: cover; background: black;"></video>
+
+   <!-- 3. ALERT FULLSCREEN -->
+   <div id="fullscreen-alert" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(220, 20, 60, 0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+      <div id="fullscreen-alert-text" style="color: white; font-size: 2em; font-weight: bold; text-align: center; padding: 20px; border: 5px solid white; background-color: rgba(0,0,0,0.2);">
+         PELANGGARAN TERDETEKSI!<br>
+         <span id="alert-message" style="font-size: 0.6em; font-weight: normal;"></span>
+      </div>
+   </div>
+
+   <!-- 4. LOAD LIBRARY DULUAN (PENTING!) -->
+   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+   <!-- 5. SCRIPT LOGIKA PATROLI -->
+   <script>
+      (function() { // Bungkus dalam fungsi agar variabel tidak bentrok
+         const videoCCTV = document.getElementById('video-cctv');
+         const refImgPatrol = document.getElementById('ref-img-patrol');
+         const alertOverlay = document.getElementById('fullscreen-alert');
+         const alertMessage = document.getElementById('alert-message');
+         
+         const MODEL_URL_PATROL = "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
+         let faceMatcherPatrol = null;
+         let isPatrolRunning = false;
+
+         // Load Model
+         Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL_PATROL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL_PATROL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL_PATROL),
+            faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL_PATROL) // Untuk foto profil
+         ]).then(initPatroli).catch(err => console.error("Gagal load AI:", err));
+
+         async function initPatroli() {
+            try {
+               console.log("Memulai CCTV Patroli...");
+               
+               // A. Proses Foto Database
+               if (refImgPatrol.complete) {
+                   await processReference();
+               } else {
+                   refImgPatrol.onload = processReference;
+               }
+
+               async function processReference() {
+                   const refDetection = await faceapi.detectSingleFace(refImgPatrol, new faceapi.SsdMobilenetv1Options())
+                       .withFaceLandmarks().withFaceDescriptor();
+                   
+                   if (!refDetection) {
+                       console.warn("Foto profil database tidak terbaca AI. Patroli Joki dinonaktifkan sementara.");
+                       return;
+                   }
+
+                   faceMatcherPatrol = new faceapi.FaceMatcher(refDetection);
+                   startWebcam();
+               }
+
+            } catch (e) {
+               console.error("Error init patrol:", e);
+            }
+         }
+
+         async function startWebcam() {
+             try {
+                 const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                 videoCCTV.srcObject = stream;
+                 isPatrolRunning = true;
+                 jalankanPatroli();
+             } catch (err) {
+                 console.error("Gagal akses kamera untuk patroli:", err);
+                 alert("Wajib menyalakan kamera untuk ujian ini!");
+             }
+         }
+
+         function jalankanPatroli() {
+            // Cek setiap 5 detik
+            setInterval(async () => {
+               if (!isPatrolRunning || !faceMatcherPatrol) return;
+
+               // 1. Deteksi Wajah di Webcam
+               const detection = await faceapi.detectSingleFace(videoCCTV, new faceapi.TinyFaceDetectorOptions())
+                  .withFaceLandmarks().withFaceDescriptor();
+
+               if (detection) {
+                  // 2. Bandingkan dengan Foto Database
+                  const match = faceMatcherPatrol.findBestMatch(detection.descriptor);
+                  
+                  // Jika Unknown (Beda Orang)
+                  if (match.label === 'unknown') {
+                     tampilkanLayarMerah("WAJAH TIDAK SESUAI! (Indikasi Joki)");
+                  } else {
+                     // Jika Cocok, sembunyikan layar merah jika sedang tampil
+                     alertOverlay.style.display = 'none';
+                  }
+               } else {
+                  // Jika Wajah Hilang (Opsional: bisa ditegur juga)
+                  // tampilkanLayarMerah("WAJAH TIDAK TERLIHAT!");
+               }
+            }, 5000); 
+         }
+
+         function tampilkanLayarMerah(pesan) {
+            alertMessage.innerText = pesan;
+            alertOverlay.style.display = 'flex';
+            
+            // Opsional: Kirim log ke server
+            // console.log("Pelanggaran:", pesan);
+         }
+      })();
    </script>
 </body>
 

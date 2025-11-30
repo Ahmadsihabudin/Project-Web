@@ -11,6 +11,7 @@ use App\Helpers\SecurityHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Session; // PENTING: Tambahan ini
 
 class ExamController extends Controller
 {
@@ -131,6 +132,8 @@ class ExamController extends Controller
     */
    public function startExam(Request $request, $id)
    {
+      // Logika di controller ini sudah digantikan oleh Student/ExamController.php
+
       try {
          $pesertaId = session('user_id');
          $exam = Ujian::with(['soal'])
@@ -231,6 +234,10 @@ class ExamController extends Controller
       }
 
       try {
+         // --- RESET SESSION SETELAH SUBMIT ---
+         session()->forget('is_face_verified_' . $id);
+         // ------------------------------------
+
          $pesertaId = session('user_id');
          $answers = $request->answers;
          $exam = Ujian::with(['soal'])->findOrFail($id);
@@ -300,5 +307,52 @@ class ExamController extends Controller
             'message' => 'Gagal menyelesaikan ujian: ' . $e->getMessage()
          ], 500);
       }
+   }
+
+   // ==================================================
+   // === FUNGSI BARU: VERIFIKASI WAJAH (CHECK-IN) ===
+   // ==================================================
+
+   public function showVerificationPage(Request $request, $id_ujian)
+   {
+      $pesertaId = session('user_id');
+      $peserta = Peserta::find($pesertaId);
+      $ujian = Ujian::find($id_ujian);
+
+      if (!$peserta || !$ujian) {
+         return redirect('/dashboard')->with('error', 'Data peserta/ujian tidak ditemukan.');
+      }
+
+      // Pastikan kolom 'foto' ada di tabel peserta
+      if (empty($peserta->foto)) {
+         return redirect('/dashboard')->with('error', 'Foto profil belum ada. Hubungi admin.');
+      }
+
+      return view('students.verify', [
+         'peserta' => $peserta,
+         'ujian' => $ujian,
+         'id_ujian' => $id_ujian
+      ]);
+   }
+
+   public function markAsVerified(Request $request)
+   {
+      $validator = Validator::make($request->all(), [
+         'id_ujian' => 'required|numeric'
+      ]);
+
+      if ($validator->fails()) {
+         return response()->json(['success' => false, 'message' => 'ID Ujian Error.'], 400);
+      }
+
+      $id_ujian = $request->input('id_ujian');
+
+      // Simpan Session (Izin Masuk)
+      session(['is_face_verified_' . $id_ujian => true]);
+
+      return response()->json([
+         'success' => true,
+         'message' => 'Verifikasi berhasil.'
+      ]);
    }
 }

@@ -118,6 +118,22 @@
                                  <input type="email" class="form-control" id="email" name="email" required>
                               </div>
                               <div class="mb-3">
+    <label for="foto" class="form-label">Foto Profil <span class="text-danger">*</span></label>
+    <input type="file" class="form-control @error('foto') is-invalid @enderror"
+            id="foto" name="foto" accept="image/*" onchange="previewImage()" required>
+    <div class="form-text text-muted">Format: JPG/PNG, Maks 2MB.</div>
+    
+    <!-- Preview Image Container -->
+    <div class="mt-2" style="width: 150px; height: 200px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px;">
+        <img id="frame" src="" class="img-fluid d-none" style="max-height: 100%; max-width: 100%; object-fit: cover; border-radius: 6px;">
+        <span id="placeholder-text" class="text-muted small">Preview</span>
+    </div>
+
+    @error('foto')
+    <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
+</div>
+                              <div class="mb-3">
                                  <label for="no_hp" class="form-label fw-bold">No HP</label>
                                  <input type="tel" class="form-control" id="no_hp" name="no_hp" placeholder="Contoh: 081234567890" maxlength="15" pattern="[0-9]*" inputmode="numeric">
                                  <small class="form-text text-muted">Hanya angka, maksimal 15 digit</small>
@@ -335,35 +351,20 @@
 
          try {
             const formData = new FormData(event.target);
-
-            console.log('All form data:');
-            for (let [key, value] of formData.entries()) {
-               console.log(`  ${key}: ${value}`);
-            }
-
-            const participantData = {
-               nama: formData.get('nama'),
-               email: formData.get('email'),
-               kode_akses: formData.get('kode_akses'),
-               asal_smk: formData.get('asal_smk'),
-               kode_peserta: formData.get('kode_peserta'),
-               jurusan: formData.get('jurusan'),
-               batch: formData.get('batch'),
-               no_hp: formData.get('no_hp'),
-               nik: formData.get('nik'),
-               kota_kabupaten: formData.get('kota_kabupaten'),
-               provinsi: formData.get('provinsi')
-            };
-
-            console.log('Participant Data to be sent:', participantData);
+            // Tidak perlu membuat objek participantData manual lagi,
+            // FormData sudah berisi semua data form termasuk file.
 
             const response = await fetch('/admin/participants', {
                method: 'POST',
                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': csrfToken
+                  // 'Content-Type' jangan di-set manual saat menggunakan FormData,
+                  // biarkan browser yang mengaturnya secara otomatis ke 'multipart/form-data'
+                  // beserta boundary yang diperlukan.
+                  'X-CSRF-TOKEN': csrfToken,
+                  'Accept': 'application/json',
                },
-               body: JSON.stringify(participantData)
+               // Kirim langsung objek FormData
+               body: formData
             });
 
             const result = await response.json();
@@ -409,7 +410,17 @@
             });
          }
       }
+function previewImage() {
+    const image = document.getElementById('foto');
+    const frame = document.getElementById('frame');
+    const placeholder = document.getElementById('placeholder-text');
 
+    if(image.files && image.files[0]){
+        frame.src = URL.createObjectURL(image.files[0]);
+        frame.classList.remove('d-none');
+        if(placeholder) placeholder.classList.add('d-none');
+    }
+}
       document.addEventListener('DOMContentLoaded', function() {
          console.log('DOM Content Loaded');
 
